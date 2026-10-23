@@ -1,0 +1,238 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  password        String
+  phone           String?
+  college         String?
+  academicYear    String?
+  universityEmail String?
+  universityId    String?
+  role            String           @default("STUDENT") // ADMIN, CHAIR_PERSON, VICE_CHAIR, INSTRUCTOR, STUDENT
+  trackTeamRole   String?          // HEAD, VICE_HEAD, CORE_TEAM
+  assignedTrackId String?
+  status          String           @default("PENDING") // PENDING, APPROVED, SUSPENDED, REJECTED
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  assignedTrack   Track?           @relation("TrackInstructors", fields: [assignedTrackId], references: [id], onDelete: SetNull)
+  enrollments     TrackEnrollment[]
+  attendances     AttendanceRecord[]
+  taskSubmissions TaskSubmission[]
+  bonusPoints     BonusPoint[]
+}
+
+model Track {
+  id              String            @id @default(cuid())
+  name            String            @unique
+  description     String?
+  icon            String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  instructors     User[]            @relation("TrackInstructors")
+  enrollments     TrackEnrollment[]
+  sessions        Session[]
+  tasks           Task[]
+  bonusPoints     BonusPoint[]
+  weeklySchedules WeeklySchedule[]
+}
+
+model TrackEnrollment {
+  id         String   @id @default(cuid())
+  userId     String
+  trackId    String
+  enrolledAt DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track      Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trackId])
+}
+
+model Session {
+  id            String             @id @default(cuid())
+  trackId       String
+  title         String
+  description   String?
+  date          String             // YYYY-MM-DD
+  time          String?            // e.g. "04:00 PM"
+  location      String?            // Hall or online link
+  materials     String?            // JSON string: [{ title, url, type }]
+  checkInCode   String?            // 6-digit live check-in / QR code
+  codeExpiresAt DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  track         Track              @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  attendance    AttendanceRecord[]
+}
+
+model AttendanceRecord {
+  id        String   @id @default(cuid())
+  sessionId String
+  studentId String
+  status    String   @default("PRESENT") // PRESENT, LATE, EXCUSED, ABSENT
+  notes     String?
+  markedAt  DateTime @default(now())
+
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, studentId])
+}
+
+model WeeklySchedule {
+  id         String   @id @default(cuid())
+  trackId    String
+  dayOfWeek  String   // e.g. "Monday"
+  time       String   // e.g. "06:00 PM"
+  location   String   // e.g. "Lab 204 / Google Meet"
+  topic      String   // e.g. "Advanced SQL & Database Indexing"
+  emailSent  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  track      Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id            String           @id @default(cuid())
+  trackId       String
+  title         String
+  description   String
+  maxScore      Float            @default(100)
+  deadline      DateTime
+  isClosed      Boolean          @default(false)
+  materialsLink String?          // Reference or template Drive link
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  track         Track            @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  submissions   TaskSubmission[]
+}
+
+model TaskSubmission {
+  id           String    @id @default(cuid())
+  taskId       String
+  studentId    String
+  solutionLink String    // Google Drive link etc.
+  notes        String?
+  score        Float?
+  feedback     String?
+  gradedAt     DateTime?
+  gradedBy     String?
+  submittedAt  DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  task         Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  student      User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, studentId])
+}
+
+model BonusPoint {
+  id        String   @id @default(cuid())
+  trackId   String
+  studentId String
+  points    Float
+  reason    String   // e.g. Competition / Activity
+  awardedBy String?
+  createdAt DateTime @default(now())
+
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model ScoreSetting {
+  id               String   @id @default("default")
+  attendancePoints Float    @default(10.0) // points awarded for PRESENT status
+  latePoints       Float    @default(5.0)  // points awarded for LATE status
+  taskWeight       Float    @default(1.0)
+  bonusWeight      Float    @default(1.0)
+  updatedAt        DateTime @updatedAt
+}
+
+model BranchLeader {
+  id           String   @id @default(cuid())
+  name         String
+  roleTitle    String   // e.g. Academic Supervisor, Chairperson, Vice Chair
+  affiliation  String?  // e.g. EELU Aswan Faculty of IT
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Announcement {
+  id         String   @id @default(cuid())
+  title      String
+  content    String
+  category   String   @default("GENERAL") // GENERAL, SCHEDULE, TASK, URGENT
+  trackId    String?  // null = Branch-wide broadcast
+  authorName String   @default("Branch Administration")
+  createdAt  DateTime @default(now())
+}
+
+model SessionEvaluation {
+  id             String   @id @default(cuid())
+  sessionId      String
+  studentId      String
+  studentName    String?
+  instructorName String?
+  instructorRole String?
+  clarityRating  Int      @default(5) // 1 to 5 (Explanation & Information delivery)
+  materialRating Int      @default(5) // 1 to 5 (Lecture materials quality)
+  overallRating  Int      @default(5) // 1 to 5
+  feedbackText   String?
+  createdAt      DateTime @default(now())
+
+  @@unique([sessionId, studentId])
+}
+
+model Certificate {
+  id             String   @id @default(cuid())
+  studentId      String
+  studentName    String
+  studentEmail   String?
+  trackId        String
+  trackName      String
+  certificateNo  String   @unique
+  issueDate      String   // YYYY-MM-DD
+  grade          String   @default("Distinction") // Excellent, Distinction, Honors
+  supervisorName String   @default("Eng. Abdelrahman Mahmoud")
+  chairName      String   @default("Dr. Chairperson")
+  createdAt      DateTime @default(now())
+}
+
+model HallSlot {
+  id              String    @id @default(cuid())
+  hallName        String    // e.g. "Campus Computer Lab 204", "Hall 1", "Auditorium A"
+  dayOfWeek       String    // e.g. "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
+  date            String?   // optional specific date e.g. "2026-10-25"
+  timeSlot        String    // e.g. "10:00 AM - 12:00 PM", "06:00 PM - 08:00 PM"
+  capacity        Int?      @default(50)
+  notes           String?
+  status          String    @default("AVAILABLE") // "AVAILABLE" | "BOOKED"
+  bookedTrackId   String?
+  bookedTrackName String?
+  bookedById      String?
+  bookedByName    String?
+  bookedAt        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model SystemSetting {
+  key       String   @id // e.g. "supervisor_card"
+  value     String   // JSON string
+  updatedAt DateTime @updatedAt
+}
