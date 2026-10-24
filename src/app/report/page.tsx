@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import TopNav from "@/components/TopNav";
 import Sidebar from "@/components/Sidebar";
+import { exportToCSV } from "@/lib/exportCsv";
 import {
   Printer,
   Calendar,
@@ -115,6 +116,45 @@ export default function ReportExportSuitePage() {
     window.print();
   };
 
+  const handleExportTrackCSV = () => {
+    if (!track) return;
+    const headers = [
+      "Rank",
+      "Student Name",
+      "Email",
+      "Phone",
+      "College / Faculty",
+      "Academic Year",
+      "Sessions Attended",
+      "Attendance Rate (%)",
+      "Attendance Points",
+      "Tasks Score",
+      "Bonus Points",
+      "Cumulative Total Score",
+      "Track Name",
+      "Report Date",
+    ];
+
+    const rows = reportRows.map((r) => [
+      r.rank,
+      r.name,
+      r.email,
+      r.phone || "-",
+      r.college || "-",
+      r.academicYear || "-",
+      r.presentCount,
+      `${r.attendanceRate}%`,
+      r.attendanceScore,
+      r.tasksScore,
+      r.bonusScore,
+      r.totalScore,
+      track.name,
+      generatedAt,
+    ]);
+
+    exportToCSV(`EELU_Report_${track.name}`, headers, rows);
+  };
+
   const headInstructor = track?.instructors.find((i) => i.trackTeamRole === "HEAD");
   const viceInstructor = track?.instructors.find((i) => i.trackTeamRole === "VICE_HEAD");
   const coreInstructors = track?.instructors.filter((i) => i.trackTeamRole === "CORE_TEAM") || [];
@@ -201,6 +241,17 @@ export default function ReportExportSuitePage() {
                     ))}
                   </select>
                 </div>
+              )}
+
+              {reportMode === "TRACK_MATRIX" && reportRows.length > 0 && (
+                <button
+                  onClick={handleExportTrackCSV}
+                  className="px-4 py-2.5 rounded-xl bg-[#0F243A] hover:bg-[#1E3A5F] border border-[#269CF0]/40 text-[#48D5F5] font-black text-xs transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
+                  title="Export official performance matrix to Excel (.csv)"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  Export Excel (.csv)
+                </button>
               )}
 
               <button

@@ -6,6 +6,7 @@ import TopNav from "@/components/TopNav";
 import Sidebar from "@/components/Sidebar";
 import Link from "next/link";
 import QRCode from "qrcode";
+import { exportToCSV } from "@/lib/exportCsv";
 import {
   Users,
   CheckCircle2,
@@ -22,6 +23,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Timer,
+  FileSpreadsheet,
 } from "lucide-react";
 
 interface StudentAttendance {
@@ -224,6 +226,41 @@ export default function ClassroomAttendanceSessionPage() {
     } finally {
       if (!silent) setGeneratingCode(false);
     }
+  };
+
+  const handleExportCSV = () => {
+    if (!session) return;
+    const headers = [
+      "#",
+      "Student Name",
+      "Email",
+      "Phone",
+      "College / Faculty",
+      "Academic Year",
+      "Attendance Status",
+      "Notes / Comments",
+      "Recorded",
+      "Session Title",
+      "Track Name",
+      "Session Date",
+    ];
+
+    const rows = students.map((s, idx) => [
+      idx + 1,
+      s.student.name,
+      s.student.email,
+      s.student.phone || "-",
+      s.student.college || "-",
+      s.student.academicYear || "-",
+      s.status,
+      s.notes || "-",
+      s.isMarked ? "Yes" : "No",
+      session.title,
+      session.track?.name || "-",
+      session.date,
+    ]);
+
+    exportToCSV(`Attendance_${session.track?.name || "Track"}_${session.title}`, headers, rows);
   };
 
   const handleVerifyStudentCode = async (e: React.FormEvent) => {
@@ -462,6 +499,14 @@ export default function ClassroomAttendanceSessionPage() {
                   className="px-3 py-1.5 rounded-xl bg-[#07172A] border border-[#1E3A5F] text-rose-400 hover:bg-rose-500/10 font-bold text-xs transition-colors"
                 >
                   Mark All Absent
+                </button>
+                <button
+                  onClick={handleExportCSV}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#0F243A] hover:bg-[#1E3A5F] border border-[#269CF0]/40 text-[#48D5F5] font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  title="Export classroom attendance to Excel / CSV"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  Export Excel (.csv)
                 </button>
                 <button
                   onClick={handleSave}

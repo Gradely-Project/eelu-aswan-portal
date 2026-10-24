@@ -345,8 +345,30 @@ export default function WeightedLeaderboardPage() {
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="font-bold text-[#F5F7FB] block">{st.name}</span>
-                          <span className="text-[10px] text-[#8FA4BD] font-mono">{st.email}</span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-[#F5F7FB]">{st.name}</span>
+                            {st.rank === 1 && (
+                              <span title="المتصدر الأول (Track Champion)" className="inline-flex items-center text-[11px] bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded-md text-amber-400">
+                                👑 بطل التراك
+                              </span>
+                            )}
+                            {st.rank > 1 && st.rank <= 3 && (
+                              <span title="Top 3 Podium Elite" className="inline-flex items-center text-[11px] bg-blue-500/15 border border-blue-500/30 px-1.5 py-0.5 rounded-md text-blue-400">
+                                🏆 Top 3
+                              </span>
+                            )}
+                            {st.attendanceRate >= 100 && (
+                              <span title="حضور كامل 100%" className="inline-flex items-center text-[11px] bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded-md text-emerald-400">
+                                🎯 100% حضور
+                              </span>
+                            )}
+                            {st.bonusScore > 0 && (
+                              <span title="صائد بونص" className="inline-flex items-center text-[11px] bg-purple-500/15 border border-purple-500/30 px-1.5 py-0.5 rounded-md text-purple-400">
+                                ⚡ بونص
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-[#8FA4BD] font-mono block mt-0.5">{st.email}</span>
                         </td>
                         <td className="py-3 px-4 text-[#8FA4BD]">
                           {st.college || "-"} {st.academicYear && `(${st.academicYear})`}

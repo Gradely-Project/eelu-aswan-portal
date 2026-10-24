@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { computeStudentBadges } from "@/lib/badges";
 import {
   Calendar,
   FileCheck2,
@@ -28,6 +29,7 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
   const [sessions, setSessions] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [studentStats, setStudentStats] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Quick Self Check-in Code input
@@ -59,6 +61,15 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
 
       if (sessRes.sessions) setSessions(sessRes.sessions);
       if (annRes.announcements) setAnnouncements(annRes.announcements);
+
+      if (user?.id) {
+        fetch(`/api/reports/student/${user.id}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d?.stats) setStudentStats(d.stats);
+          })
+          .catch(() => {});
+      }
 
       // Fetch tasks for each enrolled track
       const enrolledTracks = user?.enrollments || [];
@@ -298,6 +309,71 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
           </div>
         )}
       </div>
+
+      {/* Gamification & Academic Achievement Badges */}
+      {(() => {
+        const badges = computeStudentBadges(studentStats || {});
+        const unlockedCount = badges.filter((b) => b.isUnlocked).length;
+        return (
+          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 sm:p-8 shadow-md">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+                  <Award className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#E5A93C] block">
+                    ACADEMIC GAMIFICATION & ACHIEVEMENTS
+                  </span>
+                  <h2 className="text-xl font-black text-[#F5F7FB]">
+                    Student Badges & Honors (الأوسمة والإنجازات الأكاديمية)
+                  </h2>
+                </div>
+              </div>
+              <div className="text-xs text-[#8FA4BD] font-semibold bg-[#07172A] px-3 py-1.5 rounded-xl border border-[#1E3A5F] w-fit">
+                Unlocked: <span className="font-bold text-emerald-400">{unlockedCount}</span> / {badges.length} Badges
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              {badges.map((badge) => (
+                <div
+                  key={badge.id}
+                  className={`p-4 rounded-2xl border transition-all ${
+                    badge.isUnlocked
+                      ? `${badge.bgColor} ${badge.color} shadow-sm shadow-blue-950`
+                      : "bg-[#07172A]/60 border-[#1E3A5F]/60 opacity-60 text-[#8FA4BD]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-2xl">{badge.icon}</span>
+                    {badge.isUnlocked ? (
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                        مكتمل
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#10243C] text-[#8FA4BD] border border-[#1E3A5F]">
+                        قيد التقدم
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="font-black text-xs text-white mb-0.5">{badge.nameAr}</h4>
+                  <span className="text-[10px] text-[#8FA4BD] block font-mono mb-2">{badge.name}</span>
+                  <p className="text-[11px] text-[#8FA4BD] line-clamp-2 leading-relaxed">
+                    {badge.description}
+                  </p>
+                  {badge.progressText && (
+                    <div className="mt-3 pt-2 border-t border-[#1E3A5F]/40 text-[10px] font-bold text-[#48D5F5] flex items-center justify-between">
+                      <span>الإحصائية:</span>
+                      <span>{badge.progressText}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Main Content Grid: Lectures & Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
