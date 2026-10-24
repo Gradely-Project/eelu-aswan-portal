@@ -37,9 +37,23 @@ export async function GET(req: Request) {
     const students = await prisma.user.findMany({
       where: whereClause,
       orderBy: { createdAt: "desc" },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        status: true,
+        college: true,
+        academicYear: true,
+        universityId: true,
+        universityEmail: true,
+        assignedTrackId: true,
+        createdAt: true,
         enrollments: {
-          include: {
+          select: {
+            id: true,
+            trackId: true,
             track: {
               select: { id: true, name: true },
             },

@@ -26,7 +26,14 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ tracks });
+    return NextResponse.json(
+      { tracks },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+        },
+      }
+    );
   } catch (error) {
     console.error("GET /api/tracks error:", error);
     return NextResponse.json({ error: "Failed to load tracks." }, { status: 500 });

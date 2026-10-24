@@ -47,7 +47,14 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({ leaders });
+    return NextResponse.json(
+      { leaders },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300",
+        },
+      }
+    );
   } catch (error) {
     console.error("GET /api/leadership error:", error);
     return NextResponse.json({ error: "Failed to load branch leadership." }, { status: 500 });

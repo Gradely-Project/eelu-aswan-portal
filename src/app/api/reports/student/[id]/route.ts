@@ -55,6 +55,19 @@ export async function GET(
       return NextResponse.json({ error: "Student not found." }, { status: 404 });
     }
 
+    // Instructors are strictly restricted to students enrolled in their assigned track
+    if (user.role === "INSTRUCTOR") {
+      const isStudentInTrack = student.enrollments.some(
+        (e) => e.trackId === user.assignedTrackId
+      );
+      if (!isStudentInTrack) {
+        return NextResponse.json(
+          { error: "Access restricted: You can only view audit reports for students in your assigned track." },
+          { status: 403 }
+        );
+      }
+    }
+
     // Build timeline of attendance across all enrolled sessions
     const attendanceMap = new Map(student.attendances.map((a) => [a.sessionId, a]));
     const submissionMap = new Map(student.taskSubmissions.map((s) => [s.taskId, s]));

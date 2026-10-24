@@ -94,12 +94,11 @@ export async function POST(req: Request) {
           })),
         },
       },
-      include: {
-        enrollments: {
-          include: {
-            track: true,
-          },
-        },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        status: true,
       },
     });
 

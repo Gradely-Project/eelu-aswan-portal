@@ -77,15 +77,32 @@ export async function GET(req: Request) {
           some: { trackId },
         },
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        college: true,
+        academicYear: true,
         attendances: {
           where: { session: { trackId } },
+          select: {
+            sessionId: true,
+            status: true,
+          },
         },
         taskSubmissions: {
           where: { task: { trackId } },
+          select: {
+            taskId: true,
+            score: true,
+          },
         },
         bonusPoints: {
           where: { trackId },
+          select: {
+            points: true,
+          },
         },
       },
       orderBy: { name: "asc" },

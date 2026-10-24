@@ -37,11 +37,35 @@ export async function getCurrentUser() {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      include: {
-        assignedTrack: true,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        college: true,
+        academicYear: true,
+        universityId: true,
+        universityEmail: true,
+        role: true,
+        status: true,
+        trackTeamRole: true,
+        assignedTrackId: true,
+        assignedTrack: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         enrollments: {
-          include: {
-            track: true,
+          select: {
+            id: true,
+            trackId: true,
+            track: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
       },

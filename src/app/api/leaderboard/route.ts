@@ -55,10 +55,19 @@ export async function GET(req: Request) {
           some: { trackId },
         },
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        college: true,
+        academicYear: true,
         attendances: {
           where: {
             session: { trackId },
+          },
+          select: {
+            status: true,
           },
         },
         taskSubmissions: {
@@ -66,12 +75,19 @@ export async function GET(req: Request) {
             task: { trackId },
             score: { not: null },
           },
-          include: {
+          select: {
+            score: true,
             task: { select: { title: true, maxScore: true } },
           },
         },
         bonusPoints: {
           where: { trackId },
+          select: {
+            id: true,
+            points: true,
+            reason: true,
+            createdAt: true,
+          },
         },
       },
     });

@@ -32,10 +32,21 @@ export async function GET(
       return NextResponse.json({ error: "التاسك غير موجود." }, { status: 404 });
     }
 
-    const { error } = await requireTrackAccess(task.trackId);
-    if (error) return error;
+    const { error, user } = await requireTrackAccess(task.trackId);
+    if (error || !user) return error;
 
-    return NextResponse.json({ task });
+    // If STUDENT, only return their own submission (never expose other students' work)
+    const sanitizedSubmissions =
+      user.role === "STUDENT"
+        ? task.submissions.filter((s) => s.studentId === user.id)
+        : task.submissions;
+
+    return NextResponse.json({
+      task: {
+        ...task,
+        submissions: sanitizedSubmissions,
+      },
+    });
   } catch (error) {
     console.error("GET /api/tasks/[id] error:", error);
     return NextResponse.json({ error: "فشل تحميل تفاصيل التاسك" }, { status: 500 });

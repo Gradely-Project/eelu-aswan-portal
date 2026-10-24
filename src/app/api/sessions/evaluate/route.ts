@@ -29,6 +29,22 @@ export async function GET(req: Request) {
       return NextResponse.json({ evaluation });
     }
 
+    // Verify track access for staff
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      select: { trackId: true },
+    });
+    if (!session) {
+      return NextResponse.json({ error: "Session not found." }, { status: 404 });
+    }
+
+    if (user.role === "INSTRUCTOR" && user.assignedTrackId !== session.trackId) {
+      return NextResponse.json(
+        { error: "Unauthorized. You can only view evaluations for your assigned track." },
+        { status: 403 }
+      );
+    }
+
     // Staff view: all evaluations for this session + aggregate stats
     const evaluations = await prisma.sessionEvaluation.findMany({
       where: { sessionId },

@@ -12,8 +12,20 @@ export async function GET() {
       where: {
         role: "INSTRUCTOR",
       },
-      include: {
-        assignedTrack: true,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        trackTeamRole: true,
+        assignedTrackId: true,
+        assignedTrack: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        createdAt: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -83,7 +95,15 @@ export async function POST(req: Request) {
           assignedTrackId: trackId,
           status: "APPROVED",
         },
-        include: { assignedTrack: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          trackTeamRole: true,
+          assignedTrackId: true,
+          assignedTrack: { select: { id: true, name: true } },
+        },
       });
 
       return NextResponse.json({
@@ -111,7 +131,15 @@ export async function POST(req: Request) {
           assignedTrackId: trackId,
           status: "APPROVED",
         },
-        include: { assignedTrack: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          trackTeamRole: true,
+          assignedTrackId: true,
+          assignedTrack: { select: { id: true, name: true } },
+        },
       });
 
       return NextResponse.json({

@@ -20,15 +20,17 @@ export async function GET() {
       where: { key: "supervisor_card" },
     });
 
+    const headers = { "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300" };
+
     if (!setting) {
-      return NextResponse.json({ info: DEFAULT_SUPERVISOR_INFO });
+      return NextResponse.json({ info: DEFAULT_SUPERVISOR_INFO }, { headers });
     }
 
     try {
       const parsed = JSON.parse(setting.value);
-      return NextResponse.json({ info: { ...DEFAULT_SUPERVISOR_INFO, ...parsed } });
+      return NextResponse.json({ info: { ...DEFAULT_SUPERVISOR_INFO, ...parsed } }, { headers });
     } catch {
-      return NextResponse.json({ info: DEFAULT_SUPERVISOR_INFO });
+      return NextResponse.json({ info: DEFAULT_SUPERVISOR_INFO }, { headers });
     }
   } catch (err) {
     console.error("GET /api/admin/supervisor-info error:", err);

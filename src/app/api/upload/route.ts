@@ -28,6 +28,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "File size exceeds 25MB limit." }, { status: 400 });
     }
 
+    // Strict extension whitelist
+    const ALLOWED_EXTENSIONS = [
+      "pdf", "ppt", "pptx", "doc", "docx", "xls", "xlsx",
+      "txt", "rtf", "csv", "png", "jpg", "jpeg", "webp",
+      "zip", "rar", "7z", "tar", "gz"
+    ];
+
+    const cleanOriginalName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const ext = cleanOriginalName.split(".").pop()?.toLowerCase() || "";
+
+    if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
+      return NextResponse.json(
+        { error: `File type (.${ext || "unknown"}) is not allowed. Supported formats: PDF, Office docs, images, and archives.` },
+        { status: 400 }
+      );
+    }
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
@@ -36,7 +53,6 @@ export async function POST(req: Request) {
 
     // Sanitize file name
     const timestamp = Date.now();
-    const cleanOriginalName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const uniqueFileName = `${timestamp}-${cleanOriginalName}`;
     const filePath = path.join(uploadsDir, uniqueFileName);
 
@@ -45,13 +61,11 @@ export async function POST(req: Request) {
     const fileUrl = `/uploads/${uniqueFileName}`;
 
     // Detect general category
-    const ext = cleanOriginalName.split(".").pop()?.toLowerCase() || "";
     let detectedType = "other";
-    if (["pdf"].includes(ext)) detectedType = "slides";
-    else if (["ppt", "pptx"].includes(ext)) detectedType = "slides";
-    else if (["doc", "docx", "txt", "rtf"].includes(ext)) detectedType = "other";
-    else if (["png", "jpg", "jpeg", "webp", "svg"].includes(ext)) detectedType = "dataset";
-    else if (["zip", "rar", "tar", "gz"].includes(ext)) detectedType = "code";
+    if (["pdf", "ppt", "pptx"].includes(ext)) detectedType = "slides";
+    else if (["doc", "docx", "txt", "rtf", "xls", "xlsx", "csv"].includes(ext)) detectedType = "other";
+    else if (["png", "jpg", "jpeg", "webp"].includes(ext)) detectedType = "dataset";
+    else if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) detectedType = "code";
 
     return NextResponse.json({
       success: true,

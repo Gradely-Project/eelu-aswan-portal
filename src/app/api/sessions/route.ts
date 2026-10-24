@@ -59,7 +59,14 @@ export async function GET(req: Request) {
       },
     });
 
-    return NextResponse.json({ sessions });
+    const isStaff = ["ADMIN", "CHAIR_PERSON", "VICE_CHAIR", "INSTRUCTOR"].includes(user.role);
+    const sanitizedSessions = sessions.map((sess) => ({
+      ...sess,
+      checkInCode: isStaff ? sess.checkInCode : null,
+      codeExpiresAt: isStaff ? sess.codeExpiresAt : null,
+    }));
+
+    return NextResponse.json({ sessions: sanitizedSessions });
   } catch (error) {
     console.error("GET /api/sessions error:", error);
     return NextResponse.json({ error: "Failed to load sessions." }, { status: 500 });

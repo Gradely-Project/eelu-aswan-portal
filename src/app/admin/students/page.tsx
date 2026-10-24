@@ -72,7 +72,11 @@ export default function AdminStudentsDirectoryPage() {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((d) => {
-        if (d.user) setUser(d.user);
+        if (!d.user || d.user.role === "STUDENT") {
+          window.location.href = "/dashboard";
+        } else {
+          setUser(d.user);
+        }
       })
       .catch(() => {});
   }, []);
