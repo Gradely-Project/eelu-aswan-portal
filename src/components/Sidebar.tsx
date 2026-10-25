@@ -49,14 +49,7 @@ export default function Sidebar({
   const pathname = usePathname();
   const [internalMobileOpen, setInternalMobileOpen] = useState(false);
 
-  // Synchronous initial role from cache to completely avoid navigation flickering
-  const [effectiveRole, setEffectiveRole] = useState<string>(() => {
-    if (userRole) return userRole;
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("eelu_user_role") || "STUDENT";
-    }
-    return "STUDENT";
-  });
+  const [effectiveRole, setEffectiveRole] = useState<string>(userRole || "");
 
   // Dynamic Supervisor Card State
   const [supervisor, setSupervisor] = useState<SupervisorInfo>({
@@ -84,15 +77,17 @@ export default function Sidebar({
       if (typeof window !== "undefined") {
         localStorage.setItem("eelu_user_role", userRole);
       }
-    } else if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("eelu_user_role");
-      if (cached) setEffectiveRole(cached);
+    } else {
+      setEffectiveRole("");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("eelu_user_role");
+      }
     }
   }, [userRole]);
 
   // Fetch Supervisor Info
   useEffect(() => {
-    fetch("/api/admin/supervisor-info")
+    fetch("/api/admin/supervisor-info", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (data.info) {

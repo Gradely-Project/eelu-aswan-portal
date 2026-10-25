@@ -44,19 +44,19 @@ export default function LandingPage() {
   const [dynamicTracks, setDynamicTracks] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch("/api/leadership")
+    fetch("/api/leadership", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
-        if (data.leaders && data.leaders.length > 0) {
+        if (Array.isArray(data.leaders)) {
           setLeaders(data.leaders);
         }
       })
       .catch(() => {});
 
-    fetch("/api/tracks")
+    fetch("/api/tracks", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
-        if (data.tracks && data.tracks.length > 0) {
+        if (Array.isArray(data.tracks)) {
           setDynamicTracks(data.tracks);
         }
       })

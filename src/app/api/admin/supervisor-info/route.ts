@@ -20,7 +20,7 @@ export async function GET() {
       where: { key: "supervisor_card" },
     });
 
-    const headers = { "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300" };
+    const headers = { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" };
 
     if (!setting) {
       return NextResponse.json({ info: DEFAULT_SUPERVISOR_INFO }, { headers });

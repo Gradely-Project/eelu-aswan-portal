@@ -121,8 +121,16 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      const meRes = await fetch("/api/auth/me");
+      const meRes = await fetch("/api/auth/me", { cache: "no-store" });
+      if (!meRes.ok) {
+        window.location.href = "/login";
+        return;
+      }
       const meData = await meRes.json();
+      if (!meData.user) {
+        window.location.href = "/login";
+        return;
+      }
       setUser(meData.user);
 
       const targetTrackId = meData.user?.role === "INSTRUCTOR" ? meData.user?.assignedTrackId : selectedTrackId;
@@ -247,7 +255,22 @@ export default function DashboardPage() {
     return matchesSearch && matchesTrack;
   });
 
-  if (user?.role === "STUDENT") {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#07172A] text-[#F5F7FB] flex items-center justify-center font-sans">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-[#269CF0] border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-semibold text-[#8FA4BD]">Verifying session & loading portal...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  if (user.role === "STUDENT") {
     return (
       <div className="min-h-screen bg-[#07172A] text-[#F5F7FB] flex flex-col font-sans">
         <TopNav selectedTrackId={selectedTrackId} onTrackChange={(id) => setSelectedTrackId(id)} />

@@ -120,6 +120,9 @@ export default function TopNav({
 
   const handleLogout = async () => {
     try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("eelu_user_role");
+      }
       await fetch("/api/auth/logout", { method: "POST" });
       router.push("/");
       router.refresh();

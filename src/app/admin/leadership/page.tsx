@@ -40,7 +40,7 @@ export default function LeadershipManagementPage() {
 
   const fetchLeaders = async () => {
     try {
-      const res = await fetch("/api/leadership");
+      const res = await fetch("/api/leadership", { cache: "no-store" });
       const data = await res.json();
       if (data.leaders) {
         setLeaders(data.leaders);
