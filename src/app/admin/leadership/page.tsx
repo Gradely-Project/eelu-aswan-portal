@@ -138,6 +138,7 @@ export default function LeadershipManagementPage() {
         return;
       }
       setSuccess(`Removed "${leaderName}" successfully.`);
+      setLeaders((prev) => prev.filter((l) => l.id !== id));
       fetchLeaders();
     } catch {
       setError("Failed to delete leadership member.");

@@ -107,12 +107,12 @@ export default function TopNav({
       })
       .catch(() => {});
 
-    fetch("/api/tracks")
+    fetch("/api/tracks", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => setTracks(data.tracks || []))
       .catch(() => {});
 
-    fetch("/api/announcements")
+    fetch("/api/announcements", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => setAnnouncements(d.announcements || []))
       .catch(() => {});

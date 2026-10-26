@@ -122,8 +122,10 @@ export default function AdminTracksPage() {
         return;
       }
 
+      const targetId = deleteTrackTarget.id;
       setSuccess(data.message || `Track "${deleteTrackTarget.name}" deleted.`);
       setDeleteTrackTarget(null);
+      setTracks((prev) => prev.filter((t) => t.id !== targetId));
       await fetchTracks();
     } catch {
       setError("Failed to delete track.");

@@ -42,6 +42,8 @@ export default function LandingPage() {
   // Dynamic leadership list & active tracks list
   const [leaders, setLeaders] = useState<Leader[]>([]);
   const [dynamicTracks, setDynamicTracks] = useState<any[]>([]);
+  const [tracksLoaded, setTracksLoaded] = useState(false);
+  const [leadersLoaded, setLeadersLoaded] = useState(false);
 
   useEffect(() => {
     fetch("/api/leadership", { cache: "no-store" })
@@ -51,7 +53,8 @@ export default function LandingPage() {
           setLeaders(data.leaders);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLeadersLoaded(true));
 
     fetch("/api/tracks", { cache: "no-store" })
       .then((res) => res.json())
@@ -60,7 +63,8 @@ export default function LandingPage() {
           setDynamicTracks(data.tracks);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setTracksLoaded(true));
   }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -244,7 +248,7 @@ export default function LandingPage() {
     },
   ];
 
-  const activeLeaders = leaders.length > 0 ? leaders : defaultLeaders;
+  const activeLeaders = leadersLoaded ? leaders : defaultLeaders;
 
   const getLeaderIcon = (roleTitle: string, index: number) => {
     const t = roleTitle.toLowerCase();
@@ -487,7 +491,12 @@ export default function LandingPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {(dynamicTracks.length > 0 ? dynamicTracks : tracks).map((trk: any) => {
+          {tracksLoaded && dynamicTracks.length === 0 ? (
+            <div className="col-span-full py-12 text-center text-[#8FA4BD] bg-[#0D1D32] border border-[#1E3A5F] rounded-2xl">
+              No active training tracks currently available.
+            </div>
+          ) : (
+            (tracksLoaded ? dynamicTracks : tracks).map((trk: any) => {
             const meta = getTrackMeta(trk.name);
             const Icon = trk.icon || meta.icon;
             const tag = trk.tag || meta.tag;
@@ -542,7 +551,7 @@ export default function LandingPage() {
                 </div>
               </div>
             );
-          })}
+          }))}
         </div>
       </section>
 
