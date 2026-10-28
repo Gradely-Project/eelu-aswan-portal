@@ -337,11 +337,8 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-none flex items-center gap-1.5">
+            <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-none">
               EELU Aswan Branch
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#E5A93C]/15 text-[#E5A93C] font-mono border border-[#E5A93C]/30">
-                أسوان
-              </span>
             </span>
             <span className="text-[10px] font-bold text-[#E5A93C] tracking-wider uppercase mt-1">
               STUDENT ACADEMY PORTAL
@@ -379,13 +376,6 @@ export default function LandingPage() {
           
           {/* Left Column: Slogans & Mission (lg:col-span-7) */}
           <div className="lg:col-span-7 flex flex-col justify-center text-left">
-            {/* Aswan Regional Heritage Identity Banner */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0D1D32] border border-[#E5A93C]/40 text-[#F5F7FB] text-xs font-bold mb-4 w-fit shadow-md">
-              <span className="w-2 h-2 rounded-full bg-[#E5A93C] animate-ping" />
-              <span className="text-[#E5A93C] font-black">🏛️ فرع أسوان • EELU Aswan</span>
-              <span className="text-[#8FA4BD] hidden sm:inline">| بوابة صعيد مصر التكنولوجية وروافد النيل</span>
-            </div>
-
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0D1D32] border border-[#1E3A5F] text-[#48D5F5] text-xs font-bold mb-6 w-fit shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-[#E5A93C]" />
               Official Academic Season

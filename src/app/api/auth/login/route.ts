@@ -72,11 +72,15 @@ export async function POST(req: Request) {
       );
     }
 
-    // Update last login timestamp
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
+    // Safely update last login timestamp without blocking successful auth
+    try {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
+      });
+    } catch (updateErr) {
+      console.warn("Failed to update lastLoginAt (non-blocking):", updateErr);
+    }
 
     // Create session token
     const token = signJwtToken({
