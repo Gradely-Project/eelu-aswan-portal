@@ -92,13 +92,17 @@ export async function POST(req: Request) {
         update: {
           status: "PRESENT",
           markedAt: new Date(),
-          notes: "Self check-in via dynamic session code",
+          notes: "Self check-in via dynamic QR / session code",
+          verificationMethod: "QR_CODE",
+          verifiedBy: "QR Code (Self Check-in)",
         },
         create: {
           sessionId,
           studentId: user.id,
           status: "PRESENT",
-          notes: "Self check-in via dynamic session code",
+          notes: "Self check-in via dynamic QR / session code",
+          verificationMethod: "QR_CODE",
+          verifiedBy: "QR Code (Self Check-in)",
         },
       });
 

@@ -13,6 +13,15 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useState(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get("suspended") === "1") {
+        setError("⚠️ تم تجميد وتعليق حسابك بواسطة إدارة الفرع. برجاء مراجعة الإدارة.");
+      }
+    }
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -31,6 +40,11 @@ export default function LoginPage() {
         setError(data.error || "Failed to sign in.");
         setLoading(false);
         return;
+      }
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("eelu_user_role", data.user.role);
+        localStorage.setItem("eelu_user", JSON.stringify(data.user));
       }
 
       router.push("/dashboard");

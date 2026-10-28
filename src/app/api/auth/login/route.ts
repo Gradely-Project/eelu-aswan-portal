@@ -72,6 +72,12 @@ export async function POST(req: Request) {
       );
     }
 
+    // Update last login timestamp
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
     // Create session token
     const token = signJwtToken({
       userId: user.id,
@@ -92,6 +98,7 @@ export async function POST(req: Request) {
         trackTeamRole: user.trackTeamRole,
         assignedTrackId: user.assignedTrackId,
         assignedTrackName: user.assignedTrack?.name,
+        lastLoginAt: new Date().toISOString(),
       },
     });
 

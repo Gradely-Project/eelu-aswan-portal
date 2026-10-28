@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { requireAuth } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
@@ -48,17 +46,32 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadsDir, { recursive: true });
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yhmzilfqdubjygmokghz.supabase.co";
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_skmzLJHAGopLTz7IY20C0Q_0xlWvPhA";
 
     // Sanitize file name
     const timestamp = Date.now();
-    const uniqueFileName = `${timestamp}-${cleanOriginalName}`;
-    const filePath = path.join(uploadsDir, uniqueFileName);
+    const uniqueFileName = `${timestamp}_${cleanOriginalName}`;
 
-    await writeFile(filePath, buffer);
+    // Upload directly to Supabase Storage "materials" bucket (Binary storage - ultra low egress, no base64 in DB)
+    const uploadRes = await fetch(`${supabaseUrl}/storage/v1/object/materials/${encodeURIComponent(uniqueFileName)}`, {
+      method: "POST",
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        "Content-Type": file.type || "application/octet-stream",
+        "x-upsert": "true",
+      },
+      body: buffer,
+    });
 
-    const fileUrl = `/uploads/${uniqueFileName}`;
+    if (!uploadRes.ok) {
+      const errText = await uploadRes.text();
+      console.error("Supabase storage upload error:", errText);
+      throw new Error("Failed to store file in cloud storage: " + errText);
+    }
+
+    const fileUrl = `${supabaseUrl}/storage/v1/object/public/materials/${encodeURIComponent(uniqueFileName)}`;
 
     // Detect general category
     let detectedType = "other";

@@ -59,6 +59,12 @@ export default function ReportExportSuitePage() {
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [studentAuditData, setStudentAuditData] = useState<any | null>(null);
   const [studentLoading, setStudentLoading] = useState(false);
+  const [userRole, setUserRole] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("eelu_user_role") || "ADMIN";
+    }
+    return "ADMIN";
+  });
 
   useEffect(() => {
     Promise.all([
@@ -67,6 +73,7 @@ export default function ReportExportSuitePage() {
     ])
       .then(([meData, trackData]) => {
         const u = meData.user;
+        if (u?.role) setUserRole(u.role);
         const allTracks = trackData.tracks || [];
         if (u?.role === "INSTRUCTOR" && u.assignedTrackId) {
           const myTracks = allTracks.filter((t: any) => t.id === u.assignedTrackId);
@@ -164,7 +171,7 @@ export default function ReportExportSuitePage() {
       <TopNav />
 
       <div className="flex flex-1">
-        <Sidebar userRole="ADMIN" />
+        <Sidebar userRole={userRole} />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
           {/* Top Control Bar (Screen only, hidden during print) */}
@@ -464,9 +471,6 @@ export default function ReportExportSuitePage() {
                     <span className="text-xl font-black text-blue-900 uppercase">
                       {track.name}
                     </span>
-                    <span className="text-xs text-slate-600 block mt-1 font-semibold">
-                      Student ID: {studentAuditData.student.id.slice(-8).toUpperCase()}
-                    </span>
                   </div>
                 </div>
 
@@ -571,7 +575,6 @@ export default function ReportExportSuitePage() {
                       <tr className="bg-slate-100 font-bold border-y border-slate-300">
                         <th className="py-2 px-3">Session Title</th>
                         <th className="py-2 px-3">Date & Time</th>
-                        <th className="py-2 px-3">Classroom / Location</th>
                         <th className="py-2 px-3 text-center">Attendance Status</th>
                         <th className="py-2 px-3">Remarks / Verification</th>
                       </tr>
@@ -579,7 +582,7 @@ export default function ReportExportSuitePage() {
                     <tbody className="divide-y divide-slate-200">
                       {studentAuditData.attendanceHistory.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="py-4 text-center text-slate-500">
+                          <td colSpan={4} className="py-4 text-center text-slate-500">
                             No session records recorded yet.
                           </td>
                         </tr>
@@ -591,9 +594,6 @@ export default function ReportExportSuitePage() {
                             </td>
                             <td className="py-2 px-3 text-slate-600 font-mono text-[11px]">
                               {att.date} {att.time ? `• ${att.time}` : ""}
-                            </td>
-                            <td className="py-2 px-3 text-slate-600">
-                              {att.location || "-"}
                             </td>
                             <td className="py-2 px-3 text-center">
                               <span
@@ -633,6 +633,7 @@ export default function ReportExportSuitePage() {
                     <thead>
                       <tr className="bg-slate-100 font-bold border-y border-slate-300">
                         <th className="py-2 px-3">Task Title</th>
+                        <th className="py-2 px-3 text-center">Status</th>
                         <th className="py-2 px-3">Submission Link</th>
                         <th className="py-2 px-3 text-center">Score</th>
                         <th className="py-2 px-3">Instructor Feedback</th>
@@ -642,7 +643,7 @@ export default function ReportExportSuitePage() {
                     <tbody className="divide-y divide-slate-200">
                       {studentAuditData.taskSubmissions.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="py-4 text-center text-slate-500">
+                          <td colSpan={6} className="py-4 text-center text-slate-500">
                             No assignments assigned yet.
                           </td>
                         </tr>
@@ -651,6 +652,28 @@ export default function ReportExportSuitePage() {
                           <tr key={idx} className="hover:bg-slate-50">
                             <td className="py-2 px-3 font-bold text-slate-950">
                               {task.taskTitle}
+                            </td>
+                            <td className="py-2 px-3 text-center">
+                              {task.status === "GRADED" && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                  Graded
+                                </span>
+                              )}
+                              {task.status === "SUBMITTED" && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-blue-100 text-blue-800 border border-blue-300">
+                                  Submitted
+                                </span>
+                              )}
+                              {task.status === "PENDING" && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-300">
+                                  Pending
+                                </span>
+                              )}
+                              {task.status === "MISSED" && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-100 text-rose-800 border border-rose-300">
+                                  Missed
+                                </span>
+                              )}
                             </td>
                             <td className="py-2 px-3">
                               {task.solutionLink ? (
@@ -663,8 +686,8 @@ export default function ReportExportSuitePage() {
                                   {task.solutionLink}
                                 </a>
                               ) : (
-                                <span className="text-rose-600 font-bold text-[10px]">
-                                  Not Submitted
+                                <span className="text-slate-400 font-medium text-[10px]">
+                                  {task.status === "PENDING" ? "Waiting submission" : "No submission"}
                                 </span>
                               )}
                             </td>
@@ -691,7 +714,7 @@ export default function ReportExportSuitePage() {
                 </div>
 
                 {/* Official Signatures */}
-                <div className="pt-8 border-t-2 border-slate-300 grid grid-cols-4 gap-4 text-center text-xs">
+                <div className="pt-8 border-t-2 border-slate-300 grid grid-cols-3 gap-6 text-center text-xs">
                   <div>
                     <span className="font-bold text-slate-700 block mb-12 uppercase text-[10px]">
                       Academic Supervisor
@@ -709,13 +732,6 @@ export default function ReportExportSuitePage() {
                   <div>
                     <span className="font-bold text-slate-700 block mb-12 uppercase text-[10px]">
                       Branch Chairperson
-                    </span>
-                    <span className="text-slate-400 block font-mono">...................................</span>
-                  </div>
-
-                  <div>
-                    <span className="font-bold text-slate-700 block mb-12 uppercase text-[10px]">
-                      Official Branch Seal
                     </span>
                     <span className="text-slate-400 block font-mono">...................................</span>
                   </div>

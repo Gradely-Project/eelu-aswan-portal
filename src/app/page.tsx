@@ -87,6 +87,11 @@ export default function LandingPage() {
         return;
       }
 
+      if (typeof window !== "undefined") {
+        localStorage.setItem("eelu_user_role", data.user.role);
+        localStorage.setItem("eelu_user", JSON.stringify(data.user));
+      }
+
       router.push("/dashboard");
       router.refresh();
     } catch {
@@ -192,6 +197,54 @@ export default function LandingPage() {
     },
   ];
 
+  const getTrackGradientTheme = (index: number) => {
+    const themes = [
+      {
+        cardBorder: "border-amber-500/30 hover:border-amber-400/80 shadow-amber-500/5",
+        iconBg: "bg-amber-500/10 text-amber-400 border-amber-500/30",
+        titleGradient: "from-amber-300 via-amber-200 to-yellow-400",
+        badge: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+        tag: "FEATURED",
+      },
+      {
+        cardBorder: "border-cyan-500/30 hover:border-cyan-400/80 shadow-cyan-500/5",
+        iconBg: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
+        titleGradient: "from-cyan-300 via-sky-200 to-blue-400",
+        badge: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
+        tag: "POPULAR",
+      },
+      {
+        cardBorder: "border-emerald-500/30 hover:border-emerald-400/80 shadow-emerald-500/5",
+        iconBg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+        titleGradient: "from-emerald-300 via-teal-200 to-green-400",
+        badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+        tag: "OPEN NOW",
+      },
+      {
+        cardBorder: "border-rose-500/30 hover:border-rose-400/80 shadow-rose-500/5",
+        iconBg: "bg-rose-500/10 text-rose-400 border-rose-500/30",
+        titleGradient: "from-rose-300 via-pink-200 to-rose-400",
+        badge: "bg-rose-500/15 text-rose-300 border-rose-500/30",
+        tag: "CREATIVE",
+      },
+      {
+        cardBorder: "border-indigo-500/30 hover:border-indigo-400/80 shadow-indigo-500/5",
+        iconBg: "bg-indigo-500/10 text-indigo-400 border-indigo-500/30",
+        titleGradient: "from-indigo-300 via-violet-200 to-purple-400",
+        badge: "bg-indigo-500/15 text-indigo-300 border-indigo-500/30",
+        tag: "EXECUTIVE",
+      },
+      {
+        cardBorder: "border-sky-500/30 hover:border-sky-400/80 shadow-sky-500/5",
+        iconBg: "bg-sky-500/10 text-sky-400 border-sky-500/30",
+        titleGradient: "from-sky-300 via-blue-200 to-indigo-400",
+        badge: "bg-sky-500/15 text-sky-300 border-sky-500/30",
+        tag: "ACTIVE",
+      },
+    ];
+    return themes[index % themes.length];
+  };
+
   const getTrackMeta = (name: string) => {
     const n = (name || "").toLowerCase();
     if (n.includes("ai") || n.includes("intelligence") || n.includes("machine")) {
@@ -266,22 +319,29 @@ export default function LandingPage() {
       {/* Top Header Navbar */}
       <header className="h-20 bg-[#07172A]/90 backdrop-blur-md border-b border-[#1E3A5F]/70 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3.5">
-          <div
-            className="relative w-12 h-12 rounded-2xl overflow-hidden bg-[#0B1A2D] p-1.5 border border-cyan-500/30 shadow-lg ring-1 ring-cyan-500/20 flex-shrink-0"
-            style={{ width: "48px", height: "48px", minWidth: "48px", minHeight: "48px" }}
-          >
-            <Image
-              src="/logo.jpeg"
-              alt="EELU Branch Logo"
-              width={48}
-              height={48}
-              className="w-full h-full object-contain rounded-xl"
-              priority
-            />
+          {/* Glowing Animated Ambient Ring around Logo */}
+          <div className="relative p-[2px] rounded-2xl bg-gradient-to-tr from-[#269CF0] via-[#E5A93C] to-[#48D5F5] shadow-lg shadow-cyan-500/25 group">
+            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-amber-300 to-blue-500 opacity-70 blur-[3px] animate-pulse" />
+            <div
+              className="relative w-12 h-12 rounded-2xl overflow-hidden bg-[#07172A] p-1 flex-shrink-0 flex items-center justify-center"
+              style={{ width: "48px", height: "48px", minWidth: "48px", minHeight: "48px" }}
+            >
+              <Image
+                src="/logo.jpeg"
+                alt="EELU Branch Logo"
+                width={48}
+                height={48}
+                className="w-full h-full object-contain rounded-xl"
+                priority
+              />
+            </div>
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-none">
+            <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-none flex items-center gap-1.5">
               EELU Aswan Branch
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#E5A93C]/15 text-[#E5A93C] font-mono border border-[#E5A93C]/30">
+                أسوان
+              </span>
             </span>
             <span className="text-[10px] font-bold text-[#E5A93C] tracking-wider uppercase mt-1">
               STUDENT ACADEMY PORTAL
@@ -303,13 +363,13 @@ export default function LandingPage() {
           >
             Governance
           </button>
-          <Link
-            href="/register"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white text-xs font-black shadow-lg shadow-[#269CF0]/25 transition-all hover:scale-105"
+          <button
+            onClick={() => scrollToSection("signin")}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white text-xs font-black shadow-lg shadow-[#269CF0]/25 transition-all hover:scale-105 cursor-pointer"
           >
-            Apply for Admission
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+            <LogIn className="w-3.5 h-3.5" />
+            Sign In to Portal
+          </button>
         </div>
       </header>
 
@@ -319,7 +379,14 @@ export default function LandingPage() {
           
           {/* Left Column: Slogans & Mission (lg:col-span-7) */}
           <div className="lg:col-span-7 flex flex-col justify-center text-left">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0D1D32] border border-[#1E3A5F] text-[#48D5F5] text-xs font-bold mb-6 w-fit shadow-sm">
+            {/* Aswan Regional Heritage Identity Banner */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0D1D32] border border-[#E5A93C]/40 text-[#F5F7FB] text-xs font-bold mb-4 w-fit shadow-md">
+              <span className="w-2 h-2 rounded-full bg-[#E5A93C] animate-ping" />
+              <span className="text-[#E5A93C] font-black">🏛️ فرع أسوان • EELU Aswan</span>
+              <span className="text-[#8FA4BD] hidden sm:inline">| بوابة صعيد مصر التكنولوجية وروافد النيل</span>
+            </div>
+
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0D1D32] border border-[#1E3A5F] text-[#48D5F5] text-xs font-bold mb-6 w-fit shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-[#E5A93C]" />
               Official Academic Season
             </div>
@@ -496,11 +563,11 @@ export default function LandingPage() {
               No active training tracks currently available.
             </div>
           ) : (
-            (tracksLoaded ? dynamicTracks : tracks).map((trk: any) => {
+            (tracksLoaded ? dynamicTracks : tracks).map((trk: any, index: number) => {
+            const theme = getTrackGradientTheme(index);
             const meta = getTrackMeta(trk.name);
             const Icon = trk.icon || meta.icon;
-            const tag = trk.tag || meta.tag;
-            const tagColor = trk.tagColor || meta.tagColor;
+            const tag = trk.tag || theme.tag || meta.tag;
             const duration = trk.duration || meta.duration;
             const level = trk.level || meta.level;
             const description = trk.description || "Comprehensive hands-on training bootcamp with live practical projects.";
@@ -508,21 +575,21 @@ export default function LandingPage() {
             return (
               <div
                 key={trk.id || trk.name}
-                className="bg-[#0D1D32] rounded-3xl p-6 border border-[#1E3A5F] hover:border-[#269CF0]/50 transition-all group flex flex-col justify-between hover:-translate-y-1 shadow-lg"
+                className={`bg-[#0D1D32] rounded-3xl p-6 border ${theme.cardBorder} transition-all group flex flex-col justify-between hover:-translate-y-1.5 shadow-xl`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-2xl bg-[#07172A] border border-[#1E3A5F] flex items-center justify-center text-[#269CF0] group-hover:scale-110 transition-transform">
+                    <div className={`w-11 h-11 rounded-2xl ${theme.iconBg} border flex items-center justify-center group-hover:scale-110 transition-transform`}>
                       <Icon className="w-5 h-5" />
                     </div>
                     <span
-                      className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${tagColor}`}
+                      className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${theme.badge}`}
                     >
                       {tag}
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-black text-[#F5F7FB] mb-1 group-hover:text-[#269CF0] transition-colors">
+                  <h3 className={`text-xl font-black bg-gradient-to-r ${theme.titleGradient} bg-clip-text text-transparent mb-1 transition-all`}>
                     {trk.name}
                   </h3>
                   <span className="text-[10px] font-bold text-[#8FA4BD] tracking-wider uppercase block mb-3">
@@ -533,7 +600,7 @@ export default function LandingPage() {
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-[#1E3A5F] flex items-center justify-between text-xs text-[#8FA4BD]">
+                <div className="pt-4 border-t border-[#1E3A5F]/70 flex items-center justify-between text-xs text-[#8FA4BD]">
                   <div className="flex items-center gap-3">
                     <span className="flex items-center gap-1 text-[11px]">
                       <Clock className="w-3.5 h-3.5 text-[#269CF0]" />
@@ -544,7 +611,7 @@ export default function LandingPage() {
                   </div>
                   <Link
                     href="/register"
-                    className="p-1.5 rounded-lg bg-[#07172A] text-[#269CF0] group-hover:bg-[#269CF0] group-hover:text-white transition-colors"
+                    className="p-1.5 rounded-lg bg-[#07172A] text-[#48D5F5] group-hover:bg-[#269CF0] group-hover:text-white transition-colors"
                   >
                     <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -618,7 +685,7 @@ export default function LandingPage() {
       {/* Footer with exact Abdelrahman Mahmoud LinkedIn credit */}
       <footer className="mt-auto py-8 text-center text-xs text-[#8FA4BD] border-t border-[#1E3A5F]/50 px-4">
         <p className="font-semibold text-[#F5F7FB]">
-          © {new Date().getFullYear()} EELU Aswan Student Branch & Data Academy. All rights reserved.
+          © {new Date().getFullYear()} EELU Aswan Student Branch Portal. All rights reserved.
         </p>
 
         <div className="mt-3 flex items-center justify-center gap-2 text-xs">

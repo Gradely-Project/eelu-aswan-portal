@@ -50,6 +50,7 @@ export default function WeightedLeaderboardPage() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [selectedTrackId, setSelectedTrackId] = useState<string>("");
   const [leaderboard, setLeaderboard] = useState<RankedStudent[]>([]);
+  const [trackStats, setTrackStats] = useState<{ totalSessions: number; totalTasks: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Bonus Modal
@@ -60,6 +61,13 @@ export default function WeightedLeaderboardPage() {
   const [submittingBonus, setSubmittingBonus] = useState(false);
   const [bonusSuccess, setBonusSuccess] = useState<string | null>(null);
   const [bonusError, setBonusError] = useState<string | null>(null);
+
+  // Admin Manual Adjustment Modal
+  const [showAdjustModal, setShowAdjustModal] = useState(false);
+  const [adjustStudent, setAdjustStudent] = useState<RankedStudent | null>(null);
+  const [adjustPoints, setAdjustPoints] = useState<number>(0);
+  const [adjustReason, setAdjustReason] = useState<string>("Manual Admin Override");
+  const [submittingAdjust, setSubmittingAdjust] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -99,6 +107,7 @@ export default function WeightedLeaderboardPage() {
       const data = await res.json();
       if (res.ok) {
         setLeaderboard(data.leaderboard || []);
+        if (data.stats) setTrackStats(data.stats);
       }
     } catch (e) {
       console.error(e);
@@ -153,6 +162,39 @@ export default function WeightedLeaderboardPage() {
       setBonusError("Network error.");
     } finally {
       setSubmittingBonus(false);
+    }
+  };
+
+  const handleAdminAdjust = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTrackId || !adjustStudent) return;
+    setSubmittingAdjust(true);
+
+    try {
+      const res = await fetch("/api/bonus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          trackId: selectedTrackId,
+          studentId: adjustStudent.id,
+          points: adjustPoints,
+          reason: adjustReason.trim() || "Manual Admin Adjustment",
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setShowAdjustModal(false);
+        setAdjustStudent(null);
+        await fetchLeaderboard(selectedTrackId);
+        alert(data.message || "Leaderboard score successfully adjusted.");
+      } else {
+        alert(data.error || "Failed to adjust score.");
+      }
+    } catch {
+      alert("Network error.");
+    } finally {
+      setSubmittingAdjust(false);
     }
   };
 
@@ -311,18 +353,21 @@ export default function WeightedLeaderboardPage() {
                     <th className="py-3 px-4 text-center">Tasks Pts</th>
                     <th className="py-3 px-4 text-center">Bonus Pts</th>
                     <th className="py-3 px-4 text-center">Total Score</th>
+                    {user?.role === "ADMIN" && (
+                      <th className="py-3 px-4 text-center">Admin Controls</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1E3A5F]/60">
                   {loading ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-[#8FA4BD]">
+                      <td colSpan={user?.role === "ADMIN" ? 8 : 7} className="py-8 text-center text-[#8FA4BD]">
                         Calculating track leaderboard...
                       </td>
                     </tr>
                   ) : leaderboard.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-[#8FA4BD]">
+                      <td colSpan={user?.role === "ADMIN" ? 8 : 7} className="py-8 text-center text-[#8FA4BD]">
                         No graded records available for this track yet.
                       </td>
                     </tr>
@@ -348,23 +393,28 @@ export default function WeightedLeaderboardPage() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-bold text-[#F5F7FB]">{st.name}</span>
                             {st.rank === 1 && (
-                              <span title="المتصدر الأول (Track Champion)" className="inline-flex items-center text-[11px] bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded-md text-amber-400">
+                              <span title="المتصدر الأول (Track Champion)" className="inline-flex items-center text-[10px] font-black bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full text-amber-400">
                                 👑 بطل التراك
                               </span>
                             )}
                             {st.rank > 1 && st.rank <= 3 && (
-                              <span title="Top 3 Podium Elite" className="inline-flex items-center text-[11px] bg-blue-500/15 border border-blue-500/30 px-1.5 py-0.5 rounded-md text-blue-400">
+                              <span title="Top 3 Podium Elite" className="inline-flex items-center text-[10px] font-black bg-blue-500/15 border border-blue-500/30 px-2 py-0.5 rounded-full text-blue-400">
                                 🏆 Top 3
                               </span>
                             )}
                             {st.attendanceRate >= 100 && (
-                              <span title="حضور كامل 100%" className="inline-flex items-center text-[11px] bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded-md text-emerald-400">
+                              <span title="حضور كامل لكافة الجلسات 100%" className="inline-flex items-center text-[10px] font-black bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full text-emerald-400">
                                 🎯 100% حضور
                               </span>
                             )}
+                            {trackStats && trackStats.totalTasks > 0 && st.submittedTasksCount >= trackStats.totalTasks && (
+                              <span title="تسليم وإنجاز كافة المهام والتاسكات المطلوبة" className="inline-flex items-center text-[10px] font-black bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-full text-cyan-300">
+                                ⚡ إنجاز كافة المهام
+                              </span>
+                            )}
                             {st.bonusScore > 0 && (
-                              <span title="صائد بونص" className="inline-flex items-center text-[11px] bg-purple-500/15 border border-purple-500/30 px-1.5 py-0.5 rounded-md text-purple-400">
-                                ⚡ بونص
+                              <span title="وسام تميز وبونص تفوق إداري" className="inline-flex items-center text-[10px] font-black bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-full text-purple-300">
+                                🌟 وسام التميز (+{st.bonusScore})
                               </span>
                             )}
                           </div>
@@ -387,6 +437,23 @@ export default function WeightedLeaderboardPage() {
                             {st.totalScore}
                           </span>
                         </td>
+                        {user?.role === "ADMIN" && (
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              onClick={() => {
+                                setAdjustStudent(st);
+                                setAdjustPoints(0);
+                                setAdjustReason("تعديل يدوي - الإدارة المركزية");
+                                setShowAdjustModal(true);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-[#E5A93C]/15 hover:bg-[#E5A93C]/25 text-[#E5A93C] border border-[#E5A93C]/30 font-bold text-xs transition-colors inline-flex items-center gap-1 cursor-pointer"
+                              title="تعديل الدرجة يدويًا (الادمن فقط)"
+                            >
+                              <Sliders className="w-3.5 h-3.5" />
+                              تعديل الدرجة
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))
                   )}
@@ -468,6 +535,90 @@ export default function WeightedLeaderboardPage() {
                       className="px-5 py-2.5 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black"
                     >
                       {submittingBonus ? "Granting..." : "Confirm & Award Points"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Modal: Admin Manual Score Override (ADMIN ONLY) */}
+          {showAdjustModal && adjustStudent && user?.role === "ADMIN" && (
+            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-[#0D1D32] border border-[#E5A93C]/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="p-2 rounded-xl bg-[#E5A93C]/20 text-[#E5A93C]">
+                    <Sliders className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-xl font-black text-[#F5F7FB]">Manual Score Override</h3>
+                    <p className="text-[11px] text-[#E5A93C] font-bold">صلاحية حصرية للأدمن الرئيسي فقط</p>
+                  </div>
+                </div>
+
+                <div className="my-4 p-3.5 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-[#8FA4BD]">الطالب:</span>
+                    <span className="font-bold text-white">{adjustStudent.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8FA4BD]">المجموع الحالي:</span>
+                    <span className="font-mono font-bold text-[#48D5F5]">{adjustStudent.totalScore} pts</span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleAdminAdjust} className="space-y-4 text-xs">
+                  <div>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">
+                      درجة التعديل (+ للزيادة أو - للخصم) *
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      value={adjustPoints}
+                      onChange={(e) => setAdjustPoints(parseFloat(e.target.value) || 0)}
+                      placeholder="e.g. 15 or -10"
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C] font-mono text-center text-base font-black"
+                    />
+                    <p className="text-[11px] text-[#8FA4BD] mt-1">
+                      النتيجة الجديدة المتوقعة:{" "}
+                      <strong className="text-emerald-400">
+                        {Math.round((adjustStudent.totalScore + adjustPoints) * 10) / 10}
+                      </strong>{" "}
+                      نقطة
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">سبب التعديل أو القرار الإداري *</label>
+                    <input
+                      type="text"
+                      required
+                      value={adjustReason}
+                      onChange={(e) => setAdjustReason(e.target.value)}
+                      placeholder="e.g. قرار إداري / مراجعة أكاديمية / تميز خاص"
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C]"
+                    />
+                  </div>
+
+                  <div className="pt-4 border-t border-[#1E3A5F] flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAdjustModal(false);
+                        setAdjustStudent(null);
+                      }}
+                      className="px-4 py-2 rounded-xl text-[#8FA4BD] hover:text-white font-bold cursor-pointer"
+                    >
+                      إلغاء
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submittingAdjust}
+                      className="px-5 py-2.5 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black cursor-pointer shadow-lg disabled:opacity-50"
+                    >
+                      {submittingAdjust ? "جاري الحفظ..." : "حفظ وتعديل الترتيب فوراً"}
                     </button>
                   </div>
                 </form>

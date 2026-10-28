@@ -33,6 +33,12 @@ export default function AnalyticsPage() {
   const [selectedTrackId, setSelectedTrackId] = useState<string>("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("eelu_user_role") || "ADMIN";
+    }
+    return "ADMIN";
+  });
 
   // Detailed Modal
   const [auditStudentId, setAuditStudentId] = useState<string | null>(null);
@@ -98,7 +104,7 @@ export default function AnalyticsPage() {
       />
 
       <div className="flex flex-1">
-        <Sidebar userRole="ADMIN" />
+        <Sidebar userRole={userRole} />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

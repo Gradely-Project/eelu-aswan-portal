@@ -15,6 +15,8 @@ import {
   Calendar,
   FileCheck2,
   ExternalLink,
+  KeyRound,
+  Lock,
 } from "lucide-react";
 
 interface StudentItem {
@@ -25,6 +27,7 @@ interface StudentItem {
   college: string | null;
   academicYear: string | null;
   status: string;
+  lastLoginAt?: string | null;
   createdAt: string;
   enrollments: Array<{ track: { id: string; name: string } }>;
 }
@@ -51,6 +54,39 @@ export default function AdminStudentsDirectoryPage() {
   const [auditStudentId, setAuditStudentId] = useState<string | null>(null);
   const [auditData, setAuditData] = useState<any | null>(null);
   const [auditLoading, setAuditLoading] = useState(false);
+
+  // Admin Password Reset Modal
+  const [passwordModalStudent, setPasswordModalStudent] = useState<StudentItem | null>(null);
+  const [newPasswordVal, setNewPasswordVal] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordModalStudent || !newPasswordVal.trim()) return;
+    setSavingPassword(true);
+    try {
+      const res = await fetch("/api/admin/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId: passwordModalStudent.id,
+          newPassword: newPasswordVal.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || "Password updated successfully.");
+        setPasswordModalStudent(null);
+        setNewPasswordVal("");
+      } else {
+        alert(data.error || "Failed to reset password.");
+      }
+    } catch {
+      alert("Network error.");
+    } finally {
+      setSavingPassword(false);
+    }
+  };
 
   const fetchStudents = async () => {
     try {
@@ -289,6 +325,7 @@ export default function AdminStudentsDirectoryPage() {
                     <th className="py-3 px-4">Student Name</th>
                     <th className="py-3 px-4">Faculty & Academic Year</th>
                     <th className="py-3 px-4">Enrolled Tracks</th>
+                    <th className="py-3 px-4">Last Login</th>
                     <th className="py-3 px-4 text-center">Status</th>
                     <th className="py-3 px-4 text-right">Administrative Actions</th>
                   </tr>
@@ -296,13 +333,13 @@ export default function AdminStudentsDirectoryPage() {
                 <tbody className="divide-y divide-[#1E3A5F]/60">
                   {loading ? (
                     <tr>
-                      <td colSpan={5} className="py-8 text-center text-[#8FA4BD]">
+                      <td colSpan={6} className="py-8 text-center text-[#8FA4BD]">
                         Loading applications directory...
                       </td>
                     </tr>
                   ) : filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-8 text-center text-[#8FA4BD]">
+                      <td colSpan={6} className="py-8 text-center text-[#8FA4BD]">
                         No records match the current filter.
                       </td>
                     </tr>
@@ -340,6 +377,19 @@ export default function AdminStudentsDirectoryPage() {
                             </div>
                           </td>
 
+                          <td className="py-3.5 px-4">
+                            {st.lastLoginAt ? (
+                              <div>
+                                <span className="font-bold text-emerald-400 block text-[11px] font-mono">
+                                  {new Date(st.lastLoginAt).toLocaleDateString()} {new Date(st.lastLoginAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                <span className="text-[10px] text-[#8FA4BD]">Active recently</span>
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-[#8FA4BD] italic">Never logged in</span>
+                            )}
+                          </td>
+
                           <td className="py-3.5 px-4 text-center">
                             {isApproved && (
                               <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -359,29 +409,43 @@ export default function AdminStudentsDirectoryPage() {
                           </td>
 
                           <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
+                            <div className="flex items-center justify-end gap-1.5 flex-wrap">
                               <button
                                 onClick={() => handleOpenAudit(st.id)}
-                                className="px-2.5 py-1 rounded-lg bg-[#10243C] hover:bg-[#1E3A5F] text-[#48D5F5] font-bold text-[11px] border border-[#1E3A5F] transition-all flex items-center gap-1"
+                                className="px-2 py-1 rounded-lg bg-[#10243C] hover:bg-[#1E3A5F] text-[#48D5F5] font-bold text-[11px] border border-[#1E3A5F] transition-all flex items-center gap-1 cursor-pointer"
                                 title="Inspect activity audit"
                               >
                                 <Eye className="w-3 h-3" />
                                 Audit
                               </button>
 
+                              {user?.role === "ADMIN" && (
+                                <button
+                                  onClick={() => {
+                                    setPasswordModalStudent(st);
+                                    setNewPasswordVal("");
+                                  }}
+                                  className="px-2 py-1 rounded-lg bg-[#E5A93C]/15 hover:bg-[#E5A93C]/25 text-[#E5A93C] font-bold text-[11px] border border-[#E5A93C]/30 transition-all flex items-center gap-1 cursor-pointer"
+                                  title="Reset password for this student"
+                                >
+                                  <KeyRound className="w-3 h-3" />
+                                  Pass
+                                </button>
+                              )}
+
                               {user?.role === "ADMIN" && isPending && (
                                 <>
                                   <button
                                     onClick={() => handleApprove(st.id, "APPROVE")}
                                     disabled={isLoadingThis}
-                                    className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] shadow-sm transition-all"
+                                    className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] shadow-sm transition-all cursor-pointer"
                                   >
                                     Approve
                                   </button>
                                   <button
                                     onClick={() => handleApprove(st.id, "REJECT")}
                                     disabled={isLoadingThis}
-                                    className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold text-[11px] border border-rose-500/30"
+                                    className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold text-[11px] border border-rose-500/30 cursor-pointer"
                                   >
                                     Reject
                                   </button>
@@ -392,7 +456,7 @@ export default function AdminStudentsDirectoryPage() {
                                 <button
                                   onClick={() => handleSuspendToggle(st.id, st.status)}
                                   disabled={isLoadingThis}
-                                  className={`px-2.5 py-1 rounded-lg font-bold text-[11px] border transition-all flex items-center gap-1 ${
+                                  className={`px-2.5 py-1 rounded-lg font-bold text-[11px] border transition-all flex items-center gap-1 cursor-pointer ${
                                     isSuspended
                                       ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30"
                                       : "bg-rose-500/10 text-rose-400 border-rose-500/30 hover:bg-rose-500/20"
@@ -603,6 +667,70 @@ export default function AdminStudentsDirectoryPage() {
                 </div>
               </div>
             ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Admin Reset Student Password Modal */}
+      {passwordModalStudent && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0D1D32] border border-[#E5A93C]/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl animate-fade-in">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="p-2 rounded-xl bg-[#E5A93C]/20 text-[#E5A93C]">
+                <KeyRound className="w-5 h-5" />
+              </span>
+              <div>
+                <h3 className="text-xl font-black text-[#F5F7FB]">Reset Student Password</h3>
+                <p className="text-[11px] text-[#E5A93C] font-bold">صلاحية إدارية خاصة بالأدمن الرئيسي</p>
+              </div>
+            </div>
+
+            <div className="my-4 p-3.5 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-[#8FA4BD]">الطالب:</span>
+                <span className="font-bold text-white">{passwordModalStudent.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8FA4BD]">البريد الإلكتروني:</span>
+                <span className="font-mono text-[#48D5F5]">{passwordModalStudent.email}</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleResetPassword} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-[#8FA4BD] mb-1">
+                  كلمة المرور الجديدة * (6 أحرف على الأقل)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newPasswordVal}
+                  onChange={(e) => setNewPasswordVal(e.target.value)}
+                  placeholder="e.g. eelu2026 / studentPass123"
+                  className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C] font-mono"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-[#1E3A5F] flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPasswordModalStudent(null);
+                    setNewPasswordVal("");
+                  }}
+                  className="px-4 py-2 rounded-xl text-[#8FA4BD] hover:text-white font-bold cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingPassword}
+                  className="px-5 py-2.5 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black cursor-pointer shadow-lg disabled:opacity-50"
+                >
+                  {savingPassword ? "جاري التحديث..." : "تأكيد وتغيير كلمة السر فوراً"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -16,18 +16,23 @@ export async function GET(req: Request) {
 
     if (user.role === "STUDENT") {
       const studentTrackIds = user.enrollments?.map((e) => e.trackId) || [];
-      // Student sees global announcements (trackId is null) + announcements for their enrolled tracks
+      // Student sees global announcements + their enrolled track announcements, filtered by targetAudience (ALL or STUDENTS_ONLY)
       whereClause = {
-        OR: [{ trackId: null }, { trackId: { in: studentTrackIds } }],
+        AND: [
+          { OR: [{ trackId: null }, { trackId: { in: studentTrackIds } }] },
+          { targetAudience: { in: ["ALL", "STUDENTS_ONLY"] } },
+        ],
       };
     } else if (user.role === "INSTRUCTOR") {
-      if (user.assignedTrackId) {
-        whereClause = {
-          OR: [{ trackId: null }, { trackId: user.assignedTrackId }],
-        };
-      }
+      // Instructors see global announcements + their assigned track announcements (ALL or STAFF_ONLY)
+      whereClause = {
+        AND: [
+          { OR: [{ trackId: null }, ...(user.assignedTrackId ? [{ trackId: user.assignedTrackId }] : [])] },
+          { targetAudience: { in: ["ALL", "STAFF_ONLY"] } },
+        ],
+      };
     } else {
-      // Admin / Chair / Vice Chair
+      // Admin / Chair / Vice Chair can see all announcements
       if (trackIdParam && trackIdParam !== "ALL") {
         whereClause.trackId = trackIdParam;
       }
@@ -57,7 +62,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { title, content, category, trackId } = body;
+    const { title, content, category, trackId, targetAudience } = body;
 
     if (!title || !content) {
       return NextResponse.json({ error: "Title and content are required." }, { status: 400 });
@@ -74,6 +79,7 @@ export async function POST(req: Request) {
         title: title.trim(),
         content: content.trim(),
         category: category || "GENERAL",
+        targetAudience: targetAudience || "ALL",
         trackId: finalTrackId,
         authorName: `${user.name} (${user.role === "INSTRUCTOR" ? "Track Lead" : "Administration"})`,
       },

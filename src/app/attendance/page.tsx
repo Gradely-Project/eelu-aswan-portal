@@ -49,7 +49,12 @@ export default function AttendanceHubPage() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [selectedTrackId, setSelectedTrackId] = useState<string>("ALL");
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState("STUDENT");
+  const [userRole, setUserRole] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("eelu_user_role") || "STUDENT";
+    }
+    return "STUDENT";
+  });
 
   // New Session Modal
   const [showAddModal, setShowAddModal] = useState(false);

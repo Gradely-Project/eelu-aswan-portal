@@ -38,10 +38,18 @@ export async function GET() {
       orderBy: { displayOrder: "asc" },
     });
 
-    if (leaders.length === 0) {
+    // Only seed once on initial fresh deployment, never re-seed if user intentionally deleted members
+    const seedCheck = await prisma.systemSetting.findUnique({
+      where: { key: "leadership_seeded" },
+    });
+
+    if (!seedCheck && leaders.length === 0) {
       for (const item of DEFAULT_LEADERS) {
         await prisma.branchLeader.create({ data: item });
       }
+      await prisma.systemSetting.create({
+        data: { key: "leadership_seeded", value: "true" },
+      });
       leaders = await prisma.branchLeader.findMany({
         orderBy: { displayOrder: "asc" },
       });
@@ -136,7 +144,14 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Leader ID is required." }, { status: 400 });
     }
 
-    await prisma.branchLeader.delete({ where: { id } });
+    try {
+      await prisma.branchLeader.delete({ where: { id } });
+    } catch (err: any) {
+      if (err.code === "P2025") {
+        return NextResponse.json({ success: true, message: "Leadership member already deleted." });
+      }
+      throw err;
+    }
 
     return NextResponse.json({ success: true, message: "Leadership member deleted successfully." });
   } catch (error) {

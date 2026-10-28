@@ -63,6 +63,11 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!formData.universityEmail.trim()) {
+      setError("Official University Email (@eelu.edu.eg) is required for student verification.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -160,7 +165,7 @@ export default function RegisterPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6 text-xs">
+            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-6 text-xs">
               {/* Section 1: Academic & Personal Information */}
               <div>
                 <h3 className="text-sm font-black text-[#F5F7FB] mb-4 pb-2 border-b border-[#1E3A5F] flex items-center gap-2">
@@ -174,6 +179,7 @@ export default function RegisterPage() {
                     <input
                       type="text"
                       required
+                      autoComplete="off"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="e.g. Ahmed Mohamed Aly"
@@ -186,6 +192,7 @@ export default function RegisterPage() {
                     <input
                       type="email"
                       required
+                      autoComplete="off"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="e.g. ahmed@gmail.com"
@@ -194,9 +201,11 @@ export default function RegisterPage() {
                   </div>
 
                   <div>
-                    <label className="block font-bold text-[#8FA4BD] mb-1">University Email (Optional)</label>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">University Email (@eelu.edu.eg) *</label>
                     <input
                       type="email"
+                      required
+                      autoComplete="off"
                       value={formData.universityEmail}
                       onChange={(e) => setFormData({ ...formData, universityEmail: e.target.value })}
                       placeholder="e.g. 21010045@eelu.edu.eg"
@@ -210,6 +219,7 @@ export default function RegisterPage() {
                       type="password"
                       required
                       minLength={6}
+                      autoComplete="new-password"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       placeholder="•••••••• (Min 6 chars)"

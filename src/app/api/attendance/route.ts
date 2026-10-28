@@ -66,6 +66,8 @@ export async function GET(req: Request) {
         isMarked: !!rec,
         notes: rec?.notes || "",
         markedAt: rec?.markedAt || null,
+        verificationMethod: rec?.verificationMethod || (rec ? "MANUAL" : null),
+        verifiedBy: rec?.verifiedBy || (rec ? "Staff" : null),
       };
     });
 
@@ -103,13 +105,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Session not found." }, { status: 404 });
     }
 
-    const { error, canEdit } = await requireTrackAccess(session.trackId);
+    const { error, canEdit, user } = await requireTrackAccess(session.trackId);
     if (error) return error;
     if (!canEdit) {
       return NextResponse.json({ error: "Unauthorized: You do not have permission to record attendance for this track." }, { status: 403 });
     }
 
     const validStatuses = ["PRESENT", "LATE", "EXCUSED", "ABSENT"];
+    const verifierRole = user?.role === "ADMIN" ? "ADMIN" : user?.role === "INSTRUCTOR" ? "INSTRUCTOR" : (user?.role || "STAFF");
+    const verifierLabel = user ? `${user.name} (${user.role})` : "Staff / Instructor";
 
     // Save attendance using transaction
     const operations = records.map((rec: { studentId: string; status: string; notes?: string }) => {
@@ -125,12 +129,16 @@ export async function POST(req: Request) {
           status: sanitizedStatus,
           notes: rec.notes || null,
           markedAt: new Date(),
+          verificationMethod: verifierRole,
+          verifiedBy: verifierLabel,
         },
         create: {
           sessionId,
           studentId: rec.studentId,
           status: sanitizedStatus,
           notes: rec.notes || null,
+          verificationMethod: verifierRole,
+          verifiedBy: verifierLabel,
         },
       });
     });

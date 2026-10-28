@@ -38,7 +38,7 @@ export default function AdminTeamsPage() {
 
   const fetchTracks = async () => {
     try {
-      const res = await fetch("/api/tracks");
+      const res = await fetch("/api/tracks", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setTracks(data.tracks || []);

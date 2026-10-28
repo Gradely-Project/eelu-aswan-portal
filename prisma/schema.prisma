@@ -22,6 +22,7 @@ model User {
   trackTeamRole   String?          // HEAD, VICE_HEAD, CORE_TEAM
   assignedTrackId String?
   status          String           @default("PENDING") // PENDING, APPROVED, SUSPENDED, REJECTED
+  lastLoginAt     DateTime?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
@@ -79,12 +80,14 @@ model Session {
 }
 
 model AttendanceRecord {
-  id        String   @id @default(cuid())
-  sessionId String
-  studentId String
-  status    String   @default("PRESENT") // PRESENT, LATE, EXCUSED, ABSENT
-  notes     String?
-  markedAt  DateTime @default(now())
+  id                 String   @id @default(cuid())
+  sessionId          String
+  studentId          String
+  status             String   @default("PRESENT") // PRESENT, LATE, EXCUSED, ABSENT
+  notes              String?
+  verificationMethod String   @default("MANUAL") // QR_CODE, ADMIN, INSTRUCTOR, MANUAL
+  verifiedBy         String?
+  markedAt           DateTime @default(now())
 
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -115,6 +118,10 @@ model Task {
   deadline      DateTime
   isClosed      Boolean          @default(false)
   materialsLink String?          // Reference or template Drive link
+  createdById   String?
+  createdByName String?
+  createdByRole String?
+  exceptions    String?          // JSON array of student IDs permitted extensions
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
@@ -174,13 +181,14 @@ model BranchLeader {
 }
 
 model Announcement {
-  id         String   @id @default(cuid())
-  title      String
-  content    String
-  category   String   @default("GENERAL") // GENERAL, SCHEDULE, TASK, URGENT
-  trackId    String?  // null = Branch-wide broadcast
-  authorName String   @default("Branch Administration")
-  createdAt  DateTime @default(now())
+  id             String   @id @default(cuid())
+  title          String
+  content        String
+  category       String   @default("GENERAL") // GENERAL, SCHEDULE, TASK, URGENT
+  targetAudience String   @default("ALL")     // ALL, STUDENTS_ONLY, STAFF_ONLY
+  trackId        String?  // null = Branch-wide broadcast
+  authorName     String   @default("Branch Administration")
+  createdAt      DateTime @default(now())
 }
 
 model SessionEvaluation {

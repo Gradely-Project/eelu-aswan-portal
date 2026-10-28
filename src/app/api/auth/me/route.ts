@@ -1,10 +1,38 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, verifyJwtToken, COOKIE_NAME } from "@/lib/auth";
+import { cookies } from "next/headers";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    const cookieStore = cookies();
+    const token = cookieStore.get(COOKIE_NAME)?.value;
+
+    if (token) {
+      const decoded = verifyJwtToken(token);
+      if (decoded?.userId) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: decoded.userId },
+          select: { status: true },
+        });
+
+        if (dbUser?.status === "SUSPENDED") {
+          const resp = NextResponse.json(
+            {
+              user: null,
+              isSuspended: true,
+              error: "تم تجميد حسابك بواسطة إدارة الفرع.",
+            },
+            { status: 403 }
+          );
+          resp.cookies.delete(COOKIE_NAME);
+          return resp;
+        }
+      }
+    }
+
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ user: null }, { status: 401 });

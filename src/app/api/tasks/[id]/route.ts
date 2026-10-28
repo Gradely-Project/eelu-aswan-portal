@@ -73,7 +73,7 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { title, description, maxScore, deadline, isClosed, materialsLink } = body;
+    const { title, description, maxScore, deadline, isClosed, materialsLink, exceptions } = body;
 
     const updated = await prisma.task.update({
       where: { id: params.id },
@@ -84,6 +84,7 @@ export async function PATCH(
         deadline: deadline !== undefined ? new Date(deadline) : task.deadline,
         isClosed: isClosed !== undefined ? Boolean(isClosed) : task.isClosed,
         materialsLink: materialsLink !== undefined ? materialsLink?.trim() || null : task.materialsLink,
+        exceptions: exceptions !== undefined ? exceptions : task.exceptions,
       },
     });
 

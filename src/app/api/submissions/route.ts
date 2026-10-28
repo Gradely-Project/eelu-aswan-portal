@@ -44,13 +44,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "You are not enrolled in this bootcamp track." }, { status: 403 });
     }
 
-    // Check deadline & closed status
+    // Check deadline & closed status with student exceptions
+    let hasException = false;
+    if (task.exceptions) {
+      try {
+        const exList = JSON.parse(task.exceptions);
+        if (Array.isArray(exList) && (exList.includes(user.id) || exList.includes(user.email))) {
+          hasException = true;
+        }
+      } catch {}
+    }
+
     const isPastDeadline = new Date(task.deadline) < new Date();
-    if (task.isClosed || isPastDeadline) {
+    if ((task.isClosed || isPastDeadline) && !hasException) {
       return NextResponse.json(
         {
           error:
-            "This task deadline has passed and submissions are locked. Please contact your track instructor to reopen.",
+            "This task deadline has passed and submissions are locked. Please contact your track instructor to request an exception or reopening.",
         },
         { status: 403 }
       );

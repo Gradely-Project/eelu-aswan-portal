@@ -173,6 +173,10 @@ export default function SessionsPage() {
 
   // Admin Instructor Evaluations Audit Report
   const [instructorReports, setInstructorReports] = useState<any[]>([]);
+  const [sessionsReports, setSessionsReports] = useState<any[]>([]);
+  const [overallAverage, setOverallAverage] = useState<number>(0);
+  const [showAuditModal, setShowAuditModal] = useState(false);
+  const [auditSubTab, setAuditSubTab] = useState<"instructors" | "sessions">("instructors");
   const [loadingReports, setLoadingReports] = useState(false);
 
   useEffect(() => {
@@ -224,6 +228,8 @@ export default function SessionsPage() {
       const data = await res.json();
       if (res.ok) {
         setInstructorReports(data.instructorsReport || []);
+        setSessionsReports(data.sessionsReport || []);
+        setOverallAverage(data.overallAverage || 0);
       }
     } catch (e) {
       console.error(e);
@@ -520,18 +526,33 @@ export default function SessionsPage() {
               </p>
             </div>
 
-            {canEdit && (
-              <button
-                onClick={() => {
-                  setError(null);
-                  setShowAddModal(true);
-                }}
-                className="px-5 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer self-start sm:self-auto"
-              >
-                <Plus className="w-4 h-4" />
-                Add New Session
-              </button>
-            )}
+            <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setShowAuditModal(true);
+                    fetchInstructorReports();
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-[#E5A93C]/20 hover:bg-[#E5A93C]/30 text-[#E5A93C] border border-[#E5A93C]/40 font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                  title="View evaluations breakdown for instructors and lectures"
+                >
+                  <Star className="w-4 h-4 fill-current text-[#E5A93C]" />
+                  <span>Instructor Ratings Audit</span>
+                </button>
+              )}
+              {canEdit && (
+                <button
+                  onClick={() => {
+                    setError(null);
+                    setShowAddModal(true);
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add New Session
+                </button>
+              )}
+            </div>
           </div>
 
           {/* 2-Panel Workstation Layout */}
@@ -1488,6 +1509,172 @@ export default function SessionsPage() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Admin Overall Evaluations Audit Modal */}
+      {showAuditModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0D1D32] border border-[#E5A93C]/40 rounded-3xl p-6 sm:p-8 max-w-4xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#1E3A5F]">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2.5 rounded-xl bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30">
+                  <Star className="w-5 h-5 fill-current" />
+                </span>
+                <div>
+                  <h3 className="text-xl font-black text-white">Student Evaluations & Teaching Quality Audit</h3>
+                  <p className="text-xs text-[#E5A93C] font-semibold">
+                    لوحة حصرية للإدارة لمتابعة تقييمات الطلاب لكل محاضرة ومدرب
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAuditModal(false)}
+                className="p-1 rounded-lg text-[#8FA4BD] hover:text-white text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+              <div className="p-4 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-center">
+                <span className="text-[10px] uppercase font-bold text-[#8FA4BD] block">Overall Academy Average</span>
+                <span className="text-2xl font-black text-[#E5A93C] mt-1 block">★ {overallAverage} / 5.0</span>
+              </div>
+              <div className="p-4 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-center">
+                <span className="text-[10px] uppercase font-bold text-[#8FA4BD] block">Total Evaluations Submitted</span>
+                <span className="text-2xl font-black text-[#48D5F5] mt-1 block">
+                  {instructorReports.reduce((s, i) => s + i.totalReviews, 0)} Feedback Records
+                </span>
+              </div>
+              <div className="p-4 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-center">
+                <span className="text-[10px] uppercase font-bold text-[#8FA4BD] block">Evaluated Staff Members</span>
+                <span className="text-2xl font-black text-emerald-400 mt-1 block">
+                  {instructorReports.length} Instructors
+                </span>
+              </div>
+            </div>
+
+            {/* Sub-tab selection */}
+            <div className="flex items-center gap-2 mb-4 border-b border-[#1E3A5F] pb-3">
+              <button
+                onClick={() => setAuditSubTab("instructors")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  auditSubTab === "instructors"
+                    ? "bg-[#269CF0] text-white shadow-md"
+                    : "bg-[#07172A] text-[#8FA4BD] hover:text-white border border-[#1E3A5F]"
+                }`}
+              >
+                👤 Instructor Performance (تقييم الهيد والفايس والكور)
+              </button>
+              <button
+                onClick={() => setAuditSubTab("sessions")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  auditSubTab === "sessions"
+                    ? "bg-[#269CF0] text-white shadow-md"
+                    : "bg-[#07172A] text-[#8FA4BD] hover:text-white border border-[#1E3A5F]"
+                }`}
+              >
+                📚 Per-Lecture Breakdown (تقييم كل محاضرة)
+              </button>
+            </div>
+
+            {loadingReports ? (
+              <div className="p-12 text-center text-xs text-[#8FA4BD]">Loading evaluation statistics...</div>
+            ) : auditSubTab === "instructors" ? (
+              <div className="space-y-4">
+                {instructorReports.length === 0 ? (
+                  <p className="p-8 text-center text-xs text-[#8FA4BD] bg-[#07172A] rounded-2xl border border-[#1E3A5F]">
+                    No instructor evaluations submitted by students yet.
+                  </p>
+                ) : (
+                  instructorReports.map((inst, idx) => (
+                    <div key={idx} className="p-4 rounded-2xl bg-[#07172A] border border-[#1E3A5F] space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <h4 className="font-bold text-sm text-white flex items-center gap-2">
+                            <span>{inst.instructorName}</span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-black bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30 uppercase">
+                              {inst.instructorRole}
+                            </span>
+                          </h4>
+                          <span className="text-[11px] text-[#8FA4BD]">{inst.trackName}</span>
+                        </div>
+                        <div className="flex items-center gap-3 font-mono text-xs">
+                          <span className="bg-[#10243C] px-3 py-1 rounded-lg border border-[#1E3A5F]">
+                            Clarity: <strong className="text-[#E5A93C]">★ {inst.avgClarity}</strong>
+                          </span>
+                          <span className="bg-[#10243C] px-3 py-1 rounded-lg border border-[#1E3A5F]">
+                            Materials: <strong className="text-[#269CF0]">★ {inst.avgMaterial}</strong>
+                          </span>
+                          <span className="bg-emerald-500/15 px-3 py-1 rounded-lg border border-emerald-500/30 text-emerald-400 font-black">
+                            Overall: ★ {inst.avgOverall} ({inst.totalReviews} reviews)
+                          </span>
+                        </div>
+                      </div>
+
+                      {inst.feedbacks && inst.feedbacks.length > 0 && (
+                        <div className="pt-2 border-t border-[#1E3A5F]/60 space-y-1.5">
+                          <span className="text-[10px] font-bold text-[#8FA4BD] uppercase block">
+                            Student Written Comments:
+                          </span>
+                          <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                            {inst.feedbacks.map((f: any, fIdx: number) => (
+                              <div key={fIdx} className="p-2 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] text-[11px]">
+                                <div className="flex justify-between text-[10px] text-[#8FA4BD] mb-0.5">
+                                  <span>{f.sessionTitle} • {f.studentName || "Student"}</span>
+                                  <span className="text-[#E5A93C] font-black">★ {f.overall}</span>
+                                </div>
+                                <p className="text-slate-200 italic">&ldquo;{f.comment}&rdquo;</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {sessionsReports.length === 0 ? (
+                  <p className="p-8 text-center text-xs text-[#8FA4BD] bg-[#07172A] rounded-2xl border border-[#1E3A5F]">
+                    No per-lecture evaluations submitted yet.
+                  </p>
+                ) : (
+                  sessionsReports.map((sess, idx) => (
+                    <div key={idx} className="p-3.5 rounded-2xl bg-[#07172A] border border-[#1E3A5F] flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <div>
+                        <h4 className="font-bold text-white text-sm">{sess.sessionTitle}</h4>
+                        <span className="text-[11px] text-[#8FA4BD]">{sess.trackName} • {sess.date}</span>
+                      </div>
+                      <div className="flex items-center gap-2 font-mono">
+                        <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F] text-[11px]">
+                          Clarity: <strong className="text-[#E5A93C]">★ {sess.avgClarity}</strong>
+                        </span>
+                        <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F] text-[11px]">
+                          Material: <strong className="text-[#269CF0]">★ {sess.avgMaterial}</strong>
+                        </span>
+                        <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg font-black text-xs">
+                          Overall: ★ {sess.avgOverall} ({sess.totalReviews})
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-[#1E3A5F] flex justify-end mt-6">
+              <button
+                onClick={() => setShowAuditModal(false)}
+                className="px-5 py-2 rounded-xl bg-[#269CF0] text-white font-bold text-xs"
+              >
+                Close Audit
+              </button>
+            </div>
           </div>
         </div>
       )}

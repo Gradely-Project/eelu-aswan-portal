@@ -17,6 +17,7 @@ import {
   Trash2,
   ArrowRight,
   FolderOpen,
+  ShieldCheck,
 } from "lucide-react";
 
 interface TaskItem {
@@ -28,8 +29,17 @@ interface TaskItem {
   deadline: string;
   isClosed: boolean;
   materialsLink: string | null;
+  createdById?: string | null;
+  createdByName?: string | null;
+  createdByRole?: string | null;
+  exceptions?: string | null;
+  track?: {
+    id: string;
+    name: string;
+  };
   isPastDeadline: boolean;
   isSubmissionLocked: boolean;
+  hasException?: boolean;
   _count: {
     submissions: number;
   };
@@ -75,6 +85,20 @@ export default function TasksPage() {
   // Extend Deadline Modal
   const [extendModalTask, setExtendModalTask] = useState<TaskItem | null>(null);
   const [newDeadline, setNewDeadline] = useState("");
+
+  // Edit Task Modal
+  const [editTask, setEditTask] = useState<TaskItem | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editMaxScore, setEditMaxScore] = useState(100);
+  const [editDeadline, setEditDeadline] = useState("");
+  const [editMaterialsLink, setEditMaterialsLink] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // Student Exception Modal
+  const [exceptionTask, setExceptionTask] = useState<TaskItem | null>(null);
+  const [exceptionStudentEmail, setExceptionStudentEmail] = useState("");
+  const [savingException, setSavingException] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -198,6 +222,99 @@ export default function TasksPage() {
       }
     } catch {
       alert("Network error.");
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string, taskTitle: string) => {
+    if (!confirm(`Are you sure you want to permanently delete task "${taskTitle}"?`)) return;
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
+      if (res.ok) {
+        setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      } else {
+        alert("Failed to delete task.");
+      }
+    } catch {
+      alert("Network error.");
+    }
+  };
+
+  const handleOpenEdit = (t: TaskItem) => {
+    setEditTask(t);
+    setEditTitle(t.title);
+    setEditDescription(t.description);
+    setEditMaxScore(t.maxScore);
+    try {
+      setEditDeadline(new Date(t.deadline).toISOString().slice(0, 16));
+    } catch {
+      setEditDeadline("");
+    }
+    setEditMaterialsLink(t.materialsLink || "");
+  };
+
+  const handleSaveEditTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTask) return;
+    setSavingEdit(true);
+    try {
+      const res = await fetch(`/api/tasks/${editTask.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editTitle,
+          description: editDescription,
+          maxScore: editMaxScore,
+          deadline: editDeadline,
+          materialsLink: editMaterialsLink,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setTasks((prev) => prev.map((t) => (t.id === editTask.id ? { ...t, ...data.task } : t)));
+        setEditTask(null);
+      } else {
+        alert(data.error || "Failed to update task.");
+      }
+    } catch {
+      alert("Network error.");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleSaveException = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!exceptionTask || !exceptionStudentEmail.trim()) return;
+    setSavingException(true);
+    try {
+      let currentExceptions: string[] = [];
+      try {
+        currentExceptions = exceptionTask.exceptions ? JSON.parse(exceptionTask.exceptions) : [];
+      } catch {}
+      const updated = Array.from(
+        new Set(currentExceptions.concat(exceptionStudentEmail.trim().toLowerCase()))
+      );
+      const res = await fetch(`/api/tasks/${exceptionTask.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exceptions: JSON.stringify(updated),
+        }),
+      });
+      if (res.ok) {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === exceptionTask.id ? { ...t, exceptions: JSON.stringify(updated) } : t))
+        );
+        alert(`Deadline extension granted for student ${exceptionStudentEmail}!`);
+        setExceptionTask(null);
+        setExceptionStudentEmail("");
+      } else {
+        alert("Failed to grant exception.");
+      }
+    } catch {
+      alert("Network error.");
+    } finally {
+      setSavingException(false);
     }
   };
 
@@ -327,6 +444,19 @@ export default function TasksPage() {
                         )}
                       </div>
 
+                      {/* Admin & Chair visibility: Who created this task */}
+                      {(user?.role === "ADMIN" || user?.role === "CHAIR_PERSON") && (task.createdByName || task.createdByRole) && (
+                        <div className="mb-4 px-3.5 py-2 rounded-2xl bg-[#07172A] border border-[#1E3A5F] flex items-center justify-between text-xs">
+                          <span className="text-[#8FA4BD] font-medium">Added By:</span>
+                          <div className="flex items-center gap-1.5 font-bold">
+                            <span className="text-[#F5F7FB]">👤 {task.createdByName}</span>
+                            <span className="px-2 py-0.5 rounded text-[10px] bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30 uppercase">
+                              {task.createdByRole}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Student view banner */}
                       {user?.role === "STUDENT" && (
                         <div className="mb-4 p-3 rounded-xl border text-xs">
@@ -360,21 +490,46 @@ export default function TasksPage() {
                           <span className="text-xs text-[#8FA4BD] font-bold">
                             {task._count.submissions} Submissions
                           </span>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <button
                               onClick={() => {
                                 setExtendModalTask(task);
                                 setNewDeadline("");
                               }}
-                              className="px-3 py-1.5 rounded-xl bg-[#07172A] hover:bg-[#10243C] text-[#8FA4BD] hover:text-white font-bold text-xs border border-[#1E3A5F]"
+                              className="px-2.5 py-1.5 rounded-xl bg-[#07172A] hover:bg-[#10243C] text-[#8FA4BD] hover:text-white font-bold text-xs border border-[#1E3A5F]"
+                              title="Extend general deadline"
                             >
-                              Extend Deadline
+                              Extend
+                            </button>
+                            <button
+                              onClick={() => {
+                                setExceptionTask(task);
+                                setExceptionStudentEmail("");
+                              }}
+                              className="px-2.5 py-1.5 rounded-xl bg-[#07172A] hover:bg-[#10243C] text-[#E5A93C] font-bold text-xs border border-[#E5A93C]/30"
+                              title="Grant exception to specific student"
+                            >
+                              Exception
+                            </button>
+                            <button
+                              onClick={() => handleOpenEdit(task)}
+                              className="px-2.5 py-1.5 rounded-xl bg-[#07172A] hover:bg-[#10243C] text-[#48D5F5] font-bold text-xs border border-[#269CF0]/30"
+                              title="Edit task title, description & score"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTask(task.id, task.title)}
+                              className="px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold text-xs border border-rose-500/30"
+                              title="Delete task"
+                            >
+                              Delete
                             </button>
                             <Link
                               href={`/tasks/${task.id}`}
-                              className="px-4 py-2 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5"
+                              className="px-3.5 py-1.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5"
                             >
-                              Grade Submissions
+                              Grade ({task._count.submissions})
                               <ArrowRight className="w-3.5 h-3.5" />
                             </Link>
                           </div>
@@ -546,6 +701,150 @@ export default function TasksPage() {
                       className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
                     >
                       Save & Unlock Submissions
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Task Modal */}
+          {editTask && (
+            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+                <h3 className="text-xl font-black text-[#F5F7FB] mb-2 flex items-center gap-2">
+                  <FileCheck2 className="w-5 h-5 text-[#269CF0]" />
+                  Edit Task Details
+                </h3>
+                <p className="text-xs text-[#8FA4BD] mb-4">Update assignment content, score or deadline.</p>
+
+                <form onSubmit={handleSaveEditTask} className="space-y-4 text-xs">
+                  <div>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">Task Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">Description & Deliverables *</label>
+                    <textarea
+                      rows={4}
+                      required
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0] resize-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-[#8FA4BD] mb-1">Max Score *</label>
+                      <input
+                        type="number"
+                        min={1}
+                        required
+                        value={editMaxScore}
+                        onChange={(e) => setEditMaxScore(Number(e.target.value))}
+                        className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-[#8FA4BD] mb-1">Deadline Date & Time *</label>
+                      <input
+                        type="datetime-local"
+                        required
+                        value={editDeadline}
+                        onChange={(e) => setEditDeadline(e.target.value)}
+                        className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">
+                      Starter Kit / Template Link (Google Drive / GitHub)
+                    </label>
+                    <input
+                      type="url"
+                      value={editMaterialsLink}
+                      onChange={(e) => setEditMaterialsLink(e.target.value)}
+                      placeholder="https://drive.google.com/..."
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                    />
+                  </div>
+
+                  <div className="pt-4 border-t border-[#1E3A5F] flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setEditTask(null)}
+                      className="px-4 py-2 rounded-xl text-[#8FA4BD] hover:text-white font-bold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingEdit}
+                      className="px-6 py-2 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-bold"
+                    >
+                      {savingEdit ? "Saving..." : "Save Changes"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Student Exception Modal */}
+          {exceptionTask && (
+            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+                <h3 className="text-xl font-black text-[#F5F7FB] mb-2 flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-[#E5A93C]" />
+                  Grant Student Extension
+                </h3>
+                <p className="text-xs text-[#8FA4BD] mb-4">
+                  Allow a specific student to submit past deadline for: <strong>{exceptionTask.title}</strong>
+                </p>
+
+                {exceptionTask.exceptions && (
+                  <div className="mb-4 p-3 bg-[#07172A] rounded-xl border border-[#1E3A5F] text-xs">
+                    <span className="text-[#8FA4BD] block mb-1 font-bold">Existing Exemptions:</span>
+                    <span className="text-[#F5F7FB] font-mono break-all">{exceptionTask.exceptions}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSaveException} className="space-y-4 text-xs">
+                  <div>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">Student University / System Email *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="student@eelu.edu.eg"
+                      value={exceptionStudentEmail}
+                      onChange={(e) => setExceptionStudentEmail(e.target.value)}
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C]"
+                    />
+                  </div>
+
+                  <div className="pt-4 border-t border-[#1E3A5F] flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setExceptionTask(null)}
+                      className="px-4 py-2 rounded-xl text-[#8FA4BD] hover:text-white font-bold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingException}
+                      className="px-5 py-2 rounded-xl bg-[#E5A93C] hover:bg-[#D4982B] text-[#050D1A] font-black"
+                    >
+                      {savingException ? "Granting..." : "Grant Exemption"}
                     </button>
                   </div>
                 </form>

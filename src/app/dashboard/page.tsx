@@ -56,7 +56,15 @@ interface UserData {
 }
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<UserData | null>(null);
+  const [user, setUser] = useState<UserData | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("eelu_user");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
   const [selectedTrackId, setSelectedTrackId] = useState<string>("ALL");
   const [students, setStudents] = useState<StudentItem[]>([]);
   const [stats, setStats] = useState({
@@ -68,7 +76,7 @@ export default function DashboardPage() {
   });
   const [activeSessionsCount, setActiveSessionsCount] = useState(0);
   const [totalSubmissionsCount, setTotalSubmissionsCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -122,6 +130,14 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     try {
       const meRes = await fetch("/api/auth/me", { cache: "no-store" });
+      if (meRes.status === 403) {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("eelu_user");
+          localStorage.removeItem("eelu_user_role");
+        }
+        window.location.href = "/login?suspended=1";
+        return;
+      }
       if (!meRes.ok) {
         window.location.href = "/login";
         return;
@@ -132,6 +148,10 @@ export default function DashboardPage() {
         return;
       }
       setUser(meData.user);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("eelu_user", JSON.stringify(meData.user));
+        localStorage.setItem("eelu_user_role", meData.user.role);
+      }
 
       const targetTrackId = meData.user?.role === "INSTRUCTOR" ? meData.user?.assignedTrackId : selectedTrackId;
       if (meData.user?.role === "INSTRUCTOR" && meData.user?.assignedTrackId) {

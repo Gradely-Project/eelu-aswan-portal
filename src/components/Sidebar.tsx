@@ -49,7 +49,13 @@ export default function Sidebar({
   const pathname = usePathname();
   const [internalMobileOpen, setInternalMobileOpen] = useState(false);
 
-  const [effectiveRole, setEffectiveRole] = useState<string>(userRole || "");
+  const [effectiveRole, setEffectiveRole] = useState<string>(() => {
+    if (userRole) return userRole;
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("eelu_user_role") || "";
+    }
+    return "";
+  });
 
   // Dynamic Supervisor Card State
   const [supervisor, setSupervisor] = useState<SupervisorInfo>({
@@ -77,11 +83,9 @@ export default function Sidebar({
       if (typeof window !== "undefined") {
         localStorage.setItem("eelu_user_role", userRole);
       }
-    } else {
-      setEffectiveRole("");
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("eelu_user_role");
-      }
+    } else if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("eelu_user_role");
+      if (cached) setEffectiveRole(cached);
     }
   }, [userRole]);
 
@@ -185,7 +189,7 @@ export default function Sidebar({
       activeColor: "bg-[#269CF0] text-white",
     },
     {
-      name: "Hall & Lab Reservations",
+      name: "Campus Timetables & Hall Booking",
       href: "/halls",
       icon: Building2,
       activeColor: "bg-[#48D5F5] text-[#07172A] font-black",
@@ -203,13 +207,6 @@ export default function Sidebar({
       icon: GraduationCap,
       activeColor: "bg-[#48D5F5] text-[#07172A] font-black",
       badge: undefined, // Removed per user request
-    },
-    {
-      name: "Weekly Schedules & Broadcast",
-      href: "/schedules",
-      icon: CalendarDays,
-      activeColor: "bg-[#269CF0] text-white",
-      show: isAdmin, // Strictly locked to Main Admin
     },
     {
       name: "Reports & Export Suite",

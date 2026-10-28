@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/permissions";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const { error } = await requireAdmin();
@@ -85,16 +87,22 @@ export async function POST(req: Request) {
     });
 
     if (existing) {
-      // Update existing user into instructor
+      // Update existing user into instructor and update password if provided
+      const updateData: any = {
+        name: name.trim(),
+        role: "INSTRUCTOR",
+        trackTeamRole,
+        assignedTrackId: trackId,
+        status: "APPROVED",
+      };
+
+      if (password && password.trim().length >= 6) {
+        updateData.password = await bcrypt.hash(password.trim(), 10);
+      }
+
       const updated = await prisma.user.update({
         where: { id: existing.id },
-        data: {
-          name: name.trim(),
-          role: "INSTRUCTOR",
-          trackTeamRole,
-          assignedTrackId: trackId,
-          status: "APPROVED",
-        },
+        data: updateData,
         select: {
           id: true,
           name: true,

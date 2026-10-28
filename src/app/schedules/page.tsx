@@ -39,7 +39,12 @@ export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [selectedTrackId, setSelectedTrackId] = useState<string>("ALL");
-  const [userRole, setUserRole] = useState<string>("STUDENT");
+  const [userRole, setUserRole] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("eelu_user_role") || "STUDENT";
+    }
+    return "STUDENT";
+  });
   const [assignedTrackId, setAssignedTrackId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -153,7 +158,7 @@ export default function SchedulesPage() {
       <TopNav />
 
       <div className="flex flex-1">
-        <Sidebar userRole="ADMIN" />
+        <Sidebar userRole={userRole} />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

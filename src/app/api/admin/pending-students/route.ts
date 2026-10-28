@@ -49,6 +49,7 @@ export async function GET(req: Request) {
         universityId: true,
         universityEmail: true,
         assignedTrackId: true,
+        lastLoginAt: true,
         createdAt: true,
         enrollments: {
           select: {

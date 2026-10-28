@@ -21,6 +21,7 @@ interface Announcement {
   title: string;
   content: string;
   category: "GENERAL" | "SCHEDULE" | "TASK" | "URGENT";
+  targetAudience?: string;
   trackId: string | null;
   authorName: string;
   createdAt: string;
@@ -28,6 +29,7 @@ interface Announcement {
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
   const [userRole, setUserRole] = useState("STUDENT");
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -36,19 +38,23 @@ export default function AnnouncementsPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState<"GENERAL" | "SCHEDULE" | "TASK" | "URGENT">("GENERAL");
+  const [targetAudience, setTargetAudience] = useState<"ALL" | "STUDENTS_ONLY" | "STAFF_ONLY">("ALL");
+  const [selectedTrack, setSelectedTrack] = useState<string>("ALL");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAnnouncements = async () => {
     try {
-      const [meRes, aRes] = await Promise.all([
+      const [meRes, aRes, tRes] = await Promise.all([
         fetch("/api/auth/me").then((r) => r.json()),
         fetch("/api/announcements").then((r) => r.json()),
+        fetch("/api/tracks").then((r) => r.json()),
       ]);
 
       setUserRole(meRes.user?.role || "STUDENT");
       if (aRes.announcements) setAnnouncements(aRes.announcements);
+      if (tRes.tracks) setTracks(tRes.tracks);
     } catch (e) {
       console.error(e);
     } finally {
@@ -70,7 +76,13 @@ export default function AnnouncementsPage() {
       const res = await fetch("/api/announcements", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content, category }),
+        body: JSON.stringify({
+          title,
+          content,
+          category,
+          targetAudience,
+          trackId: selectedTrack === "ALL" ? null : selectedTrack,
+        }),
       });
       const data = await res.json();
 
@@ -78,6 +90,8 @@ export default function AnnouncementsPage() {
         setSuccess(data.message || "Announcement broadcasted successfully.");
         setTitle("");
         setContent("");
+        setTargetAudience("ALL");
+        setSelectedTrack("ALL");
         setShowAddModal(false);
         await fetchAnnouncements();
       } else {
@@ -234,6 +248,37 @@ export default function AnnouncementsPage() {
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-[#8FA4BD] mb-1">Target Audience (الجمهور المستهدف) *</label>
+                  <select
+                    value={targetAudience}
+                    onChange={(e: any) => setTargetAudience(e.target.value)}
+                    className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                  >
+                    <option value="ALL">Everyone (الجميع: طلاب ومسؤولين)</option>
+                    <option value="STUDENTS_ONLY">Students Only (للطلبة فقط)</option>
+                    <option value="STAFF_ONLY">Track Staff Only (الهيد والفايس والكور فقط)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#8FA4BD] mb-1">Target Track (التراك المستهدف) *</label>
+                  <select
+                    value={selectedTrack}
+                    onChange={(e) => setSelectedTrack(e.target.value)}
+                    className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                  >
+                    <option value="ALL">All Tracks (عام للفرع كاملاً)</option>
+                    {tracks.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>

@@ -52,6 +52,13 @@ export async function POST(req: Request) {
       );
     }
 
+    if (!universityEmail || !universityEmail.trim()) {
+      return NextResponse.json(
+        { error: "البريد الجامعي الرسمي مطلوب كشرط أساسي للتسجيل والتحقق الأكاديمي." },
+        { status: 400 }
+      );
+    }
+
     if (!trackIds || !Array.isArray(trackIds) || trackIds.length === 0) {
       return NextResponse.json(
         { error: "Please select at least one track to enroll in." },

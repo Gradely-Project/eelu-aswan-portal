@@ -26,6 +26,7 @@ import {
   AlertCircle,
   Menu,
   Phone,
+  Mail,
   Settings,
 } from "lucide-react";
 
@@ -56,7 +57,15 @@ export default function TopNav({
   onTrackChange?: (trackId: string) => void;
 }) {
   const router = useRouter();
-  const [user, setUser] = useState<UserData | null>(null);
+  const [user, setUser] = useState<UserData | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("eelu_user");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
   const [tracks, setTracks] = useState<Track[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [isDark, setIsDark] = useState(true);
@@ -91,15 +100,27 @@ export default function TopNav({
       }
     }
 
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { cache: "no-store" })
       .then((res) => {
+        if (res.status === 403) {
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("eelu_user");
+            localStorage.removeItem("eelu_user_role");
+          }
+          window.location.href = "/login?suspended=1";
+          return null;
+        }
         if (res.ok) return res.json();
         return { user: null };
       })
       .then((data) => {
-        if (data.user) {
+        if (data?.user) {
           setUser(data.user);
           setPhone(data.user.phone || "");
+          if (typeof window !== "undefined") {
+            localStorage.setItem("eelu_user", JSON.stringify(data.user));
+            localStorage.setItem("eelu_user_role", data.user.role);
+          }
           if (data.user.role === "INSTRUCTOR" && data.user.assignedTrackId && onTrackChange) {
             onTrackChange(data.user.assignedTrackId);
           }
@@ -515,7 +536,27 @@ export default function TopNav({
               </div>
             )}
 
-            <form onSubmit={handleSaveSettings} className="space-y-3.5 text-xs">
+            <form onSubmit={handleSaveSettings} autoComplete="off" className="space-y-3.5 text-xs">
+              {/* Account Email (Strictly Locked / Read-Only) */}
+              <div>
+                <label className="block text-[#8FA4BD] font-bold mb-1 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-[#8FA4BD]" />
+                    Academic Account Email
+                  </span>
+                  <span className="text-[10px] text-[#E5A93C] font-semibold flex items-center gap-1">
+                    🔒 Locked by Academy
+                  </span>
+                </label>
+                <input
+                  type="email"
+                  readOnly
+                  disabled
+                  value={user?.email || ""}
+                  className="w-full bg-[#07172A]/70 border border-[#1E3A5F] rounded-xl px-3 py-2 text-xs text-[#8FA4BD] cursor-not-allowed select-none font-mono"
+                />
+              </div>
+
               {/* Phone Number */}
               <div>
                 <label className="block text-[#8FA4BD] font-bold mb-1 flex items-center gap-1.5">
@@ -524,6 +565,7 @@ export default function TopNav({
                 </label>
                 <input
                   type="tel"
+                  autoComplete="off"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="e.g. 01012345678"
@@ -539,6 +581,7 @@ export default function TopNav({
                 </label>
                 <input
                   type="password"
+                  autoComplete="new-password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Leave empty to keep current password"
@@ -552,6 +595,7 @@ export default function TopNav({
                   <label className="block text-[#8FA4BD] font-bold mb-1">Confirm New Password *</label>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}

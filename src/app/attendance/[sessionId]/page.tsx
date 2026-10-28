@@ -38,6 +38,8 @@ interface StudentAttendance {
   status: "PRESENT" | "LATE" | "EXCUSED" | "ABSENT";
   isMarked: boolean;
   notes: string;
+  verificationMethod?: string | null;
+  verifiedBy?: string | null;
 }
 
 interface SessionData {
@@ -60,7 +62,12 @@ export default function ClassroomAttendanceSessionPage() {
 
   const [session, setSession] = useState<SessionData | null>(null);
   const [students, setStudents] = useState<StudentAttendance[]>([]);
-  const [userRole, setUserRole] = useState<string>("STUDENT");
+  const [userRole, setUserRole] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("eelu_user_role") || "STUDENT";
+    }
+    return "STUDENT";
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -104,6 +111,31 @@ export default function ClassroomAttendanceSessionPage() {
     }
   };
 
+  const verifyCodeDirect = async (codeToVerify: string) => {
+    setVerifyingCode(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch("/api/attendance/check-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "VERIFY", sessionId, code: codeToVerify.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess(data.message || "Attendance recorded successfully via QR code!");
+        setStudentCodeInput("");
+        await fetchAttendance();
+      } else {
+        setError(data.error || "Invalid or expired check-in code.");
+      }
+    } catch {
+      setError("Network error while verifying QR code.");
+    } finally {
+      setVerifyingCode(false);
+    }
+  };
+
   useEffect(() => {
     if (sessionId) fetchAttendance();
     if (typeof window !== "undefined") {
@@ -111,6 +143,8 @@ export default function ClassroomAttendanceSessionPage() {
       const codeParam = urlParams.get("code");
       if (codeParam) {
         setStudentCodeInput(codeParam);
+        // Automatically check in if user is logged in
+        verifyCodeDirect(codeParam);
       }
     }
   }, [sessionId]);
@@ -238,6 +272,8 @@ export default function ClassroomAttendanceSessionPage() {
       "College / Faculty",
       "Academic Year",
       "Attendance Status",
+      "Verification Method",
+      "Verified By",
       "Notes / Comments",
       "Recorded",
       "Session Title",
@@ -253,6 +289,8 @@ export default function ClassroomAttendanceSessionPage() {
       s.student.college || "-",
       s.student.academicYear || "-",
       s.status,
+      s.verificationMethod || (s.isMarked ? "MANUAL" : "NOT_MARKED"),
+      s.verifiedBy || (s.isMarked ? "Staff" : "-"),
       s.notes || "-",
       s.isMarked ? "Yes" : "No",
       session.title,
@@ -530,7 +568,7 @@ export default function ClassroomAttendanceSessionPage() {
                     <th className="py-3 px-4">Student</th>
                     <th className="py-3 px-4">Faculty & Academic Year</th>
                     <th className="py-3 px-4 text-center">Classroom Attendance Status</th>
-                    <th className="py-3 px-4">Notes / Excuses</th>
+                    <th className="py-3 px-4 min-w-[220px]">Verification Method & Verifier (طريقة التسجيل والمسؤول)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1E3A5F]/60">
@@ -625,17 +663,56 @@ export default function ClassroomAttendanceSessionPage() {
                       </td>
 
                       <td className="py-3.5 px-4">
-                        {isStaff ? (
-                          <input
-                            type="text"
-                            value={item.notes}
-                            onChange={(e) => setNotesForStudent(item.student.id, e.target.value)}
-                            placeholder="Reason for late/excuse or remarks..."
-                            className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-lg px-3 py-1.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
-                          />
-                        ) : (
-                          <span className="text-[#8FA4BD]">{item.notes || "-"}</span>
-                        )}
+                        <div className="space-y-1.5">
+                          {item.isMarked || item.status === "PRESENT" ? (
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {item.verificationMethod === "QR_CODE" ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                  <QrCode className="w-3 h-3 text-emerald-400" />
+                                  QR Code (سكان الطالب)
+                                </span>
+                              ) : item.verificationMethod === "ADMIN" ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                  <ShieldCheck className="w-3 h-3 text-purple-400" />
+                                  Admin (الادمن الرئيسي)
+                                </span>
+                              ) : item.verificationMethod === "INSTRUCTOR" ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-[#269CF0]/20 text-[#48D5F5] border border-[#269CF0]/30">
+                                  <Users className="w-3 h-3 text-[#269CF0]" />
+                                  Instructor (هيد/مدرب)
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-500/20 text-slate-300 border border-slate-500/30">
+                                  Manual (يدوي)
+                                </span>
+                              )}
+                              {item.verifiedBy && (
+                                <span className="text-[10px] text-[#8FA4BD] font-medium">
+                                  بواسطة: {item.verifiedBy}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-[#8FA4BD] italic">
+                              — لم يُسجل بعد (غائب)
+                            </span>
+                          )}
+
+                          {isStaff && (
+                            <input
+                              type="text"
+                              value={item.notes}
+                              onChange={(e) => setNotesForStudent(item.student.id, e.target.value)}
+                              placeholder="ملاحظات / عذر إضافي..."
+                              className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-lg px-2.5 py-1 text-[11px] text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                            />
+                          )}
+                          {!isStaff && item.notes && (
+                            <p className="text-[10px] text-amber-300/80 italic">
+                              {item.notes}
+                            </p>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
