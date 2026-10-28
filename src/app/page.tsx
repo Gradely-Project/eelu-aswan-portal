@@ -22,6 +22,12 @@ import {
   Award,
   ShieldCheck,
   UserCheck,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  Zap,
 } from "lucide-react";
 
 interface Leader {
@@ -38,6 +44,7 @@ export default function LandingPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Dynamic leadership list & active tracks list
   const [leaders, setLeaders] = useState<Leader[]>([]);
@@ -315,31 +322,43 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07172A] text-[#F5F7FB] flex flex-col font-sans selection:bg-[#269CF0] selection:text-white">
+    <div className="min-h-screen bg-[#061220] text-[#F5F7FB] flex flex-col font-sans selection:bg-[#269CF0] selection:text-white relative overflow-hidden">
+      {/* Subtle Background Mesh & Glow Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e3a5f15_1px,transparent_1px),linear-gradient(to_bottom,#1e3a5f15_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none -z-10" />
+      <div className="absolute top-[-8rem] left-1/2 -translate-x-1/2 w-[48rem] h-[24rem] bg-gradient-to-tr from-[#269CF0]/20 via-[#48D5F5]/10 to-[#E5A93C]/10 blur-[130px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-1/4 -right-24 w-80 h-80 bg-[#269CF0]/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-1/3 -left-24 w-80 h-80 bg-[#E5A93C]/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+
       {/* Top Header Navbar */}
-      <header className="h-20 bg-[#07172A]/90 backdrop-blur-md border-b border-[#1E3A5F]/70 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-50">
+      <header className="h-20 bg-[#061220]/80 backdrop-blur-xl border-b border-[#1E3A5F]/60 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3.5">
           {/* Glowing Animated Ambient Ring around Logo */}
-          <div className="relative p-[2px] rounded-2xl bg-gradient-to-tr from-[#269CF0] via-[#E5A93C] to-[#48D5F5] shadow-lg shadow-cyan-500/25 group">
-            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-amber-300 to-blue-500 opacity-70 blur-[3px] animate-pulse" />
+          <div className="relative p-[2px] rounded-2xl bg-gradient-to-tr from-[#269CF0] via-[#E5A93C] to-[#48D5F5] shadow-lg shadow-[#269CF0]/20 group">
+            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-amber-300 to-blue-500 opacity-60 blur-[3px] group-hover:opacity-100 transition-opacity" />
             <div
-              className="relative w-12 h-12 rounded-2xl overflow-hidden bg-[#07172A] p-1 flex-shrink-0 flex items-center justify-center"
-              style={{ width: "48px", height: "48px", minWidth: "48px", minHeight: "48px" }}
+              className="relative w-11 h-11 rounded-2xl overflow-hidden bg-[#07172A] p-1 flex-shrink-0 flex items-center justify-center"
+              style={{ width: "44px", height: "44px", minWidth: "44px", minHeight: "44px" }}
             >
               <Image
                 src="/logo.jpeg"
                 alt="EELU Branch Logo"
-                width={48}
-                height={48}
+                width={44}
+                height={44}
                 className="w-full h-full object-contain rounded-xl"
                 priority
               />
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-none">
-              EELU Aswan Branch
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-none">
+                EELU Aswan Branch
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live
+              </span>
+            </div>
             <span className="text-[10px] font-bold text-[#E5A93C] tracking-wider uppercase mt-1">
               STUDENT ACADEMY PORTAL
             </span>
@@ -362,7 +381,7 @@ export default function LandingPage() {
           </button>
           <button
             onClick={() => scrollToSection("signin")}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white text-xs font-black shadow-lg shadow-[#269CF0]/25 transition-all hover:scale-105 cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#269CF0] to-[#1E82CB] hover:from-[#35A5F5] hover:to-[#269CF0] text-white text-xs font-black shadow-lg shadow-[#269CF0]/25 transition-all hover:scale-105 cursor-pointer"
           >
             <LogIn className="w-3.5 h-3.5" />
             Sign In to Portal
@@ -376,45 +395,94 @@ export default function LandingPage() {
           
           {/* Left Column: Slogans & Mission (lg:col-span-7) */}
           <div className="lg:col-span-7 flex flex-col justify-center text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0D1D32] border border-[#1E3A5F] text-[#48D5F5] text-xs font-bold mb-6 w-fit shadow-sm">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0D1D32]/90 border border-[#269CF0]/30 text-[#48D5F5] text-xs font-bold mb-6 w-fit shadow-lg shadow-[#269CF0]/5 backdrop-blur-md">
               <Sparkles className="w-3.5 h-3.5 text-[#E5A93C]" />
-              Official Academic Season
+              <span>Official Academic Season 2026</span>
+              <span className="text-[#1E3A5F]">•</span>
+              <span className="text-[#8FA4BD]">9 Training Tracks</span>
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-[#F5F7FB] tracking-tight leading-[1.05] mb-5">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.05] mb-5">
               Learn.<br />
-              <span className="text-white">Build.</span><br />
-              <span className="text-[#269CF0]">Compete.</span>
+              <span className="bg-gradient-to-r from-white via-[#E8F0FA] to-[#9AB3D1] bg-clip-text text-transparent">Build.</span><br />
+              <span className="bg-gradient-to-r from-[#269CF0] via-[#48D5F5] to-[#269CF0] bg-clip-text text-transparent">Compete.</span>
             </h1>
 
             <p className="text-sm sm:text-base text-[#8FA4BD] leading-relaxed font-medium mb-8 max-w-xl">
               Build high-impact engineering skills through intensive bootcamps, hands-on projects, and practical training designed for industry readiness.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4 mb-10">
               <button
                 onClick={() => scrollToSection("tracks-section")}
-                className="px-7 py-3.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-xs font-black text-white shadow-lg shadow-[#269CF0]/25 transition-all flex items-center gap-2.5 cursor-pointer hover:scale-105"
+                className="px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#269CF0] to-[#1E82CB] hover:from-[#35A5F5] hover:to-[#269CF0] text-xs font-black text-white shadow-xl shadow-[#269CF0]/25 transition-all flex items-center gap-2.5 cursor-pointer hover:scale-105"
               >
                 <Layers className="w-4 h-4" />
                 Explore Tracks
               </button>
               <button
                 onClick={() => scrollToSection("governance-section")}
-                className="px-6 py-3.5 rounded-xl bg-[#0D1D32] hover:bg-[#10243C] border border-[#1E3A5F] hover:border-[#E5A93C] text-xs font-black text-[#E5A93C] transition-all flex items-center gap-2 cursor-pointer"
+                className="px-6 py-3.5 rounded-xl bg-[#0D1D32]/80 hover:bg-[#10243C] border border-[#1E3A5F] hover:border-[#E5A93C] text-xs font-black text-[#E5A93C] transition-all flex items-center gap-2 cursor-pointer backdrop-blur-md"
               >
                 <Crown className="w-4 h-4" />
                 Branch Governance
               </button>
             </div>
+
+            {/* Quick Stats / Highlights Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-[#1E3A5F]/50">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#269CF0]/10 border border-[#269CF0]/30 flex items-center justify-center text-[#269CF0]">
+                  <Zap className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-black text-white">9 Tracks</div>
+                  <div className="text-[10px] text-[#8FA4BD]">Hands-on Labs</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Award className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-black text-white">Live Ranks</div>
+                  <div className="text-[10px] text-[#8FA4BD]">Leaderboard</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-black text-white">QR Check-in</div>
+                  <div className="text-[10px] text-[#8FA4BD]">Attendance</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-black text-white">Certificates</div>
+                  <div className="text-[10px] text-[#8FA4BD]">Verified Skills</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right Column: Welcome Back Sign In Card (lg:col-span-5) */}
-          <div id="signin" className="lg:col-span-5">
-            <div className="w-full bg-[#0D1D32] rounded-3xl p-6 sm:p-8 border border-[#1E3A5F] shadow-2xl relative">
+          <div id="signin" className="lg:col-span-5 relative">
+            {/* Ambient card aura */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#269CF0]/20 via-[#48D5F5]/10 to-[#E5A93C]/20 rounded-3xl blur-xl opacity-75 pointer-events-none -z-10" />
+
+            <div className="w-full bg-[#0B1728]/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 border border-[#1E3A5F]/80 shadow-2xl relative overflow-hidden">
+              {/* Card top edge highlight line */}
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#269CF0] to-transparent opacity-80" />
+
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-2xl font-black text-[#F5F7FB]">Welcome Back</h2>
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#269CF0]/15 text-[#48D5F5] border border-[#269CF0]/30">
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#269CF0]/15 text-[#48D5F5] border border-[#269CF0]/30 shadow-sm flex items-center gap-1">
+                  <Lock className="w-3 h-3" />
                   Secure Access
                 </span>
               </div>
@@ -429,42 +497,55 @@ export default function LandingPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSignIn} className="space-y-3.5 text-left">
+              <form onSubmit={handleSignIn} className="space-y-4 text-left">
                 <div>
                   <label className="block text-[11px] font-bold text-[#8FA4BD] uppercase tracking-wider mb-1.5">
                     Email Address
                   </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="student@eelu.edu.eg"
-                    className="w-full bg-[#050e1a] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] placeholder-[#8FA4BD]/60 focus:outline-none focus:border-[#269CF0] transition-colors"
-                  />
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-[#8FA4BD] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="student@eelu.edu.eg"
+                      className="w-full bg-[#050d18] border border-[#1E3A5F] rounded-xl pl-10 pr-4 py-3 text-xs text-[#F5F7FB] placeholder-[#8FA4BD]/50 focus:outline-none focus:border-[#269CF0] focus:ring-1 focus:ring-[#269CF0]/40 transition-all shadow-inner"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold text-[#8FA4BD] uppercase tracking-wider mb-1.5">
                     Password
                   </label>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full bg-[#050e1a] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] placeholder-[#8FA4BD]/60 focus:outline-none focus:border-[#269CF0] transition-colors"
-                  />
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-[#8FA4BD] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full bg-[#050d18] border border-[#1E3A5F] rounded-xl pl-10 pr-10 py-3 text-xs text-[#F5F7FB] placeholder-[#8FA4BD]/50 focus:outline-none focus:border-[#269CF0] focus:ring-1 focus:ring-[#269CF0]/40 transition-all shadow-inner"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8FA4BD] hover:text-[#48D5F5] transition-colors cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white text-xs font-black shadow-lg shadow-[#269CF0]/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#269CF0] via-[#1E82CB] to-[#269CF0] hover:brightness-110 text-white text-xs font-black shadow-lg shadow-[#269CF0]/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-3 hover:scale-[1.01] active:scale-[0.99]"
                 >
                   <LogIn className="w-4 h-4" />
-                  {loading ? "Signing in..." : "Sign In →"}
+                  {loading ? "Signing in..." : "Sign In to Portal →"}
                 </button>
               </form>
 
@@ -479,42 +560,45 @@ export default function LandingPage() {
               </div>
 
               {/* Fast 1-Click Fast Demo Login */}
-              <div className="mt-4 pt-3 border-t border-[#1E3A5F]/50">
-                <span className="text-[10px] font-black text-[#8FA4BD] uppercase tracking-wider block mb-2 text-center">
-                  ⚡ 1-Click Fast Demo Login
-                </span>
+              <div className="mt-5 pt-4 border-t border-[#1E3A5F]/60">
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-[10px] font-black text-[#8FA4BD] uppercase tracking-wider">
+                    ⚡ 1-Click Fast Demo Login
+                  </span>
+                  <span className="text-[10px] text-[#48D5F5] font-mono">Instant Fill</span>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setDemoCredentials("admin@branch.org", "admin123")}
-                    className="p-2 rounded-xl bg-[#050e1a] border border-[#1E3A5F] hover:border-[#269CF0] text-[10px] font-bold text-[#8FA4BD] hover:text-[#269CF0] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="p-2.5 rounded-xl bg-[#050d18] border border-[#1E3A5F] hover:border-rose-500/60 text-[11px] font-bold text-[#8FA4BD] hover:text-white hover:bg-rose-500/5 transition-all flex items-center justify-center gap-2 cursor-pointer group"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                    Main Admin
+                    <span className="w-2 h-2 rounded-full bg-rose-500 group-hover:animate-ping" />
+                    <span>👑 Main Admin</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setDemoCredentials("chair@branch.org", "chair123")}
-                    className="p-2 rounded-xl bg-[#050e1a] border border-[#1E3A5F] hover:border-[#E5A93C] text-[10px] font-bold text-[#8FA4BD] hover:text-[#E5A93C] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="p-2.5 rounded-xl bg-[#050d18] border border-[#1E3A5F] hover:border-amber-500/60 text-[11px] font-bold text-[#8FA4BD] hover:text-white hover:bg-amber-500/5 transition-all flex items-center justify-center gap-2 cursor-pointer group"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    Chairperson
+                    <span className="w-2 h-2 rounded-full bg-amber-500 group-hover:animate-ping" />
+                    <span>🎖️ Chairperson</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setDemoCredentials("web.head@branch.org", "head123")}
-                    className="p-2 rounded-xl bg-[#050e1a] border border-[#1E3A5F] hover:border-[#48D5F5] text-[10px] font-bold text-[#8FA4BD] hover:text-[#48D5F5] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="p-2.5 rounded-xl bg-[#050d18] border border-[#1E3A5F] hover:border-cyan-500/60 text-[11px] font-bold text-[#8FA4BD] hover:text-white hover:bg-cyan-500/5 transition-all flex items-center justify-center gap-2 cursor-pointer group"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
-                    Web Dev Head
+                    <span className="w-2 h-2 rounded-full bg-cyan-500 group-hover:animate-ping" />
+                    <span>💻 Web Head</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setDemoCredentials("ahmed@student.com", "student123")}
-                    className="p-2 rounded-xl bg-[#050e1a] border border-[#1E3A5F] hover:border-emerald-500 text-[10px] font-bold text-[#8FA4BD] hover:text-emerald-400 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="p-2.5 rounded-xl bg-[#050d18] border border-[#1E3A5F] hover:border-emerald-500/60 text-[11px] font-bold text-[#8FA4BD] hover:text-white hover:bg-emerald-500/5 transition-all flex items-center justify-center gap-2 cursor-pointer group"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    Student (Ahmed)
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 group-hover:animate-ping" />
+                    <span>🎓 Student (Ahmed)</span>
                   </button>
                 </div>
               </div>
