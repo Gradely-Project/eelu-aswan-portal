@@ -17,16 +17,21 @@ export async function GET(req: Request) {
     }
 
     if (user.role === "STUDENT") {
-      // Return student's own evaluation if exists
-      const evaluation = await prisma.sessionEvaluation.findUnique({
-        where: {
-          sessionId_studentId: {
-            sessionId,
-            studentId: user.id,
-          },
-        },
+      const instructorName = searchParams.get("instructorName");
+      const whereClause: any = {
+        sessionId,
+        studentId: user.id,
+      };
+      if (instructorName) {
+        whereClause.instructorName = instructorName;
+      }
+      const evaluations = await prisma.sessionEvaluation.findMany({
+        where: whereClause,
       });
-      return NextResponse.json({ evaluation });
+      return NextResponse.json({
+        evaluations,
+        evaluation: evaluations.length > 0 ? evaluations[0] : null,
+      });
     }
 
     // Verify track access for staff
@@ -95,38 +100,47 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Session ID is required." }, { status: 400 });
     }
 
-    const evaluation = await prisma.sessionEvaluation.upsert({
+    // Find existing evaluation for this student + session + instructor
+    const existing = await prisma.sessionEvaluation.findFirst({
       where: {
-        sessionId_studentId: {
-          sessionId,
-          studentId: user.id,
-        },
-      },
-      update: {
-        instructorName: instructorName || null,
-        instructorRole: instructorRole || null,
-        clarityRating: Number(clarityRating) || 5,
-        materialRating: Number(materialRating) || 5,
-        overallRating: Number(overallRating) || 5,
-        feedbackText: feedbackText ? feedbackText.trim() : null,
-      },
-      create: {
         sessionId,
         studentId: user.id,
-        studentName: user.name,
         instructorName: instructorName || null,
-        instructorRole: instructorRole || null,
-        clarityRating: Number(clarityRating) || 5,
-        materialRating: Number(materialRating) || 5,
-        overallRating: Number(overallRating) || 5,
-        feedbackText: feedbackText ? feedbackText.trim() : null,
       },
     });
+
+    let evaluation;
+    if (existing) {
+      evaluation = await prisma.sessionEvaluation.update({
+        where: { id: existing.id },
+        data: {
+          instructorRole: instructorRole || null,
+          clarityRating: Number(clarityRating) || 5,
+          materialRating: Number(materialRating) || 5,
+          overallRating: Number(overallRating) || 5,
+          feedbackText: feedbackText ? feedbackText.trim() : null,
+        },
+      });
+    } else {
+      evaluation = await prisma.sessionEvaluation.create({
+        data: {
+          sessionId,
+          studentId: user.id,
+          studentName: user.name,
+          instructorName: instructorName || null,
+          instructorRole: instructorRole || null,
+          clarityRating: Number(clarityRating) || 5,
+          materialRating: Number(materialRating) || 5,
+          overallRating: Number(overallRating) || 5,
+          feedbackText: feedbackText ? feedbackText.trim() : null,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,
       evaluation,
-      message: "Thank you! Your lecture feedback has been recorded.",
+      message: `Thank you! Your feedback for ${instructorName || "instructor"} has been saved.`,
     });
   } catch (error) {
     console.error("POST /api/sessions/evaluate error:", error);

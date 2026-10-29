@@ -23,6 +23,8 @@ interface StudentItem {
   id: string;
   name: string;
   email: string;
+  universityEmail?: string | null;
+  universityId?: string | null;
   phone: string | null;
   college: string | null;
   academicYear: string | null;
@@ -354,9 +356,14 @@ export default function AdminStudentsDirectoryPage() {
                         <tr key={st.id} className="hover:bg-[#10243C]/50 transition-colors">
                           <td className="py-3.5 px-4">
                             <span className="font-bold text-[#F5F7FB] block">{st.name}</span>
-                            <span className="text-[11px] text-[#8FA4BD] font-mono">
+                            <span className="text-[11px] text-[#8FA4BD] font-mono block">
                               {st.email} {st.phone && `• ${st.phone}`}
                             </span>
+                            {(st.universityEmail || st.universityId) && (
+                              <span className="text-[10px] text-[#48D5F5] font-mono block mt-0.5">
+                                🎓 {st.universityEmail || "No Uni Email"} {st.universityId && `(ID: ${st.universityId})`}
+                              </span>
+                            )}
                           </td>
 
                           <td className="py-3.5 px-4 text-[#8FA4BD]">

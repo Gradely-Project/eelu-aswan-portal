@@ -77,7 +77,16 @@ export async function POST(req: Request) {
         );
       }
 
-      const recipientEmails = schedule.track.enrollments.map((e) => e.user.email);
+      await prisma.announcement.create({
+        data: {
+          title: `Schedule Broadcast: ${schedule.track.name} Lecture`,
+          content: `Official reminder: Lecture scheduled on ${schedule.dayOfWeek} at ${schedule.time}. Topic: "${schedule.topic}". Location: ${schedule.location}.`,
+          category: "SCHEDULE",
+          targetAudience: "ALL",
+          trackId: schedule.trackId,
+          authorName: user.name || "Academic Operations",
+        },
+      });
 
       await prisma.weeklySchedule.update({
         where: { id: scheduleId },
@@ -86,8 +95,8 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         success: true,
-        recipientCount: recipientEmails.length,
-        message: `Email broadcast dispatched to ${recipientEmails.length} students in ${schedule.track.name}.`,
+        recipientCount: schedule.track.enrollments.length,
+        message: `In-app announcement broadcast sent to all ${schedule.track.enrollments.length} enrolled students in ${schedule.track.name}.`,
       });
     }
 

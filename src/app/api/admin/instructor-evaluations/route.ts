@@ -4,13 +4,23 @@ import { requireAdmin } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const { error, user } = await requireAdmin();
     if (error || !user) return error;
 
+    const { searchParams } = new URL(req.url);
+    const filterTrackId = searchParams.get("trackId");
+    const filterSessionId = searchParams.get("sessionId");
+
     // Fetch all evaluations with their session and track details
+    const whereClause: any = {};
+    if (filterSessionId) {
+      whereClause.sessionId = filterSessionId;
+    }
+
     const evaluations = await prisma.sessionEvaluation.findMany({
+      where: whereClause,
       orderBy: { createdAt: "desc" },
     });
 
@@ -44,6 +54,7 @@ export async function GET() {
 
     for (const ev of evaluations) {
       const sess = sessionMap.get(ev.sessionId);
+      if (filterTrackId && sess?.track?.id !== filterTrackId) continue;
       const name = ev.instructorName || "Unassigned Instructor";
       const role = ev.instructorRole || "Instruction Team";
       const trackName = sess?.track?.name || "General Track";

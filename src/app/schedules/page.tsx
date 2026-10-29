@@ -227,7 +227,7 @@ export default function SchedulesPage() {
                       {sc.emailSent ? (
                         <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3" />
-                          Email Dispatched to Students
+                          In-App Notification Sent to Students
                         </span>
                       ) : (
                         <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30">
@@ -256,7 +256,7 @@ export default function SchedulesPage() {
                       className="px-4 py-2 rounded-xl bg-[#10243C] hover:bg-[#1E3A5F] text-[#48D5F5] hover:text-white font-bold text-xs border border-[#1E3A5F] transition-all flex items-center gap-1.5"
                     >
                       <Send className="w-3.5 h-3.5" />
-                      {sc.emailSent ? "Re-send Email Notification" : "Broadcast via Email"}
+                      {sc.emailSent ? "Re-broadcast Notification" : "Broadcast to Students' Accounts"}
                     </button>
                   </div>
                 </div>
@@ -358,7 +358,7 @@ export default function SchedulesPage() {
                       className="w-4 h-4 rounded text-[#269CF0] focus:ring-0"
                     />
                     <label htmlFor="notify" className="font-bold text-[#F5F7FB]">
-                      Dispatch email notification to all enrolled students immediately
+                      Broadcast in-app notification & announcement to all enrolled students immediately
                     </label>
                   </div>
 

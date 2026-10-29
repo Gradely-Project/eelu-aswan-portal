@@ -16,6 +16,9 @@ import {
   Download,
   Eye,
   FileCheck,
+  Settings,
+  X,
+  Trash2,
 } from "lucide-react";
 
 interface CertificateItem {
@@ -39,12 +42,32 @@ interface StudentOption {
   enrollments: Array<{ track: { id: string; name: string } }>;
 }
 
+interface Signatory {
+  name: string;
+  role: string;
+  order: number;
+  enabled: boolean;
+}
+
+interface SignatoriesConfig {
+  showOfficialSeal: boolean;
+  sealText: string;
+  reportSignatories: Signatory[];
+  certificateSignatories: Signatory[];
+}
+
 export default function CertificatesPage() {
   const [certificates, setCertificates] = useState<CertificateItem[]>([]);
   const [students, setStudents] = useState<StudentOption[]>([]);
   const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
   const [userRole, setUserRole] = useState("STUDENT");
   const [loading, setLoading] = useState(true);
+
+  // Dynamic Signatories Configuration
+  const [signatoriesConfig, setSignatoriesConfig] = useState<SignatoriesConfig | null>(null);
+  const [showSignatoriesModal, setShowSignatoriesModal] = useState(false);
+  const [editingConfig, setEditingConfig] = useState<SignatoriesConfig | null>(null);
+  const [savingSignatories, setSavingSignatories] = useState(false);
 
   // Issue Modal
   const [showIssueModal, setShowIssueModal] = useState(false);
@@ -61,14 +84,16 @@ export default function CertificatesPage() {
 
   const fetchCertificatesData = async () => {
     try {
-      const [meRes, certRes, tracksRes] = await Promise.all([
+      const [meRes, certRes, tracksRes, sigRes] = await Promise.all([
         fetch("/api/auth/me").then((r) => r.json()),
         fetch("/api/certificates").then((r) => r.json()),
         fetch("/api/tracks").then((r) => r.json()),
+        fetch("/api/admin/signatories").then((r) => r.json()),
       ]);
 
       const role = meRes.user?.role || "STUDENT";
       setUserRole(role);
+      if (sigRes.config) setSignatoriesConfig(sigRes.config);
       if (certRes.certificates) setCertificates(certRes.certificates);
       if (certRes.students) setStudents(certRes.students);
       if (tracksRes.tracks) {
@@ -86,6 +111,203 @@ export default function CertificatesPage() {
     fetchCertificatesData();
   }, []);
 
+  const handleOpenSignatoriesModal = () => {
+    if (signatoriesConfig) {
+      setEditingConfig(JSON.parse(JSON.stringify(signatoriesConfig)));
+      setShowSignatoriesModal(true);
+    }
+  };
+
+  const handleSaveSignatories = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingConfig) return;
+    setSavingSignatories(true);
+    try {
+      const res = await fetch("/api/admin/signatories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingConfig),
+      });
+      const data = await res.json();
+      if (data.config) {
+        setSignatoriesConfig(data.config);
+        setShowSignatoriesModal(false);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingSignatories(false);
+    }
+  };
+
+  const handleDownloadPNG = (cert: CertificateItem) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1600;
+    canvas.height = 1100;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Background
+    ctx.fillStyle = "#0A1628";
+    ctx.fillRect(0, 0, 1600, 1100);
+
+    // Outer Gold Border
+    ctx.strokeStyle = "#D4AF37";
+    ctx.lineWidth = 14;
+    ctx.strokeRect(40, 40, 1520, 1020);
+
+    // Inner Thin Gold Border
+    ctx.lineWidth = 2;
+    ctx.strokeRect(60, 60, 1480, 980);
+
+    // Corner Ornaments
+    const corners = [
+      [75, 75],
+      [1525, 75],
+      [75, 1025],
+      [1525, 1025],
+    ];
+    ctx.fillStyle = "#D4AF37";
+    corners.forEach(([cx, cy]) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Header Title
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#D4AF37";
+    ctx.font = "bold 34px Georgia, serif";
+    ctx.fillText("EELU ASWAN BRANCH", 800, 140);
+
+    ctx.fillStyle = "#8FA4BD";
+    ctx.font = "bold 16px Inter, sans-serif";
+    ctx.fillText("STUDENT ACADEMY PORTAL", 800, 175);
+
+    // Gold Divider Line
+    ctx.strokeStyle = "rgba(212, 175, 55, 0.4)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(300, 210);
+    ctx.lineTo(1300, 210);
+    ctx.stroke();
+
+    // Certificate Type
+    ctx.fillStyle = "#E5A93C";
+    ctx.font = "bold 18px Inter, sans-serif";
+    ctx.fillText("CERTIFICATE OF ACADEMIC EXCELLENCE & COMPLETION", 800, 260);
+
+    ctx.fillStyle = "#8FA4BD";
+    ctx.font = "italic 20px Georgia, serif";
+    ctx.fillText("This official credential is proudly awarded to certify that", 800, 310);
+
+    // Student Name
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 56px Georgia, serif";
+    ctx.fillText(cert.studentName, 800, 410);
+
+    // Underline Student Name
+    const nameWidth = ctx.measureText(cert.studentName).width;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(800 - nameWidth / 2 - 20, 435);
+    ctx.lineTo(800 + nameWidth / 2 + 20, 435);
+    ctx.stroke();
+
+    // Paragraph
+    ctx.fillStyle = "#CBD5E1";
+    ctx.font = "20px Inter, sans-serif";
+    ctx.fillText(
+      "has successfully and with high commitment completed all specialized practical lectures,",
+      800,
+      500
+    );
+    ctx.fillText("technical assignments, and coursework in the", 800, 535);
+
+    // Track Badge Box
+    const trackText = `${cert.trackName} Specialization`;
+    ctx.font = "bold 26px Inter, sans-serif";
+    const badgeWidth = ctx.measureText(trackText).width + 60;
+    ctx.fillStyle = "#07172A";
+    ctx.fillRect(800 - badgeWidth / 2, 570, badgeWidth, 54);
+    ctx.strokeStyle = "#269CF0";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(800 - badgeWidth / 2, 570, badgeWidth, 54);
+    ctx.fillStyle = "#48D5F5";
+    ctx.fillText(trackText, 800, 606);
+
+    // Grade Rating
+    ctx.fillStyle = "#E5A93C";
+    ctx.font = "bold 20px Inter, sans-serif";
+    ctx.fillText(`Graduated with Rating: ${cert.grade}`, 800, 680);
+
+    // Bottom Divider Line
+    ctx.strokeStyle = "rgba(212, 175, 55, 0.4)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(150, 750);
+    ctx.lineTo(1450, 750);
+    ctx.stroke();
+
+    // Serial & Date (Left)
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#8FA4BD";
+    ctx.font = "bold 15px Inter, sans-serif";
+    ctx.fillText("OFFICIAL SERIAL", 180, 800);
+    ctx.fillStyle = "#48D5F5";
+    ctx.font = "bold 18px monospace";
+    ctx.fillText(cert.certificateNo, 180, 830);
+    ctx.fillStyle = "#8FA4BD";
+    ctx.font = "14px Inter, sans-serif";
+    ctx.fillText(`Issued: ${cert.issueDate}`, 180, 855);
+
+    // Center: Verified Branch Seal (if enabled)
+    if (signatoriesConfig?.showOfficialSeal) {
+      ctx.textAlign = "center";
+      ctx.strokeStyle = "rgba(212, 175, 55, 0.7)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(800, 825, 40, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = "#D4AF37";
+      ctx.font = "bold 13px Inter, sans-serif";
+      ctx.fillText("OFFICIAL", 800, 820);
+      ctx.fillText("SEAL", 800, 836);
+      ctx.font = "bold 14px Inter, sans-serif";
+      ctx.fillText(signatoriesConfig.sealText || "Verified Branch Seal", 800, 885);
+    }
+
+    // Right: Dynamic Signatories
+    ctx.textAlign = "right";
+    const activeSigs = (signatoriesConfig?.certificateSignatories || [
+      { name: cert.supervisorName || "Eng. Abdelrahman Mahmoud", role: "Software Engineer & Branch Supervisor", order: 1, enabled: true },
+    ])
+      .filter((s: any) => s.enabled)
+      .sort((a: any, b: any) => a.order - b.order);
+
+    if (activeSigs.length > 0) {
+      const primary = activeSigs[0];
+      ctx.fillStyle = "#8FA4BD";
+      ctx.font = "bold 15px Inter, sans-serif";
+      ctx.fillText("ACADEMIC SUPERVISION", 1420, 800);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "bold 18px Inter, sans-serif";
+      ctx.fillText(primary.name, 1420, 830);
+      ctx.fillStyle = "#E5A93C";
+      ctx.font = "14px Inter, sans-serif";
+      ctx.fillText(primary.role, 1420, 855);
+    }
+
+    // Trigger File Download
+    const imageURL = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = imageURL;
+    a.download = `Certificate_${cert.studentName.replace(/\s+/g, "_")}_${cert.certificateNo}.png`;
+    a.click();
+  };
+
   const handleIssue = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStudentId || !selectedTrackId) return;
@@ -95,6 +317,13 @@ export default function CertificatesPage() {
     setSuccess(null);
 
     try {
+      const activeSigs = (signatoriesConfig?.certificateSignatories || [
+        { name: "Eng. Abdelrahman Mahmoud", role: "Software Engineer & Branch Supervisor", order: 1, enabled: true },
+      ]).filter((s) => s.enabled);
+
+      const supervisorName = activeSigs[0]?.name || "Eng. Abdelrahman Mahmoud";
+      const chairName = activeSigs[1]?.name || "EELU Aswan Branch Board";
+
       const res = await fetch("/api/certificates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -103,8 +332,8 @@ export default function CertificatesPage() {
           trackId: selectedTrackId,
           grade,
           issueDate,
-          supervisorName: "Eng. Abdelrahman Mahmoud",
-          chairName: "EELU Aswan Branch Board",
+          supervisorName,
+          chairName,
         }),
       });
 
@@ -154,17 +383,29 @@ export default function CertificatesPage() {
             </div>
 
             {isExec && (
-              <button
-                onClick={() => {
-                  setError(null);
-                  if (filteredStudents.length > 0) setSelectedStudentId(filteredStudents[0].id);
-                  setShowIssueModal(true);
-                }}
-                className="px-5 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer self-start sm:self-auto"
-              >
-                <Plus className="w-4 h-4" />
-                Issue New Certificate
-              </button>
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                {signatoriesConfig && (
+                  <button
+                    onClick={handleOpenSignatoriesModal}
+                    className="px-4 py-2.5 rounded-xl bg-[#0D1D32] hover:bg-[#1E3A5F] border border-[#E5A93C]/40 text-[#E5A93C] font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    title="Customize Certificate Signatures and Seal"
+                  >
+                    <Settings className="w-4 h-4 text-[#E5A93C]" />
+                    <span className="hidden sm:inline">Signatures & Seal</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setError(null);
+                    if (filteredStudents.length > 0) setSelectedStudentId(filteredStudents[0].id);
+                    setShowIssueModal(true);
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Issue New Certificate
+                </button>
+              </div>
             )}
           </div>
 
@@ -351,16 +592,24 @@ export default function CertificatesPage() {
       {previewCert && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="max-w-4xl w-full my-auto">
-            {/* Top Bar with Print & Close */}
-            <div className="flex items-center justify-between mb-4 no-print">
+            {/* Top Bar with Download, Print & Close */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 no-print">
               <span className="text-xs font-bold text-[#48D5F5]">Official Certificate Document</span>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <button
+                  onClick={() => handleDownloadPNG(previewCert)}
+                  className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs shadow-md flex items-center gap-2 cursor-pointer transition-colors"
+                  title="Download direct high-resolution PNG image with gold borders and navy background preserved"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download (PNG Image)</span>
+                </button>
                 <button
                   onClick={() => window.print()}
-                  className="px-4 py-2 rounded-xl bg-[#269CF0] text-white font-black text-xs shadow-md flex items-center gap-2 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md flex items-center gap-2 cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
-                  Print / Save PDF
+                  <span>Print / Save PDF</span>
                 </button>
                 <button
                   onClick={() => setPreviewCert(null)}
@@ -372,7 +621,14 @@ export default function CertificatesPage() {
             </div>
 
             {/* Certificate Template Card */}
-            <div className="bg-[#0A1628] border-8 border-[#D4AF37] rounded-3xl p-8 sm:p-12 text-center text-white relative shadow-2xl overflow-hidden print-cert">
+            <div
+              style={{
+                backgroundColor: "#0A1628",
+                WebkitPrintColorAdjust: "exact",
+                printColorAdjust: "exact",
+              }}
+              className="bg-[#0A1628] border-8 border-[#D4AF37] rounded-3xl p-8 sm:p-12 text-center text-white relative shadow-2xl overflow-hidden print-cert"
+            >
               {/* Decorative Corners */}
               <div className="absolute top-3 left-3 w-12 h-12 border-t-2 border-l-2 border-[#D4AF37]" />
               <div className="absolute top-3 right-3 w-12 h-12 border-t-2 border-r-2 border-[#D4AF37]" />
@@ -416,28 +672,213 @@ export default function CertificatesPage() {
                 Graduated with Rating: <strong className="text-white font-black underline decoration-[#D4AF37]">{previewCert.grade}</strong>
               </p>
 
-              {/* Signatures & Serial */}
-              <div className="grid grid-cols-3 gap-6 pt-6 border-t border-[#D4AF37]/30 text-xs">
-                <div>
+              {/* Signatures & Serial (Dynamically configured) */}
+              <div
+                className={`grid gap-6 pt-6 border-t border-[#D4AF37]/30 text-xs items-center ${
+                  signatoriesConfig?.showOfficialSeal ? "grid-cols-3" : "grid-cols-2"
+                }`}
+              >
+                <div className="text-left">
                   <span className="block text-[10px] uppercase font-bold text-[#8FA4BD] mb-1">Official Serial</span>
                   <span className="font-mono text-xs font-black text-[#48D5F5]">{previewCert.certificateNo}</span>
                   <span className="block text-[10px] text-[#8FA4BD] mt-0.5">{previewCert.issueDate}</span>
                 </div>
 
-                <div>
-                  <div className="w-12 h-12 mx-auto rounded-full border border-[#D4AF37]/50 flex items-center justify-center mb-1">
-                    <ShieldCheck className="w-6 h-6 text-[#D4AF37]" />
+                {signatoriesConfig?.showOfficialSeal && (
+                  <div className="text-center">
+                    <div className="w-12 h-12 mx-auto rounded-full border border-[#D4AF37]/50 flex items-center justify-center mb-1">
+                      <ShieldCheck className="w-6 h-6 text-[#D4AF37]" />
+                    </div>
+                    <span className="text-[9px] uppercase font-bold text-[#D4AF37]">
+                      {signatoriesConfig.sealText || "Verified Branch Seal"}
+                    </span>
                   </div>
-                  <span className="text-[9px] uppercase font-bold text-[#D4AF37]">Verified Branch Seal</span>
-                </div>
+                )}
 
-                <div>
-                  <span className="block text-[10px] uppercase font-bold text-[#8FA4BD] mb-1">Academic Supervision</span>
-                  <span className="font-bold text-white block">{previewCert.supervisorName}</span>
-                  <span className="text-[10px] text-[#E5A93C]">Software Engineer & Branch Supervisor</span>
+                <div className="text-right">
+                  {(() => {
+                    const activeSigs = (signatoriesConfig?.certificateSignatories || [
+                      {
+                        name: previewCert.supervisorName || "Eng. Abdelrahman Mahmoud",
+                        role: "Software Engineer & Branch Supervisor",
+                        order: 1,
+                        enabled: true,
+                      },
+                    ])
+                      .filter((s: any) => s.enabled)
+                      .sort((a: any, b: any) => a.order - b.order);
+
+                    const signer = activeSigs[0] || {
+                      name: previewCert.supervisorName,
+                      role: "Academic Supervision",
+                    };
+
+                    return (
+                      <div>
+                        <span className="block text-[10px] uppercase font-bold text-[#8FA4BD] mb-1">
+                          {signer.role}
+                        </span>
+                        <span className="font-bold text-white block text-sm">{signer.name}</span>
+                        <span className="text-slate-400 block font-mono text-[10px] mt-2">
+                          ...............................
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Signatories Customization Modal */}
+      {showSignatoriesModal && editingConfig && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-print">
+          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-2xl max-w-2xl w-full p-6 text-white shadow-2xl space-y-5 my-auto">
+            <div className="flex items-center justify-between border-b border-[#1E3A5F] pb-3">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-[#E5A93C]" />
+                <h3 className="font-black text-base text-[#F5F7FB]">
+                  Certificate Signatures & Seal Control
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowSignatoriesModal(false)}
+                className="p-1 rounded-lg text-[#8FA4BD] hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSignatories} className="space-y-4">
+              {/* Seal Toggle */}
+              <div className="p-3 bg-[#07172A] rounded-xl border border-[#1E3A5F] flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-xs block text-[#F5F7FB]">
+                    Official Branch Seal
+                  </span>
+                  <span className="text-[11px] text-[#8FA4BD]">
+                    Display gold verified badge and seal on certificate documents
+                  </span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editingConfig.showOfficialSeal}
+                    onChange={(e) =>
+                      setEditingConfig({
+                        ...editingConfig,
+                        showOfficialSeal: e.target.checked,
+                      })
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#269CF0]"></div>
+                </label>
+              </div>
+
+              {/* Certificate Signatories List */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-[#E5A93C] uppercase tracking-wider">
+                    Certificate Signatories ({editingConfig.certificateSignatories.length})
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEditingConfig({
+                        ...editingConfig,
+                        certificateSignatories: [
+                          ...editingConfig.certificateSignatories,
+                          {
+                            name: "New Official Name",
+                            role: "Title / Position",
+                            order: editingConfig.certificateSignatories.length + 1,
+                            enabled: true,
+                          },
+                        ],
+                      })
+                    }
+                    className="text-xs text-[#48D5F5] hover:underline flex items-center gap-1 font-bold"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Signer
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                  {editingConfig.certificateSignatories.map((sig, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 bg-[#07172A] p-2 rounded-xl border border-[#1E3A5F]"
+                    >
+                      <input
+                        type="number"
+                        value={sig.order}
+                        onChange={(e) => {
+                          const updated = [...editingConfig.certificateSignatories];
+                          updated[idx].order = Number(e.target.value);
+                          setEditingConfig({ ...editingConfig, certificateSignatories: updated });
+                        }}
+                        className="w-12 bg-[#0D1D32] border border-[#1E3A5F] rounded-lg px-2 py-1 text-xs text-center font-bold"
+                        title="Order"
+                      />
+                      <input
+                        type="text"
+                        value={sig.name}
+                        onChange={(e) => {
+                          const updated = [...editingConfig.certificateSignatories];
+                          updated[idx].name = e.target.value;
+                          setEditingConfig({ ...editingConfig, certificateSignatories: updated });
+                        }}
+                        placeholder="Signatory Name"
+                        className="flex-1 bg-[#0D1D32] border border-[#1E3A5F] rounded-lg px-2.5 py-1 text-xs"
+                      />
+                      <input
+                        type="text"
+                        value={sig.role}
+                        onChange={(e) => {
+                          const updated = [...editingConfig.certificateSignatories];
+                          updated[idx].role = e.target.value;
+                          setEditingConfig({ ...editingConfig, certificateSignatories: updated });
+                        }}
+                        placeholder="Role / Title"
+                        className="flex-1 bg-[#0D1D32] border border-[#1E3A5F] rounded-lg px-2.5 py-1 text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = editingConfig.certificateSignatories.filter((_, i) => i !== idx);
+                          setEditingConfig({ ...editingConfig, certificateSignatories: updated });
+                        }}
+                        className="p-1.5 text-rose-400 hover:text-rose-300 rounded-lg hover:bg-rose-500/10"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#1E3A5F] flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowSignatoriesModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs text-[#8FA4BD] hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingSignatories}
+                  className="px-5 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md transition-all flex items-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  {savingSignatories ? "Saving..." : "Save Signatures"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

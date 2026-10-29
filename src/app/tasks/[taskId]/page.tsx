@@ -276,7 +276,16 @@ export default function TaskDetailPage() {
               <div className="flex items-center gap-2 font-mono">
                 <Clock className="w-4 h-4 text-rose-400" />
                 <span className="font-bold text-[#F5F7FB]">Deadline:</span>
-                <span>{new Date(task.deadline).toLocaleString("en-US")}</span>
+                <span>
+                  {new Date(task.deadline).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
+                </span>
               </div>
 
               {task.materialsLink && (

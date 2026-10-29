@@ -60,11 +60,11 @@ html.light-mode .no-theme-invert {
   filter: invert(1) hue-rotate(180deg);
 }
 
-/* Print Stylesheet for Reports */
+/* Print Stylesheet for Reports and Certificates */
 @media print {
   body {
-    background: #ffffff !important;
-    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .no-print {
     display: none !important;
@@ -77,6 +77,21 @@ html.light-mode .no-theme-invert {
     margin: 0 !important;
     color: #000000 !important;
     background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .print-cert {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: #0A1628 !important;
+    color: #ffffff !important;
+    border: 8px solid #D4AF37 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .print-cert * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   table {
     border-collapse: collapse !important;

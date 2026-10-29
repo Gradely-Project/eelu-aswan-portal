@@ -204,7 +204,7 @@ model SessionEvaluation {
   feedbackText   String?
   createdAt      DateTime @default(now())
 
-  @@unique([sessionId, studentId])
+  @@index([sessionId, studentId])
 }
 
 model Certificate {

@@ -105,6 +105,26 @@ export async function POST(req: Request) {
       },
     });
 
+    // In-app announcement broadcast for enrolled students (instant in-app notification without external SMTP/egress)
+    try {
+      const track = await prisma.track.findUnique({
+        where: { id: trackId },
+        select: { name: true },
+      });
+      await prisma.announcement.create({
+        data: {
+          title: `New Lecture Scheduled: ${title.trim()} (${track?.name || "Track"})`,
+          content: `A new lecture has been scheduled for ${date.trim()}${time ? ` at ${time.trim()}` : ""}${location ? ` in ${location.trim()}` : ""}. Check Session Hubs for materials and live check-in.`,
+          category: "SCHEDULE",
+          targetAudience: "ALL",
+          trackId: trackId,
+          authorName: "Academic Operations",
+        },
+      });
+    } catch (annError) {
+      console.warn("Auto announcement creation warning:", annError);
+    }
+
     return NextResponse.json({ success: true, session });
   } catch (error) {
     console.error("POST /api/sessions error:", error);

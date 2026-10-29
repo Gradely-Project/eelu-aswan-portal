@@ -555,6 +555,38 @@ export default function SessionsPage() {
             </div>
           </div>
 
+          {/* Student Multi-Track Quick Filter Chips */}
+          {isStudent && user?.enrollments && user.enrollments.length > 1 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              <span className="text-xs font-bold text-[#8FA4BD] flex items-center gap-1.5 whitespace-nowrap">
+                <Layers className="w-3.5 h-3.5 text-[#269CF0]" /> Filter By Track:
+              </span>
+              <button
+                onClick={() => setSelectedTrackId("ALL")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  selectedTrackId === "ALL"
+                    ? "bg-[#269CF0] text-white shadow-sm"
+                    : "bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white"
+                }`}
+              >
+                All My Tracks ({user.enrollments.length})
+              </button>
+              {user.enrollments.map((en) => (
+                <button
+                  key={en.track.id}
+                  onClick={() => setSelectedTrackId(en.track.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    selectedTrackId === en.track.id
+                      ? "bg-[#269CF0] text-white shadow-sm"
+                      : "bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white"
+                  }`}
+                >
+                  {en.track.name}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* 2-Panel Workstation Layout */}
           {loading ? (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -943,65 +975,75 @@ export default function SessionsPage() {
 
                       {loadingReports ? (
                         <div className="p-8 text-center text-xs text-[#8FA4BD]">Loading audit reports...</div>
-                      ) : instructorReports.length === 0 ? (
-                        <div className="p-8 text-center text-xs text-[#8FA4BD] bg-[#07172A] rounded-2xl border border-[#1E3A5F]">
-                          No student evaluations submitted yet.
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {instructorReports.map((inst, idx) => (
-                            <div
-                              key={idx}
-                              className="bg-[#07172A] border border-[#1E3A5F] rounded-2xl p-4 space-y-3"
-                            >
-                              <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div>
-                                  <h5 className="font-bold text-sm text-white flex items-center gap-2">
-                                    <span>{inst.instructorName}</span>
-                                    <span className="text-[10px] font-black uppercase text-[#E5A93C] bg-[#E5A93C]/10 px-2 py-0.5 rounded border border-[#E5A93C]/20">
-                                      {inst.instructorRole}
+                      ) : (() => {
+                        const relevantReports = instructorReports.filter(
+                          (inst) =>
+                            !selectedSession ||
+                            inst.trackName.toLowerCase().trim() === (selectedSession.track?.name || "").toLowerCase().trim()
+                        );
+                        if (relevantReports.length === 0) {
+                          return (
+                            <div className="p-8 text-center text-xs text-[#8FA4BD] bg-[#07172A] rounded-2xl border border-[#1E3A5F]">
+                              No student evaluations submitted yet for {selectedSession?.track?.name || "this track"}.
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="space-y-3">
+                            {relevantReports.map((inst, idx) => (
+                              <div
+                                key={idx}
+                                className="bg-[#07172A] border border-[#1E3A5F] rounded-2xl p-4 space-y-3"
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <div>
+                                    <h5 className="font-bold text-sm text-white flex items-center gap-2">
+                                      <span>{inst.instructorName}</span>
+                                      <span className="text-[10px] font-black uppercase text-[#E5A93C] bg-[#E5A93C]/10 px-2 py-0.5 rounded border border-[#E5A93C]/20">
+                                        {inst.instructorRole}
+                                      </span>
+                                    </h5>
+                                    <span className="text-[10px] text-[#8FA4BD]">{inst.trackName}</span>
+                                  </div>
+
+                                  <div className="flex items-center gap-3 font-mono text-xs">
+                                    <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F]">
+                                      Clarity: <strong className="text-[#E5A93C]">★ {inst.avgClarity}</strong>
                                     </span>
-                                  </h5>
-                                  <span className="text-[10px] text-[#8FA4BD]">{inst.trackName}</span>
-                                </div>
-
-                                <div className="flex items-center gap-3 font-mono text-xs">
-                                  <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F]">
-                                    Clarity: <strong className="text-[#E5A93C]">★ {inst.avgClarity}</strong>
-                                  </span>
-                                  <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F]">
-                                    Materials: <strong className="text-[#269CF0]">★ {inst.avgMaterial}</strong>
-                                  </span>
-                                  <span className="bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/30 text-emerald-400 font-bold">
-                                    Overall: ★ {inst.avgOverall} ({inst.totalReviews} reviews)
-                                  </span>
-                                </div>
-                              </div>
-
-                              {inst.feedbacks && inst.feedbacks.length > 0 && (
-                                <div className="space-y-1.5 pt-2 border-t border-[#1E3A5F]/50">
-                                  <span className="text-[10px] font-bold text-[#8FA4BD] uppercase block">
-                                    Student Comments ({inst.feedbacks.length})
-                                  </span>
-                                  <div className="space-y-1 max-h-32 overflow-y-auto">
-                                    {inst.feedbacks.map((fb: any, fIdx: number) => (
-                                      <div
-                                        key={fIdx}
-                                        className="p-2 rounded-lg bg-[#0D1D32] border border-[#1E3A5F]/60 text-[11px] text-[#CBD5E1]"
-                                      >
-                                        <p>"{fb.comment}"</p>
-                                        <span className="text-[9px] text-[#8FA4BD] mt-0.5 block">
-                                          {fb.studentName || "Student"} • {fb.sessionTitle} • {fb.date}
-                                        </span>
-                                      </div>
-                                    ))}
+                                    <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F]">
+                                      Materials: <strong className="text-[#269CF0]">★ {inst.avgMaterial}</strong>
+                                    </span>
+                                    <span className="bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/30 text-emerald-400 font-bold">
+                                      Overall: ★ {inst.avgOverall} ({inst.totalReviews} reviews)
+                                    </span>
                                   </div>
                                 </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
+
+                                {inst.feedbacks && inst.feedbacks.length > 0 && (
+                                  <div className="space-y-1.5 pt-2 border-t border-[#1E3A5F]/50">
+                                    <span className="text-[10px] font-bold text-[#8FA4BD] uppercase block">
+                                      Student Comments ({inst.feedbacks.length})
+                                    </span>
+                                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                                      {inst.feedbacks.map((fb: any, fIdx: number) => (
+                                        <div
+                                          key={fIdx}
+                                          className="p-2 rounded-lg bg-[#0D1D32] border border-[#1E3A5F]/60 text-[11px] text-[#CBD5E1]"
+                                        >
+                                          <p>"{fb.comment}"</p>
+                                          <span className="text-[9px] text-[#8FA4BD] mt-0.5 block">
+                                            {fb.studentName || "Student"} • {fb.sessionTitle} • {fb.date}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>

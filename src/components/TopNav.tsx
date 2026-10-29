@@ -320,14 +320,32 @@ export default function TopNav({
               <span className="truncate max-w-[150px]">● {user.assignedTrack?.name || "ASSIGNED TRACK"}</span>
             </div>
           ) : isStudent ? (
-            <div className="hidden md:flex bg-[#0D1D32] border border-[#1E3A5F] text-[#48D5F5] font-black text-xs py-1.5 px-3 rounded-full shadow-sm uppercase items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span className="truncate max-w-[150px]">
-                {user.enrollments && user.enrollments.length > 0
-                  ? user.enrollments.map((en) => en.track.name).join(" • ")
-                  : "ENROLLED STUDENT"}
-              </span>
-            </div>
+            user.enrollments && user.enrollments.length > 1 && onTrackChange ? (
+              <div className="relative hidden sm:block">
+                <select
+                  value={selectedTrackId || "ALL"}
+                  onChange={(e) => onTrackChange(e.target.value)}
+                  className="appearance-none bg-[#0D1D32] border border-[#269CF0]/60 hover:border-[#269CF0] text-[#48D5F5] font-black text-xs py-1.5 sm:py-2 pl-4 sm:pl-6 pr-7 sm:pr-8 rounded-full shadow-sm focus:outline-none cursor-pointer uppercase transition-colors"
+                >
+                  <option value="ALL">● ALL MY TRACKS</option>
+                  {user.enrollments.map((en) => (
+                    <option key={en.track.id} value={en.track.id}>
+                      ● {en.track.name.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-[#48D5F5] absolute right-2.5 top-2.5 pointer-events-none" />
+              </div>
+            ) : (
+              <div className="hidden md:flex bg-[#0D1D32] border border-[#1E3A5F] text-[#48D5F5] font-black text-xs py-1.5 px-3 rounded-full shadow-sm uppercase items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="truncate max-w-[150px]">
+                  ● {user.enrollments && user.enrollments.length > 0
+                    ? user.enrollments[0].track.name
+                    : "ENROLLED STUDENT"}
+                </span>
+              </div>
+            )
           ) : isExec && tracks.length > 0 && onTrackChange ? (
             <div className="relative hidden sm:block">
               <select

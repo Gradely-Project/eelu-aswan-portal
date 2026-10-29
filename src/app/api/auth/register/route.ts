@@ -52,9 +52,17 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!universityEmail || !universityEmail.trim()) {
+    const normalizedUniEmail = (universityEmail || "").trim().toLowerCase();
+    if (!normalizedUniEmail) {
       return NextResponse.json(
         { error: "البريد الجامعي الرسمي مطلوب كشرط أساسي للتسجيل والتحقق الأكاديمي." },
+        { status: 400 }
+      );
+    }
+
+    if (!normalizedUniEmail.endsWith("@eelu.edu.eg")) {
+      return NextResponse.json(
+        { error: "يجب أن ينتهي البريد الجامعي بنطاق الجامعة الرسمي: @eelu.edu.eg (مثال: student_id@eelu.edu.eg)" },
         { status: 400 }
       );
     }

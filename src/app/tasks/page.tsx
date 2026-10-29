@@ -18,6 +18,7 @@ import {
   ArrowRight,
   FolderOpen,
   ShieldCheck,
+  Layers,
 } from "lucide-react";
 
 interface TaskItem {
@@ -62,7 +63,27 @@ interface UserData {
   name: string;
   role: string;
   assignedTrackId?: string | null;
+  enrollments?: Array<{ trackId: string; track: { id: string; name: string } }>;
 }
+
+const toLocalInputDateTime = (isoOrDate: string | Date) => {
+  if (!isoOrDate) return "";
+  const d = new Date(isoOrDate);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const localInputToISO = (val: string) => {
+  if (!val) return "";
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? val : d.toISOString();
+};
 
 export default function TasksPage() {
   const [user, setUser] = useState<UserData | null>(null);
@@ -160,7 +181,7 @@ export default function TasksPage() {
           title,
           description,
           maxScore,
-          deadline,
+          deadline: localInputToISO(deadline),
           materialsLink,
         }),
       });
@@ -209,7 +230,7 @@ export default function TasksPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          deadline: newDeadline,
+          deadline: localInputToISO(newDeadline),
           isClosed: false,
         }),
       });
@@ -245,7 +266,7 @@ export default function TasksPage() {
     setEditDescription(t.description);
     setEditMaxScore(t.maxScore);
     try {
-      setEditDeadline(new Date(t.deadline).toISOString().slice(0, 16));
+      setEditDeadline(toLocalInputDateTime(t.deadline));
     } catch {
       setEditDeadline("");
     }
@@ -264,7 +285,7 @@ export default function TasksPage() {
           title: editTitle,
           description: editDescription,
           maxScore: editMaxScore,
-          deadline: editDeadline,
+          deadline: localInputToISO(editDeadline),
           materialsLink: editMaterialsLink,
         }),
       });
@@ -354,6 +375,38 @@ export default function TasksPage() {
             )}
           </div>
 
+          {/* Student Multi-Track Quick Filter Chips */}
+          {user?.role === "STUDENT" && user?.enrollments && user.enrollments.length > 1 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              <span className="text-xs font-bold text-[#8FA4BD] flex items-center gap-1.5 whitespace-nowrap">
+                <Layers className="w-3.5 h-3.5 text-emerald-400" /> Filter By Track:
+              </span>
+              <button
+                onClick={() => setSelectedTrackId("ALL")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  selectedTrackId === "ALL"
+                    ? "bg-[#269CF0] text-white shadow-sm"
+                    : "bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white"
+                }`}
+              >
+                All My Tracks ({user.enrollments.length})
+              </button>
+              {user.enrollments.map((en) => (
+                <button
+                  key={en.track.id}
+                  onClick={() => setSelectedTrackId(en.track.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    selectedTrackId === en.track.id
+                      ? "bg-[#269CF0] text-white shadow-sm"
+                      : "bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white"
+                  }`}
+                >
+                  {en.track.name}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Tasks Grid */}
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -426,7 +479,16 @@ export default function TasksPage() {
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5 text-rose-400" />
                           <span className="font-bold text-[#F5F7FB]">Deadline:</span>
-                          <span className="font-mono">{deadlineDate.toLocaleString("en-US")}</span>
+                          <span className="font-mono">
+                            {deadlineDate.toLocaleString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}
+                          </span>
                         </div>
                         {task.materialsLink && (
                           <div className="flex items-center gap-1.5 pt-1">

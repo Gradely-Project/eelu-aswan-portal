@@ -352,7 +352,7 @@ export default function LandingPage() {
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-none">
-                EELU Aswan Branch
+                EELU Aswan student branch
               </span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />

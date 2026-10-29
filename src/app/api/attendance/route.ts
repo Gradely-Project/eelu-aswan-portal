@@ -31,15 +31,21 @@ export async function GET(req: Request) {
       checkInCode: isStaff && session.checkInCode ? session.checkInCode.split(",")[0] : null,
     };
 
-    // Fetch all approved students enrolled in this track
-    const enrolledStudents = await prisma.user.findMany({
-      where: {
-        role: "STUDENT",
-        status: "APPROVED",
-        enrollments: {
-          some: { trackId: session.trackId },
-        },
+    // Fetch approved students (if student, strictly restrict to their own record for privacy!)
+    const studentWhereClause: any = {
+      role: "STUDENT",
+      status: "APPROVED",
+      enrollments: {
+        some: { trackId: session.trackId },
       },
+    };
+
+    if (user?.role === "STUDENT") {
+      studentWhereClause.id = user.id;
+    }
+
+    const enrolledStudents = await prisma.user.findMany({
+      where: studentWhereClause,
       select: {
         id: true,
         name: true,
