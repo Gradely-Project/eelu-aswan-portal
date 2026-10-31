@@ -57,14 +57,24 @@ export default function Sidebar({
     return "";
   });
 
-  // Dynamic Supervisor Card State
-  const [supervisor, setSupervisor] = useState<SupervisorInfo>({
-    name: "Abdelrahman Mahmoud",
-    title: "Software Engineer & Branch Supervisor",
-    phone: "",
-    email: "",
-    linkedin: "https://www.linkedin.com/in/abdelrahman-mahmoud-6912801a0",
-    statusBadge: "Active Supervision",
+  // Dynamic Supervisor Card State (Cached in localStorage to eliminate flicker)
+  const [supervisor, setSupervisor] = useState<SupervisorInfo>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("eelu_supervisor_card");
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch {}
+      }
+    }
+    return {
+      name: "Abdelrahman Mahmoud",
+      title: "Teaching Assistant & Branch Supervisor",
+      phone: "01126575146",
+      email: "amhmooudsaber@eelu.edu.eg",
+      linkedin: "https://www.linkedin.com/in/abdelrahman-mahmoud-6912801a0",
+      statusBadge: "Active Supervision",
+    };
   });
 
   // Edit Modal State for Main Admin
@@ -96,6 +106,9 @@ export default function Sidebar({
       .then((data) => {
         if (data.info) {
           setSupervisor(data.info);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("eelu_supervisor_card", JSON.stringify(data.info));
+          }
           setEditName(data.info.name || "Abdelrahman Mahmoud");
           setEditTitle(data.info.title || "Software Engineer & Branch Supervisor");
           setEditPhone(data.info.phone || "");
@@ -209,11 +222,11 @@ export default function Sidebar({
       badge: undefined, // Removed per user request
     },
     {
-      name: "Reports & Export Suite",
+      name: isStudent ? "My Academic Transcript" : isInstructor ? "Track Performance Reports" : "Reports & Export Suite",
       href: "/report",
       icon: FileText,
       activeColor: "bg-[#269CF0] text-white",
-      show: isExec,
+      show: true,
     },
     {
       name: "Student Admissions & Suspension",
@@ -351,18 +364,25 @@ export default function Sidebar({
             <p className="text-[10px] text-[#8FA4BD] mb-1.5 font-medium leading-tight">{supervisor.title}</p>
 
             <div className="space-y-1 mb-2">
-              {supervisor.phone && (
-                <div className="flex items-center gap-1.5 text-[9px] text-[#8FA4BD]">
-                  <Phone className="w-2.5 h-2.5 text-[#269CF0]" />
-                  <span>{supervisor.phone}</span>
-                </div>
-              )}
-              {supervisor.email && (
-                <div className="flex items-center gap-1.5 text-[9px] text-[#8FA4BD]">
-                  <Mail className="w-2.5 h-2.5 text-[#48D5F5]" />
-                  <span className="truncate">{supervisor.email}</span>
-                </div>
-              )}
+              <a
+                href="https://wa.me/201126575146"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-[9px] text-[#8FA4BD] hover:text-emerald-400 transition-colors cursor-pointer"
+                title="Chat on WhatsApp"
+              >
+                <Phone className="w-2.5 h-2.5 text-emerald-400" />
+                <span>+20 112 657 5146 (WhatsApp)</span>
+              </a>
+
+              <a
+                href={`mailto:${supervisor.email || "amhmooudsaber@eelu.edu.eg"}`}
+                className="flex items-center gap-1.5 text-[9px] text-[#8FA4BD] hover:text-[#48D5F5] transition-colors cursor-pointer"
+                title="Official Email"
+              >
+                <Mail className="w-2.5 h-2.5 text-[#48D5F5]" />
+                <span className="truncate">{supervisor.email || "amhmooudsaber@eelu.edu.eg"}</span>
+              </a>
             </div>
 
             <a

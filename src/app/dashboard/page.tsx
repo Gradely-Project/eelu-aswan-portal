@@ -334,13 +334,6 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-
-            <Link
-              href="/sessions"
-              className="px-4 py-2 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black text-xs shadow-md transition-all flex items-center gap-1.5"
-            >
-              Open Session Hubs →
-            </Link>
           </div>
 
           {/* Academy Operations & Live Pulse Banner (Matching Reference 2) */}
@@ -358,16 +351,8 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              {/* Action Shortcuts (Matching Reference 2: + Add Session, Take Attendance, Export CSV) */}
+              {/* Action Shortcuts (Focused & Clean) */}
               <div className="flex flex-wrap items-center gap-2.5">
-                <Link
-                  href="/sessions"
-                  className="px-4 py-2 rounded-xl bg-[#07172A] hover:bg-[#10243C] border border-[#1E3A5F] hover:border-[#269CF0] text-[#269CF0] font-black text-xs transition-all flex items-center gap-1.5"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Add Session
-                </Link>
-
                 <Link
                   href="/attendance"
                   className="px-4 py-2 rounded-xl bg-[#07172A] hover:bg-[#10243C] border border-[#1E3A5F] hover:border-[#10B981] text-[#10B981] font-black text-xs transition-all flex items-center gap-1.5"
@@ -384,14 +369,6 @@ export default function DashboardPage() {
                   <Megaphone className="w-3.5 h-3.5" />
                   Broadcast Notice
                 </button>
-
-                <Link
-                  href="/report"
-                  className="px-4 py-2 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black text-xs shadow-md transition-all flex items-center gap-1.5"
-                >
-                  <FileSpreadsheet className="w-3.5 h-3.5" />
-                  {isInstructor ? "Track Audit Report" : "Export Formal Report"}
-                </Link>
               </div>
             </div>
 
@@ -482,60 +459,16 @@ export default function DashboardPage() {
                   Manage admission applications, broadcast lecture check-in codes, and suspend accounts.
                 </p>
               </div>
-
-              <Link
-                href="/report"
-                className="px-4 py-2 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black text-xs shadow-md transition-all flex items-center gap-1.5 self-start sm:self-auto"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Export Attendance CSV / PDF
-              </Link>
             </div>
 
-            {/* Navigation Tabs (Matching Reference 2 exact tab pills) */}
-            <div className="flex flex-wrap items-center gap-2 pb-4 mb-6 border-b border-[#1E3A5F]">
-              <button
-                className="px-4 py-2 rounded-xl bg-[#E5A93C] text-[#07172A] font-black text-xs shadow-sm flex items-center gap-1.5"
-              >
-                <Users className="w-3.5 h-3.5" />
-                {isInstructor ? `Track Students (${stats.totalCount})` : `Admission Applications (${stats.totalCount})`}
-              </button>
-
-              {!isInstructor && (
-                <Link
-                  href="/schedules"
-                  className="px-4 py-2 rounded-xl bg-[#10243C] text-[#8FA4BD] hover:text-[#F5F7FB] font-bold text-xs transition-colors flex items-center gap-1.5"
-                >
-                  <Calendar className="w-3.5 h-3.5 text-[#269CF0]" />
-                  Weekly Schedules & Email Broadcast
-                </Link>
-              )}
-
-              <Link
-                href="/halls"
-                className="px-4 py-2 rounded-xl bg-[#10243C] text-[#48D5F5] hover:text-white font-bold text-xs transition-colors flex items-center gap-1.5"
-              >
-                <Building2 className="w-3.5 h-3.5 text-[#48D5F5]" />
-                Hall & Lab Booking
-              </Link>
-
-              {!isInstructor && (
-                <Link
-                  href="/admin/teams"
-                  className="px-4 py-2 rounded-xl bg-[#10243C] text-[#8FA4BD] hover:text-[#F5F7FB] font-bold text-xs transition-colors flex items-center gap-1.5"
-                >
-                  <ShieldAlert className="w-3.5 h-3.5 text-[#48D5F5]" />
-                  Track Instructors & Head Team
-                </Link>
-              )}
-
-              <Link
-                href="/leaderboard"
-                className="px-4 py-2 rounded-xl bg-[#10243C] text-[#E5A93C] hover:bg-[#10243C]/80 font-bold text-xs transition-colors flex items-center gap-1.5"
-              >
-                👑 Weighted Leaderboard (Hall of Fame)
-              </Link>
-            </div>
+            {/* Students List Filter Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-[#1E3A5F]">
+              <div className="flex items-center gap-2">
+                <span className="px-3.5 py-1.5 rounded-xl bg-[#E5A93C] text-[#07172A] font-black text-xs shadow-sm flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" />
+                  {isInstructor ? `Track Students (${stats.totalCount})` : `Admission Applications (${stats.totalCount})`}
+                </span>
+              </div>
 
             {/* Table Filter Pills */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
@@ -687,16 +620,6 @@ export default function DashboardPage() {
 
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              {/* Detailed Activity Report Button */}
-                              <button
-                                onClick={() => handleOpenAudit(st.id)}
-                                className="px-2.5 py-1 rounded-lg bg-[#10243C] hover:bg-[#1E3A5F] text-[#48D5F5] font-bold text-[11px] border border-[#1E3A5F] transition-all flex items-center gap-1"
-                                title="View exact attendance dates and task submissions history"
-                              >
-                                <Eye className="w-3 h-3" />
-                                Audit Report
-                              </button>
-
                               {/* Approve / Reject (for pending - Executive only) */}
                               {isPending && ["ADMIN", "CHAIR_PERSON", "VICE_CHAIR"].includes(user?.role || "") && (
                                 <>
@@ -742,7 +665,8 @@ export default function DashboardPage() {
               </table>
             </div>
           </div>
-        </main>
+        </div>
+      </main>
       </div>
 
       {/* Detailed Student Activity Audit Modal (User requirement: "يظهر الطالب سلم ايه وغاب أمتي ومغابش أمتي وهكذا") */}

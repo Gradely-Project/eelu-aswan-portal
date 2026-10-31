@@ -68,6 +68,10 @@ export default function RegisterPage() {
       setError("Official University Email (@eelu.edu.eg) is required for student verification.");
       return;
     }
+    if (!trimmedUniEmail.endsWith("@eelu.edu.eg")) {
+      setError("Official University Email must end with @eelu.edu.eg (e.g. your_id@eelu.edu.eg)");
+      return;
+    }
 
     if (!trimmedUniEmail.endsWith("@eelu.edu.eg")) {
       setError("Official University Email must end with the university domain: @eelu.edu.eg (e.g. 2200301@eelu.edu.eg).");

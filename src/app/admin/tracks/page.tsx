@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Shield,
   Clock,
+  Edit3,
 } from "lucide-react";
 
 interface Track {
@@ -38,10 +39,14 @@ export default function AdminTracksPage() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [deleteTrackTarget, setDeleteTrackTarget] = useState<Track | null>(null);
+  const [editTrackTarget, setEditTrackTarget] = useState<Track | null>(null);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -101,6 +106,41 @@ export default function AdminTracksPage() {
       setError("Network error. Please try again.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleUpdateTrack = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTrackTarget) return;
+    setError(null);
+    setUpdating(true);
+
+    try {
+      const res = await fetch("/api/tracks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editTrackTarget.id,
+          name: editName,
+          description: editDescription,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to update track.");
+        setUpdating(false);
+        return;
+      }
+
+      setSuccess(`Track "${data.track.name}" updated successfully!`);
+      setEditTrackTarget(null);
+      await fetchTracks();
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -207,13 +247,28 @@ export default function AdminTracksPage() {
                       <div className="w-9 h-9 rounded-xl bg-[#07172A] border border-[#1E3A5F] flex items-center justify-center text-[#269CF0]">
                         <Layers className="w-4 h-4" />
                       </div>
-                      <button
-                        onClick={() => setDeleteTrackTarget(trk)}
-                        className="p-2 rounded-xl bg-[#07172A] hover:bg-rose-500/20 text-[#8FA4BD] hover:text-rose-400 border border-[#1E3A5F] transition-colors"
-                        title="Delete Track"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => {
+                            setEditTrackTarget(trk);
+                            setEditName(trk.name);
+                            setEditDescription(trk.description || "");
+                            setError(null);
+                            setSuccess(null);
+                          }}
+                          className="p-2 rounded-xl bg-[#07172A] hover:bg-[#269CF0]/20 text-[#8FA4BD] hover:text-[#48D5F5] border border-[#1E3A5F] transition-colors cursor-pointer"
+                          title="Edit Track Details"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteTrackTarget(trk)}
+                          className="p-2 rounded-xl bg-[#07172A] hover:bg-rose-500/20 text-[#8FA4BD] hover:text-rose-400 border border-[#1E3A5F] transition-colors cursor-pointer"
+                          title="Delete Track"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
 
                     <h3 className="text-lg font-black text-[#F5F7FB] mb-1 group-hover:text-[#269CF0] transition-colors">
@@ -312,6 +367,65 @@ export default function AdminTracksPage() {
                   className="px-6 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md transition-all disabled:opacity-50"
                 >
                   {submitting ? "Creating..." : "Create Track"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Track */}
+      {editTrackTarget && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-10 h-10 rounded-2xl bg-[#269CF0]/20 text-[#269CF0] border border-[#269CF0]/30 flex items-center justify-center">
+                <Edit3 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-[#F5F7FB]">Edit Track Information</h3>
+                <span className="text-xs text-[#8FA4BD]">Update public name and description</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleUpdateTrack} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-[#8FA4BD] font-bold mb-1">Track Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="e.g. Artificial Intelligence"
+                  className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#269CF0]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[#8FA4BD] font-bold mb-1">Public Description & Syllabus</label>
+                <textarea
+                  rows={4}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="Comprehensive description of topics covered and practical deliverables..."
+                  className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#269CF0]"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-[#1E3A5F] flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditTrackTarget(null)}
+                  className="px-4 py-2 rounded-xl text-xs text-[#8FA4BD] hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updating}
+                  className="px-6 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md transition-all disabled:opacity-50"
+                >
+                  {updating ? "Saving Changes..." : "Save Changes"}
                 </button>
               </div>
             </form>

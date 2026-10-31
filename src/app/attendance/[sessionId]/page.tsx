@@ -351,11 +351,11 @@ export default function ClassroomAttendanceSessionPage() {
           {/* Back link */}
           <div>
             <Link
-              href="/sessions"
+              href="/attendance"
               className="inline-flex items-center gap-2 text-xs font-bold text-[#8FA4BD] hover:text-[#48D5F5] transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              Back to Session Hubs
+              Back to Attendance Hub
             </Link>
           </div>
 
@@ -381,14 +381,18 @@ export default function ClassroomAttendanceSessionPage() {
                         {session.time}
                       </span>
                     )}
-                    <span>•</span>
-                    <span>Total Enrolled: {students.length} Students</span>
+                    {isStaff && (
+                      <>
+                        <span>•</span>
+                        <span>Total Enrolled: {students.length} Students</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {/* QR Code / Dynamic Code Action */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full md:w-auto">
-                  {isStaff && (
+                {/* Staff Stats or Student Personal Badge */}
+                {isStaff ? (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full md:w-auto">
                     <button
                       onClick={() => handleGenerateCode(false)}
                       disabled={generatingCode}
@@ -397,36 +401,56 @@ export default function ClassroomAttendanceSessionPage() {
                       <QrCode className="w-4 h-4" />
                       {activeCode ? `Show Code: ${activeCode}` : "Broadcast Check-in Code"}
                     </button>
-                  )}
 
-                  {/* Stat Counters */}
-                  <div className="grid grid-cols-4 gap-2 w-full sm:w-auto">
-                    <div className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-center">
-                      <span className="text-base font-black text-emerald-400 block leading-tight">
-                        {presentCount}
-                      </span>
-                      <span className="text-[9px] font-bold text-emerald-500 uppercase">Present</span>
-                    </div>
-                    <div className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#E5A93C]/10 border border-[#E5A93C]/30 text-center">
-                      <span className="text-base font-black text-[#E5A93C] block leading-tight">
-                        {lateCount}
-                      </span>
-                      <span className="text-[9px] font-bold text-[#E5A93C] uppercase">Late</span>
-                    </div>
-                    <div className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-center">
-                      <span className="text-base font-black text-blue-400 block leading-tight">
-                        {excusedCount}
-                      </span>
-                      <span className="text-[9px] font-bold text-blue-500 uppercase">Excused</span>
-                    </div>
-                    <div className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-center">
-                      <span className="text-base font-black text-rose-400 block leading-tight">
-                        {absentCount}
-                      </span>
-                      <span className="text-[9px] font-bold text-rose-500 uppercase">Absent</span>
+                    {/* Stat Counters */}
+                    <div className="grid grid-cols-4 gap-2 w-full sm:w-auto">
+                      <div className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-center">
+                        <span className="text-base font-black text-emerald-400 block leading-tight">
+                          {presentCount}
+                        </span>
+                        <span className="text-[9px] font-bold text-emerald-500 uppercase">Present</span>
+                      </div>
+                      <div className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#E5A93C]/10 border border-[#E5A93C]/30 text-center">
+                        <span className="text-base font-black text-[#E5A93C] block leading-tight">
+                          {lateCount}
+                        </span>
+                        <span className="text-[9px] font-bold text-[#E5A93C] uppercase">Late</span>
+                      </div>
+                      <div className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-center">
+                        <span className="text-base font-black text-blue-400 block leading-tight">
+                          {excusedCount}
+                        </span>
+                        <span className="text-[9px] font-bold text-blue-500 uppercase">Excused</span>
+                      </div>
+                      <div className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-center">
+                        <span className="text-base font-black text-rose-400 block leading-tight">
+                          {absentCount}
+                        </span>
+                        <span className="text-[9px] font-bold text-rose-500 uppercase">Absent</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    {students.length > 0 && students[0]?.status === "PRESENT" ? (
+                      <div className="px-4 py-2 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5" />
+                        <div>
+                          <span className="block font-black">حضورك مسجل ✓</span>
+                          <span className="text-[10px] text-emerald-300 font-mono">Present (حاضر)</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="px-4 py-2 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 font-bold text-xs flex items-center gap-2">
+                        <Clock className="w-5 h-5" />
+                        <div>
+                          <span className="block font-black">في انتظار تسجيل الحضور</span>
+                          <span className="text-[10px] text-amber-300">أدخل كود الحضور أدناه</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}

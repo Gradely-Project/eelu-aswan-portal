@@ -142,3 +142,50 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Failed to delete track." }, { status: 500 });
   }
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const { error } = await requireAdmin();
+    if (error) return error;
+
+    const body = await req.json();
+    const { id, name, description } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Track ID is required." }, { status: 400 });
+    }
+
+    if (!name || !name.trim()) {
+      return NextResponse.json({ error: "Track name cannot be empty." }, { status: 400 });
+    }
+
+    // Check if name is taken by another track
+    const existing = await prisma.track.findFirst({
+      where: {
+        name: name.trim(),
+        NOT: { id },
+      },
+    });
+
+    if (existing) {
+      return NextResponse.json({ error: "Another track already has this name." }, { status: 400 });
+    }
+
+    const updatedTrack = await prisma.track.update({
+      where: { id },
+      data: {
+        name: name.trim(),
+        description: description !== undefined ? (description ? description.trim() : null) : undefined,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      track: updatedTrack,
+      message: `Track "${updatedTrack.name}" updated successfully.`,
+    });
+  } catch (error) {
+    console.error("PATCH /api/tracks error:", error);
+    return NextResponse.json({ error: "Failed to update track." }, { status: 500 });
+  }
+}

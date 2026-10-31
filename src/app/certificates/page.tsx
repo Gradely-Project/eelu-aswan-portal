@@ -62,6 +62,7 @@ export default function CertificatesPage() {
   const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
   const [userRole, setUserRole] = useState("STUDENT");
   const [loading, setLoading] = useState(true);
+  const [filterTrackId, setFilterTrackId] = useState<string>("ALL");
 
   // Dynamic Signatories Configuration
   const [signatoriesConfig, setSignatoriesConfig] = useState<SignatoriesConfig | null>(null);
@@ -417,6 +418,42 @@ export default function CertificatesPage() {
             </div>
           )}
 
+          {/* Multi-track Filter Chips */}
+          {certificates.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 pb-1">
+              <span className="text-[11px] font-black text-[#8FA4BD] uppercase px-1">
+                Filter Track:
+              </span>
+              <button
+                onClick={() => setFilterTrackId("ALL")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  filterTrackId === "ALL"
+                    ? "bg-[#269CF0] text-white shadow-sm font-black"
+                    : "bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white"
+                }`}
+              >
+                All Tracks ({certificates.length})
+              </button>
+              {tracks.map((t) => {
+                const count = certificates.filter((c) => c.trackId === t.id || c.trackName === t.name).length;
+                if (count === 0 && userRole === "STUDENT") return null;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setFilterTrackId(t.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      filterTrackId === t.id
+                        ? "bg-[#269CF0] text-white shadow-sm font-black"
+                        : "bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white"
+                    }`}
+                  >
+                    {t.name} {count > 0 ? `(${count})` : ""}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* Certificates Grid */}
           {loading ? (
             <div className="space-y-4">
@@ -440,7 +477,14 @@ export default function CertificatesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {certificates.map((cert) => (
+              {(filterTrackId === "ALL"
+                ? certificates
+                : certificates.filter(
+                    (c) =>
+                      c.trackId === filterTrackId ||
+                      c.trackName === tracks.find((t) => t.id === filterTrackId)?.name
+                  )
+              ).map((cert) => (
                 <div
                   key={cert.id}
                   className="bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#269CF0] rounded-3xl p-6 transition-all shadow-md flex flex-col justify-between"

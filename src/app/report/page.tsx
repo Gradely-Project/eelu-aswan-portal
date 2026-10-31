@@ -119,6 +119,7 @@ export default function ReportExportSuitePage() {
     if (!selectedTrackId) return;
 
     setLoading(true);
+    setStudentAuditData(null);
     fetch(`/api/reports/track?trackId=${selectedTrackId}`)
       .then((r) => r.json())
       .then((data) => {
@@ -129,10 +130,8 @@ export default function ReportExportSuitePage() {
           setReportRows(rows);
           setGeneratedAt(data.generatedAt || new Date().toLocaleDateString("en-US"));
           if (rows.length > 0) {
-            const exists = rows.some((r: any) => r.id === selectedStudentId);
-            if (!exists) {
-              setSelectedStudentId(rows[0].id);
-            }
+            // Always auto-select the first student in the newly selected track
+            setSelectedStudentId(rows[0].id);
           } else {
             setSelectedStudentId("");
             setStudentAuditData(null);
@@ -146,13 +145,13 @@ export default function ReportExportSuitePage() {
   useEffect(() => {
     if (reportMode === "INDIVIDUAL_STUDENT" && selectedStudentId) {
       setStudentLoading(true);
-      fetch(`/api/reports/student/${selectedStudentId}`)
+      fetch(`/api/reports/student/${selectedStudentId}?trackId=${selectedTrackId}`)
         .then((r) => r.json())
         .then((d) => setStudentAuditData(d))
         .catch((e) => console.error(e))
         .finally(() => setStudentLoading(false));
     }
-  }, [reportMode, selectedStudentId]);
+  }, [reportMode, selectedStudentId, selectedTrackId]);
 
   const handleOpenSignatoriesModal = () => {
     if (signatoriesConfig) {
@@ -284,7 +283,12 @@ export default function ReportExportSuitePage() {
                   <span className="text-xs font-bold text-[#8FA4BD]">Track:</span>
                   <select
                     value={selectedTrackId}
-                    onChange={(e) => setSelectedTrackId(e.target.value)}
+                    onChange={(e) => {
+                      const newTid = e.target.value;
+                      setSelectedTrackId(newTid);
+                      setSelectedStudentId("");
+                      setStudentAuditData(null);
+                    }}
                     className="font-bold text-xs text-[#48D5F5] bg-transparent focus:outline-none cursor-pointer"
                   >
                     {tracks.map((t) => (
@@ -508,25 +512,7 @@ export default function ReportExportSuitePage() {
                       </div>
                     ))}
 
-                  {/* Official Branch Seal (Toggleable by Admin) */}
-                  {signatoriesConfig?.showOfficialSeal && (
-                    <div className="flex flex-col justify-between items-center">
-                      <div>
-                        <span className="font-bold text-slate-600 block uppercase text-[10px]">
-                          Official Branch Seal
-                        </span>
-                        <div className="w-10 h-10 mx-auto rounded-full border border-blue-900/30 flex items-center justify-center my-1.5">
-                          <ShieldCheck className="w-5 h-5 text-blue-900" />
-                        </div>
-                        <span className="text-[10px] font-black uppercase text-blue-950 block">
-                          {signatoriesConfig.sealText || "Verified Branch Seal"}
-                        </span>
-                      </div>
-                      <span className="text-slate-400 block font-mono mt-4">
-                        ...................................
-                      </span>
-                    </div>
-                  )}
+
                 </div>
               </div>
             </div>
@@ -844,25 +830,7 @@ export default function ReportExportSuitePage() {
                         </div>
                       ))}
 
-                    {/* Optional Branch Seal */}
-                    {signatoriesConfig?.showOfficialSeal && (
-                      <div className="flex flex-col justify-between items-center">
-                        <div>
-                          <span className="font-bold text-slate-600 block uppercase text-[10px]">
-                            Official Branch Seal
-                          </span>
-                          <div className="w-10 h-10 mx-auto rounded-full border border-blue-900/30 flex items-center justify-center my-1.5">
-                            <ShieldCheck className="w-5 h-5 text-blue-900" />
-                          </div>
-                          <span className="text-[10px] font-black uppercase text-blue-950 block">
-                            {signatoriesConfig.sealText || "Verified Branch Seal"}
-                          </span>
-                        </div>
-                        <span className="text-slate-400 block font-mono mt-4">
-                          ...................................
-                        </span>
-                      </div>
-                    )}
+
                   </div>
                 </div>
               </div>

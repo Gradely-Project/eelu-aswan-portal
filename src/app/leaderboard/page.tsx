@@ -14,6 +14,11 @@ import {
   Sliders,
   Save,
   Award,
+  Crown,
+  Star,
+  Zap,
+  Trash2,
+  Plus,
 } from "lucide-react";
 
 interface RankedStudent {
@@ -69,6 +74,19 @@ export default function WeightedLeaderboardPage() {
   const [adjustReason, setAdjustReason] = useState<string>("Manual Admin Override");
   const [submittingAdjust, setSubmittingAdjust] = useState(false);
 
+  // Track Caching & Hall of Fame
+  const [trackCache, setTrackCache] = useState<Record<string, { leaderboard: RankedStudent[]; stats: any }>>({});
+  const [activeTab, setActiveTab] = useState<"STANDINGS" | "HALL_OF_FAME">("STANDINGS");
+  const [hofItems, setHofItems] = useState<any[]>([]);
+  const [loadingHof, setLoadingHof] = useState(false);
+  const [showNominateModal, setShowNominateModal] = useState(false);
+  const [nominateStudentName, setNominateStudentName] = useState("");
+  const [nominateTrackName, setNominateTrackName] = useState("");
+  const [nominateTitle, setNominateTitle] = useState("Outstanding Project Excellence");
+  const [nominateBadge, setNominateBadge] = useState("CHAMPION");
+  const [nominateNote, setNominateNote] = useState("");
+  const [submittingNominate, setSubmittingNominate] = useState(false);
+
   useEffect(() => {
     Promise.all([
       fetch("/api/auth/me").then((r) => r.json()),
@@ -101,13 +119,22 @@ export default function WeightedLeaderboardPage() {
   }, []);
 
   const fetchLeaderboard = async (trackId: string) => {
-    setLoading(true);
+    if (trackCache[trackId]) {
+      setLeaderboard(trackCache[trackId].leaderboard);
+      setTrackStats(trackCache[trackId].stats);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     try {
       const res = await fetch(`/api/leaderboard?trackId=${trackId}`);
       const data = await res.json();
       if (res.ok) {
-        setLeaderboard(data.leaderboard || []);
-        if (data.stats) setTrackStats(data.stats);
+        const rows = data.leaderboard || [];
+        const st = data.stats || null;
+        setLeaderboard(rows);
+        if (st) setTrackStats(st);
+        setTrackCache((prev) => ({ ...prev, [trackId]: { leaderboard: rows, stats: st } }));
       }
     } catch (e) {
       console.error(e);
@@ -116,9 +143,68 @@ export default function WeightedLeaderboardPage() {
     }
   };
 
+  const fetchHallOfFame = async () => {
+    setLoadingHof(true);
+    try {
+      const res = await fetch("/api/hall-of-fame");
+      const data = await res.json();
+      if (res.ok) setHofItems(data.items || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingHof(false);
+    }
+  };
+
   useEffect(() => {
     if (selectedTrackId) fetchLeaderboard(selectedTrackId);
   }, [selectedTrackId]);
+
+  useEffect(() => {
+    if (activeTab === "HALL_OF_FAME") fetchHallOfFame();
+  }, [activeTab]);
+
+  const handleNominate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nominateStudentName || !nominateTitle) return;
+    setSubmittingNominate(true);
+    try {
+      const res = await fetch("/api/hall-of-fame", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentName: nominateStudentName.trim(),
+          trackName: nominateTrackName.trim() || (tracks.find((t) => t.id === selectedTrackId)?.name || "Cross-Track"),
+          badgeType: nominateBadge,
+          title: nominateTitle.trim(),
+          note: nominateNote.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setShowNominateModal(false);
+        setNominateStudentName("");
+        setNominateNote("");
+        fetchHallOfFame();
+      } else {
+        alert(data.error || "Failed to induct student.");
+      }
+    } catch {
+      alert("Network error.");
+    } finally {
+      setSubmittingNominate(false);
+    }
+  };
+
+  const handleDeleteHofItem = async (id: string) => {
+    if (!confirm("Are you sure you want to remove this student from Hall of Fame?")) return;
+    try {
+      const res = await fetch(`/api/hall-of-fame?id=${id}`, { method: "DELETE" });
+      if (res.ok) fetchHallOfFame();
+    } catch {
+      alert("Failed to delete record.");
+    }
+  };
 
   const isLeadership = user?.role === "ADMIN" || user?.role === "CHAIR_PERSON" || user?.role === "VICE_CHAIR";
 
@@ -225,8 +311,32 @@ export default function WeightedLeaderboardPage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
-              {canAddBonus && (
+            {/* Switch between Standings and Hall of Fame */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setActiveTab("STANDINGS")}
+                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+                  activeTab === "STANDINGS"
+                    ? "bg-[#269CF0] text-white shadow-md shadow-[#269CF0]/25"
+                    : "bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white"
+                }`}
+              >
+                <Trophy className="w-4 h-4 text-[#E5A93C]" />
+                Track Leaderboard (الترتيب الأكاديمي)
+              </button>
+              <button
+                onClick={() => setActiveTab("HALL_OF_FAME")}
+                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+                  activeTab === "HALL_OF_FAME"
+                    ? "bg-gradient-to-r from-[#E5A93C] to-amber-500 text-[#07172A] shadow-md shadow-amber-500/25"
+                    : "bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-[#E5A93C]"
+                }`}
+              >
+                <Crown className="w-4 h-4" />
+                Hall of Fame (لوحة الشرف والأبطال)
+              </button>
+
+              {activeTab === "STANDINGS" && canAddBonus && (
                 <button
                   onClick={() => {
                     setBonusError(null);
@@ -240,6 +350,16 @@ export default function WeightedLeaderboardPage() {
                   Award Bonus Points
                 </button>
               )}
+
+              {activeTab === "HALL_OF_FAME" && canAddBonus && (
+                <button
+                  onClick={() => setShowNominateModal(true)}
+                  className="px-4 py-2.5 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black text-xs shadow-md shadow-[#E5A93C]/20 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Induct Star into Hall of Fame
+                </button>
+              )}
             </div>
           </div>
 
@@ -250,7 +370,118 @@ export default function WeightedLeaderboardPage() {
             </div>
           )}
 
-          {/* Track Switcher Tabs */}
+          {activeTab === "HALL_OF_FAME" ? (
+            <div className="space-y-6">
+              {/* Hall of Fame Hero Banner */}
+              <div className="bg-gradient-to-br from-[#0D1D32] via-[#091524] to-[#12233b] border border-[#E5A93C]/30 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                  <div>
+                    <span className="text-[10px] font-black text-[#E5A93C] uppercase tracking-wider block mb-1">
+                      ⭐ EELU ASWAN STUDENT BRANCH HONORS
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
+                      <Crown className="w-7 h-7 text-[#E5A93C]" />
+                      Hall of Fame & Academic Champions
+                    </h2>
+                    <p className="text-xs text-[#8FA4BD] max-w-2xl mt-1">
+                      Honoring top-tier students, fastest project finishers, hackathon winners, and lecture stars inducted by academic branch leadership.
+                    </p>
+                  </div>
+
+                  {canAddBonus && (
+                    <button
+                      onClick={() => setShowNominateModal(true)}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#07172A] font-black text-xs shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2 cursor-pointer self-start md:self-auto"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Induct Student to Hall of Fame
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Honors Grid */}
+              {loadingHof ? (
+                <div className="py-20 text-center text-xs text-[#8FA4BD]">
+                  Loading Hall of Fame records...
+                </div>
+              ) : hofItems.length === 0 ? (
+                <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-12 text-center text-xs text-[#8FA4BD]">
+                  <Crown className="w-12 h-12 text-[#E5A93C] mx-auto mb-3 opacity-40" />
+                  <p className="font-bold text-sm text-[#F5F7FB] mb-1">No Hall of Fame honorees inducted yet.</p>
+                  <p>Branch administration and track heads can induct outstanding champions here.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {hofItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-3xl p-6 bg-[#0D1D32] border border-[#E5A93C]/20 hover:border-[#E5A93C]/50 transition-all shadow-xl relative flex flex-col justify-between group"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <span
+                            className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border ${
+                              item.badgeType === "CHAMPION"
+                                ? "bg-amber-500/15 text-[#E5A93C] border-[#E5A93C]/30"
+                                : item.badgeType === "FASTEST"
+                                ? "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"
+                                : item.badgeType === "STAR"
+                                ? "bg-purple-500/15 text-purple-300 border-purple-500/30"
+                                : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                            }`}
+                          >
+                            {item.badgeType === "CHAMPION"
+                              ? "🏆 Top Champion"
+                              : item.badgeType === "FASTEST"
+                              ? "⚡ Fastest Submissions"
+                              : item.badgeType === "STAR"
+                              ? "🌟 Lecture Star"
+                              : "🎖️ Track Distinction"}
+                          </span>
+
+                          {isLeadership && (
+                            <button
+                              onClick={() => handleDeleteHofItem(item.id)}
+                              className="text-[#8FA4BD] hover:text-rose-400 p-1 transition-colors cursor-pointer"
+                              title="Remove honor"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        <h3 className="text-lg font-black text-white mb-0.5 group-hover:text-[#E5A93C] transition-colors">
+                          {item.studentName}
+                        </h3>
+                        <span className="text-[11px] font-bold text-[#48D5F5] block mb-2">
+                          Track: {item.trackName}
+                        </span>
+
+                        <div className="p-3 bg-[#07172A] rounded-xl border border-[#1E3A5F] mb-3">
+                          <span className="text-xs font-black text-[#F5F7FB] block mb-1">
+                            {item.title}
+                          </span>
+                          {item.note && (
+                            <p className="text-[11px] text-[#8FA4BD] italic leading-relaxed">
+                              &ldquo;{item.note}&rdquo;
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 border-t border-[#1E3A5F]/60 text-[10px] text-[#8FA4BD]">
+                        <span>Inducted: {item.date}</span>
+                        <span className="font-semibold text-slate-400">{item.inductedBy}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Track Switcher Tabs */}
           <div className="bg-[#0D1D32] border border-[#1E3A5F] p-2.5 rounded-2xl overflow-x-auto shadow-md">
             <div className="flex items-center gap-2 min-w-max">
               <span className="text-[11px] font-black text-[#8FA4BD] uppercase px-2">
@@ -461,6 +692,8 @@ export default function WeightedLeaderboardPage() {
               </table>
             </div>
           </div>
+            </>
+          )}
 
           {/* Modal: Award Bonus */}
           {showBonusModal && (
@@ -619,6 +852,101 @@ export default function WeightedLeaderboardPage() {
                       className="px-5 py-2.5 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black cursor-pointer shadow-lg disabled:opacity-50"
                     >
                       {submittingAdjust ? "جاري الحفظ..." : "حفظ وتعديل الترتيب فوراً"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+          {/* Modal: Induct Student to Hall of Fame */}
+          {showNominateModal && (
+            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-[#0D1D32] border border-[#E5A93C]/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="p-2 rounded-xl bg-amber-500/20 text-[#E5A93C]">
+                    <Crown className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-xl font-black text-[#F5F7FB]">Induct Star to Hall of Fame</h3>
+                    <p className="text-[11px] text-[#8FA4BD]">إضافة بطل متميز إلى لوحة الشرف الرسمية</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleNominate} className="space-y-4 text-xs mt-4">
+                  <div>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">Student Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={nominateStudentName}
+                      onChange={(e) => setNominateStudentName(e.target.value)}
+                      placeholder="e.g. Youssef Mohamed"
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">Track / Domain *</label>
+                    <input
+                      type="text"
+                      value={nominateTrackName}
+                      onChange={(e) => setNominateTrackName(e.target.value)}
+                      placeholder={tracks.find((t) => t.id === selectedTrackId)?.name || "Web Development"}
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">Distinction Badge Category *</label>
+                    <select
+                      value={nominateBadge}
+                      onChange={(e) => setNominateBadge(e.target.value)}
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C]"
+                    >
+                      <option value="CHAMPION">🏆 Top Champion (بطولات ومسابقات)</option>
+                      <option value="FASTEST">⚡ Fastest Submissions (أسرع تسليمات)</option>
+                      <option value="STAR">🌟 Lecture Star (نجم المحاضرات والتفاعل)</option>
+                      <option value="DISTINCTION">🎖️ Track Distinction (تميز أكاديمي عام)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">Honors Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={nominateTitle}
+                      onChange={(e) => setNominateTitle(e.target.value)}
+                      placeholder="e.g. 1st Place in Hackathon or Perfect Attendance Record"
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">Citation / Recommendation Note (Optional)</label>
+                    <textarea
+                      rows={3}
+                      value={nominateNote}
+                      onChange={(e) => setNominateNote(e.target.value)}
+                      placeholder="e.g. Demonstrated exceptional leadership, solved advanced challenges, and helped peers..."
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C]"
+                    />
+                  </div>
+
+                  <div className="pt-4 border-t border-[#1E3A5F] flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowNominateModal(false)}
+                      className="px-4 py-2 rounded-xl text-[#8FA4BD] hover:text-white font-bold cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submittingNominate}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#07172A] font-black cursor-pointer shadow-lg disabled:opacity-50"
+                    >
+                      {submittingNominate ? "Inducting..." : "Confirm Induction"}
                     </button>
                   </div>
                 </form>

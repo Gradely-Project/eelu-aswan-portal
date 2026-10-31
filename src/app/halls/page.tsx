@@ -44,7 +44,21 @@ export default function HallsPage() {
   const [selectedDay, setSelectedDay] = useState("ALL");
   const [selectedStatus, setSelectedStatus] = useState("ALL");
 
-  // Add Slot Modal (Admin & Chair)
+  const [filterDate, setFilterDate] = useState("");
+
+  const handleDateChange = (val: string) => {
+    setDate(val);
+    if (val) {
+      const parts = val.split("-");
+      if (parts.length === 3) {
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const computed = dayNames[d.getDay()];
+        if (computed) setDayOfWeek(computed);
+      }
+    }
+  };
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [hallName, setHallName] = useState("Campus Computer Lab 204");
   const [dayOfWeek, setDayOfWeek] = useState("Sunday");
@@ -285,17 +299,38 @@ export default function HallsPage() {
               ))}
             </div>
 
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-[#8FA4BD] font-bold">Filter Status:</span>
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="bg-[#0D1D32] border border-[#1E3A5F] rounded-xl px-3 py-1.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
-              >
-                <option value="ALL">All Slots</option>
-                <option value="AVAILABLE">Available Only</option>
-                <option value="BOOKED">Booked Only</option>
-              </select>
+            <div className="flex items-center gap-3 text-xs flex-wrap">
+              <div className="flex items-center gap-1.5 bg-[#0D1D32] border border-[#1E3A5F] rounded-xl px-3 py-1.5">
+                <span className="text-[#8FA4BD] font-bold">Filter Date:</span>
+                <input
+                  type="date"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  className="bg-transparent text-[#48D5F5] font-bold focus:outline-none text-xs"
+                />
+                {filterDate && (
+                  <button
+                    onClick={() => setFilterDate("")}
+                    className="text-[#8FA4BD] hover:text-white font-black text-xs ml-1"
+                    title="Clear date filter"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[#8FA4BD] font-bold">Filter Status:</span>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="bg-[#0D1D32] border border-[#1E3A5F] rounded-xl px-3 py-1.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                >
+                  <option value="ALL">All Slots</option>
+                  <option value="AVAILABLE">Available Only</option>
+                  <option value="BOOKED">Booked Only</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -304,7 +339,7 @@ export default function HallsPage() {
             <div className="py-20 text-center text-xs text-[#8FA4BD]">
               Loading weekly venue schedules...
             </div>
-          ) : slots.length === 0 ? (
+          ) : (filterDate ? slots.filter((s) => s.date === filterDate) : slots).length === 0 ? (
             <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-12 text-center text-xs text-[#8FA4BD]">
               <Building2 className="w-10 h-10 text-[#8FA4BD] mx-auto mb-3 opacity-40" />
               <p className="font-bold text-sm text-[#F5F7FB] mb-1">No hall slots registered for this selection.</p>
@@ -312,7 +347,7 @@ export default function HallsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {slots.map((slot) => {
+              {(filterDate ? slots.filter((s) => s.date === filterDate) : slots).map((slot) => {
                 const isBooked = slot.status === "BOOKED";
                 const isMyTrack =
                   user?.role === "INSTRUCTOR" && slot.bookedTrackId === user?.assignedTrackId;
@@ -557,11 +592,12 @@ export default function HallsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#8FA4BD] font-bold mb-1">Specific Date (Optional)</label>
+                  <label className="block text-[#8FA4BD] font-bold mb-1">Specific Date *</label>
                   <input
                     type="date"
+                    required
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
+                    onChange={(e) => handleDateChange(e.target.value)}
                     className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#269CF0]"
                   />
                 </div>

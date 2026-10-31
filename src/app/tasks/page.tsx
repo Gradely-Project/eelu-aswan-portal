@@ -118,7 +118,10 @@ export default function TasksPage() {
 
   // Student Exception Modal
   const [exceptionTask, setExceptionTask] = useState<TaskItem | null>(null);
-  const [exceptionStudentEmail, setExceptionStudentEmail] = useState("");
+  const [exceptionStudentId, setExceptionStudentId] = useState("");
+  const [exceptionUntil, setExceptionUntil] = useState("");
+  const [trackStudentsForException, setTrackStudentsForException] = useState<any[]>([]);
+  const [loadingTrackStudents, setLoadingTrackStudents] = useState(false);
   const [savingException, setSavingException] = useState(false);
 
   useEffect(() => {
@@ -303,18 +306,60 @@ export default function TasksPage() {
     }
   };
 
+  const openExceptionModal = async (task: TaskItem) => {
+    setExceptionTask(task);
+    setExceptionStudentId("");
+    // Default extension: 3 days after original deadline (or now if past)
+    const baseDate = new Date(task.deadline) > new Date() ? new Date(task.deadline) : new Date();
+    const extDate = new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000);
+    const offset = extDate.getTimezoneOffset() * 60000;
+    setExceptionUntil(new Date(extDate.getTime() - offset).toISOString().slice(0, 16));
+
+    setLoadingTrackStudents(true);
+    try {
+      const res = await fetch(`/api/admin/pending-students?trackId=${task.trackId}&status=APPROVED`);
+      const data = await res.json();
+      const stds = data.students || [];
+      setTrackStudentsForException(stds);
+      if (stds.length > 0) {
+        setExceptionStudentId(stds[0].id);
+      }
+    } catch {
+      setTrackStudentsForException([]);
+    } finally {
+      setLoadingTrackStudents(false);
+    }
+  };
+
   const handleSaveException = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!exceptionTask || !exceptionStudentEmail.trim()) return;
+    if (!exceptionTask || !exceptionStudentId) return;
+
+    const student = trackStudentsForException.find((s) => s.id === exceptionStudentId);
+    if (!student) return;
+
     setSavingException(true);
     try {
-      let currentExceptions: string[] = [];
+      let currentExceptions: any[] = [];
       try {
         currentExceptions = exceptionTask.exceptions ? JSON.parse(exceptionTask.exceptions) : [];
       } catch {}
-      const updated = Array.from(
-        new Set(currentExceptions.concat(exceptionStudentEmail.trim().toLowerCase()))
-      );
+
+      const newEx = {
+        studentId: student.id,
+        studentName: student.name,
+        studentEmail: student.email,
+        until: new Date(exceptionUntil).toISOString(),
+      };
+
+      const updated = currentExceptions
+        .filter((ex: any) =>
+          typeof ex === "string"
+            ? ex.toLowerCase() !== student.email.toLowerCase() && ex !== student.id
+            : ex?.studentId !== student.id
+        )
+        .concat(newEx);
+
       const res = await fetch(`/api/tasks/${exceptionTask.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -322,13 +367,14 @@ export default function TasksPage() {
           exceptions: JSON.stringify(updated),
         }),
       });
+
       if (res.ok) {
         setTasks((prev) =>
           prev.map((t) => (t.id === exceptionTask.id ? { ...t, exceptions: JSON.stringify(updated) } : t))
         );
-        alert(`Deadline extension granted for student ${exceptionStudentEmail}!`);
+        alert(`تم تمديد موعد التسليم بنجاح للطالب: ${student.name}`);
         setExceptionTask(null);
-        setExceptionStudentEmail("");
+        setExceptionStudentId("");
       } else {
         alert("Failed to grant exception.");
       }
@@ -458,16 +504,6 @@ export default function TasksPage() {
                             {task.maxScore} PTS
                           </span>
                         </div>
-
-                        {canEdit && (
-                          <button
-                            onClick={() => toggleTaskClosed(task)}
-                            className="text-xs font-bold text-[#8FA4BD] hover:text-white"
-                            title="Toggle lock"
-                          >
-                            {task.isClosed ? "Open" : "Lock"}
-                          </button>
-                        )}
                       </div>
 
                       <h3 className="text-lg font-black text-[#F5F7FB] mb-2">{task.title}</h3>
@@ -564,11 +600,8 @@ export default function TasksPage() {
                               Extend
                             </button>
                             <button
-                              onClick={() => {
-                                setExceptionTask(task);
-                                setExceptionStudentEmail("");
-                              }}
-                              className="px-2.5 py-1.5 rounded-xl bg-[#07172A] hover:bg-[#10243C] text-[#E5A93C] font-bold text-xs border border-[#E5A93C]/30"
+                              onClick={() => openExceptionModal(task)}
+                              className="px-2.5 py-1.5 rounded-xl bg-[#07172A] hover:bg-[#10243C] text-[#E5A93C] font-bold text-xs border border-[#E5A93C]/30 cursor-pointer"
                               title="Grant exception to specific student"
                             >
                               Exception
@@ -863,53 +896,110 @@ export default function TasksPage() {
 
           {/* Student Exception Modal */}
           {exceptionTask && (
-            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
               <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
-                <h3 className="text-xl font-black text-[#F5F7FB] mb-2 flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-[#E5A93C]" />
-                  Grant Student Extension
-                </h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-10 h-10 rounded-2xl bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30 flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-[#F5F7FB]">Grant Student Extension</h3>
+                    <span className="text-xs text-[#8FA4BD]">Individual Deadline Exemption</span>
+                  </div>
+                </div>
+
                 <p className="text-xs text-[#8FA4BD] mb-4">
-                  Allow a specific student to submit past deadline for: <strong>{exceptionTask.title}</strong>
+                  Allow an enrolled student to submit after the main deadline for:{" "}
+                  <strong className="text-white">{exceptionTask.title}</strong>
                 </p>
 
                 {exceptionTask.exceptions && (
                   <div className="mb-4 p-3 bg-[#07172A] rounded-xl border border-[#1E3A5F] text-xs">
-                    <span className="text-[#8FA4BD] block mb-1 font-bold">Existing Exemptions:</span>
-                    <span className="text-[#F5F7FB] font-mono break-all">{exceptionTask.exceptions}</span>
+                    <span className="text-[#8FA4BD] block mb-1 font-bold">Existing Exemptions Granted:</span>
+                    <div className="space-y-1 max-h-24 overflow-y-auto">
+                      {(() => {
+                        try {
+                          const parsed = JSON.parse(exceptionTask.exceptions);
+                          if (Array.isArray(parsed)) {
+                            return parsed.map((ex: any, idx: number) => (
+                              <div key={idx} className="flex justify-between items-center text-[11px] text-[#CBD5E1]">
+                                <span>{typeof ex === "string" ? ex : ex?.studentName || ex?.studentEmail}</span>
+                                {typeof ex === "object" && ex?.until && (
+                                  <span className="text-emerald-400 font-mono text-[10px]">
+                                    until {new Date(ex.until).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                  </span>
+                                )}
+                              </div>
+                            ));
+                          }
+                        } catch {}
+                        return <span className="text-[#8FA4BD]">{exceptionTask.exceptions}</span>;
+                      })()}
+                    </div>
                   </div>
                 )}
 
-                <form onSubmit={handleSaveException} className="space-y-4 text-xs">
-                  <div>
-                    <label className="block font-bold text-[#8FA4BD] mb-1">Student University / System Email *</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="student@eelu.edu.eg"
-                      value={exceptionStudentEmail}
-                      onChange={(e) => setExceptionStudentEmail(e.target.value)}
-                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C]"
-                    />
+                {loadingTrackStudents ? (
+                  <div className="p-8 text-center text-xs text-[#8FA4BD]">Loading enrolled students in track...</div>
+                ) : trackStudentsForException.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-amber-400 bg-amber-500/10 rounded-2xl border border-amber-500/20">
+                    No approved students found enrolled in this track yet.
                   </div>
+                ) : (
+                  <form onSubmit={handleSaveException} className="space-y-4 text-xs">
+                    <div>
+                      <label className="block font-bold text-[#8FA4BD] mb-1">
+                        Select Enrolled Student *
+                      </label>
+                      <select
+                        required
+                        value={exceptionStudentId}
+                        onChange={(e) => setExceptionStudentId(e.target.value)}
+                        className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#E5A93C] cursor-pointer"
+                      >
+                        {trackStudentsForException.map((st) => (
+                          <option key={st.id} value={st.id}>
+                            {st.name} — ({st.email})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                  <div className="pt-4 border-t border-[#1E3A5F] flex justify-end gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setExceptionTask(null)}
-                      className="px-4 py-2 rounded-xl text-[#8FA4BD] hover:text-white font-bold"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={savingException}
-                      className="px-5 py-2 rounded-xl bg-[#E5A93C] hover:bg-[#D4982B] text-[#050D1A] font-black"
-                    >
-                      {savingException ? "Granting..." : "Grant Exemption"}
-                    </button>
-                  </div>
-                </form>
+                    <div>
+                      <label className="block font-bold text-[#8FA4BD] mb-1">
+                        Extended Deadline (Date & Time) *
+                      </label>
+                      <input
+                        type="datetime-local"
+                        required
+                        value={exceptionUntil}
+                        onChange={(e) => setExceptionUntil(e.target.value)}
+                        className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C]"
+                      >
+                      </input>
+                      <span className="text-[10px] text-[#8FA4BD] mt-1 block">
+                        Submissions will remain unlocked for this student until this exact date & time.
+                      </span>
+                    </div>
+
+                    <div className="pt-3 border-t border-[#1E3A5F] flex justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setExceptionTask(null)}
+                        className="px-4 py-2 rounded-xl text-[#8FA4BD] hover:text-white font-bold cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={savingException}
+                        className="px-5 py-2.5 rounded-xl bg-[#E5A93C] hover:bg-[#D4982B] text-[#050D1A] font-black cursor-pointer shadow-md disabled:opacity-50"
+                      >
+                        {savingException ? "Granting..." : "Grant Extension"}
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </div>
           )}

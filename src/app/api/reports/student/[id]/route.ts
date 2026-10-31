@@ -13,6 +13,8 @@ export async function GET(
     if (error || !user) return error;
 
     const studentId = params.id;
+    const { searchParams } = new URL(req.url);
+    const filterTrackId = searchParams.get("trackId");
 
     // Student can only view their own activity unless Instructor / Admin / Chair
     const isStaff = ["ADMIN", "CHAIR_PERSON", "VICE_CHAIR", "INSTRUCTOR"].includes(user.role);
@@ -68,14 +70,35 @@ export async function GET(
       }
     }
 
-    // Build timeline of attendance across all enrolled sessions
-    const attendanceMap = new Map(student.attendances.map((a) => [a.sessionId, a]));
-    const submissionMap = new Map(student.taskSubmissions.map((s) => [s.taskId, s]));
+    // Filter by track if requested
+    const relevantEnrollments =
+      filterTrackId && filterTrackId !== "ALL"
+        ? student.enrollments.filter((e) => e.trackId === filterTrackId)
+        : student.enrollments;
+
+    const relevantAttendances =
+      filterTrackId && filterTrackId !== "ALL"
+        ? student.attendances.filter((a) => a.session?.trackId === filterTrackId)
+        : student.attendances;
+
+    const relevantSubmissions =
+      filterTrackId && filterTrackId !== "ALL"
+        ? student.taskSubmissions.filter((s) => s.task?.trackId === filterTrackId)
+        : student.taskSubmissions;
+
+    const relevantBonus =
+      filterTrackId && filterTrackId !== "ALL"
+        ? student.bonusPoints.filter((b) => b.trackId === filterTrackId)
+        : student.bonusPoints;
+
+    // Build timeline of attendance across enrolled sessions
+    const attendanceMap = new Map(relevantAttendances.map((a) => [a.sessionId, a]));
+    const submissionMap = new Map(relevantSubmissions.map((s) => [s.taskId, s]));
 
     const allEnrolledSessions: any[] = [];
     const allEnrolledTasks: any[] = [];
 
-    student.enrollments.forEach((en) => {
+    relevantEnrollments.forEach((en) => {
       en.track.sessions.forEach((sess) => {
         const record = attendanceMap.get(sess.id);
         allEnrolledSessions.push({
@@ -119,13 +142,13 @@ export async function GET(
     });
 
     // Summary calculations
-    const presentCount = student.attendances.filter((a) => a.status === "PRESENT").length;
-    const lateCount = student.attendances.filter((a) => a.status === "LATE").length;
-    const excusedCount = student.attendances.filter((a) => a.status === "EXCUSED").length;
+    const presentCount = relevantAttendances.filter((a) => a.status === "PRESENT").length;
+    const lateCount = relevantAttendances.filter((a) => a.status === "LATE").length;
+    const excusedCount = relevantAttendances.filter((a) => a.status === "EXCUSED").length;
     const absentCount = allEnrolledSessions.length - (presentCount + lateCount + excusedCount);
 
-    const tasksScore = student.taskSubmissions.reduce((sum, s) => sum + (s.score || 0), 0);
-    const bonusScore = student.bonusPoints.reduce((sum, b) => sum + b.points, 0);
+    const tasksScore = relevantSubmissions.reduce((sum, s) => sum + (s.score || 0), 0);
+    const bonusScore = relevantBonus.reduce((sum, b) => sum + b.points, 0);
 
     return NextResponse.json({
       student: {
@@ -149,13 +172,13 @@ export async function GET(
             ? Math.round(((presentCount + lateCount * 0.5) / allEnrolledSessions.length) * 100)
             : 100,
         totalTasks: allEnrolledTasks.length,
-        submittedTasks: student.taskSubmissions.length,
+        submittedTasks: relevantSubmissions.length,
         tasksScore,
         bonusScore,
       },
       attendanceHistory: allEnrolledSessions,
       taskSubmissions: allEnrolledTasks,
-      bonusHistory: student.bonusPoints,
+      bonusHistory: relevantBonus,
     });
   } catch (error) {
     console.error("GET /api/reports/student/[id] error:", error);

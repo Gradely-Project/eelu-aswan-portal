@@ -51,6 +51,7 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
   const [feedbackText, setFeedbackText] = useState("");
   const [savingEval, setSavingEval] = useState(false);
   const [evalSuccess, setEvalSuccess] = useState<string | null>(null);
+  const [existingEvaluations, setExistingEvaluations] = useState<Record<string, any>>({});
 
   const fetchStudentData = async () => {
     try {
@@ -91,6 +92,43 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
   useEffect(() => {
     if (user) fetchStudentData();
   }, [user]);
+
+  useEffect(() => {
+    if (!evalSession) {
+      setExistingEvaluations({});
+      setSelectedInstructor(null);
+      return;
+    }
+    fetch(`/api/sessions/evaluate?sessionId=${evalSession.id}&studentOnly=true`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.evaluations && Array.isArray(d.evaluations)) {
+          const map: Record<string, any> = {};
+          d.evaluations.forEach((ev: any) => {
+            if (ev.instructorName) map[ev.instructorName] = ev;
+          });
+          setExistingEvaluations(map);
+          const instList = evalSession.track?.instructors || [];
+          if (instList.length > 0) {
+            const firstInst = instList[0];
+            const roleTitle =
+              firstInst.trackTeamRole === "HEAD"
+                ? "Lead Instructor (Head)"
+                : firstInst.trackTeamRole === "VICE_HEAD"
+                ? "Vice Lead"
+                : "Core Instructor";
+            setSelectedInstructor({ name: firstInst.name, role: roleTitle });
+            if (map[firstInst.name]) {
+              setClarityRating(map[firstInst.name].clarityRating || 5);
+              setMaterialRating(map[firstInst.name].materialRating || 5);
+              setOverallRating(map[firstInst.name].overallRating || 5);
+              setFeedbackText(map[firstInst.name].feedbackText || "");
+            }
+          }
+        }
+      })
+      .catch(() => {});
+  }, [evalSession]);
 
   const handleQuickCheckIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,11 +219,20 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
       });
       const data = await res.json();
       if (res.ok) {
-        setEvalSuccess("Evaluation saved! Thank you for your feedback.");
+        const instName = selectedInstructor?.name || "";
+        setExistingEvaluations((prev) => ({
+          ...prev,
+          [instName]: {
+            clarityRating,
+            materialRating,
+            overallRating,
+            feedbackText,
+          },
+        }));
+        setEvalSuccess(`تم حفظ تقييمك بنجاح للمدرب (${instName}) ✓ يمكنك تقييم باقي المحاضرين أو إغلاق النافذة`);
         setTimeout(() => {
-          setEvalSession(null);
           setEvalSuccess(null);
-        }, 1200);
+        }, 3500);
       } else {
         alert(data.error || "Failed to submit evaluation.");
       }
@@ -583,10 +630,24 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
                           : inst.trackTeamRole === "VICE_HEAD"
                           ? "Vice Lead"
                           : "Core Instructor";
+                        const prevEval = existingEvaluations[inst.name];
                         return (
                           <div
                             key={inst.id}
-                            onClick={() => setSelectedInstructor({ name: inst.name, role: roleTitle })}
+                            onClick={() => {
+                              setSelectedInstructor({ name: inst.name, role: roleTitle });
+                              if (prevEval) {
+                                setClarityRating(prevEval.clarityRating || 5);
+                                setMaterialRating(prevEval.materialRating || 5);
+                                setOverallRating(prevEval.overallRating || 5);
+                                setFeedbackText(prevEval.feedbackText || "");
+                              } else {
+                                setClarityRating(5);
+                                setMaterialRating(5);
+                                setOverallRating(5);
+                                setFeedbackText("");
+                              }
+                            }}
                             className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                               isChosen
                                 ? "bg-[#10243C] border-[#E5A93C] text-white"
@@ -596,6 +657,11 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
                             <div className="flex items-center gap-2">
                               <span className={`w-2 h-2 rounded-full ${isChosen ? "bg-[#E5A93C]" : "bg-slate-600"}`} />
                               <span className="font-bold text-xs text-white">{inst.name}</span>
+                              {prevEval && (
+                                <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                                  تم التقييم ✓ ({prevEval.overallRating}★)
+                                </span>
+                              )}
                             </div>
                             <span className="text-[10px] font-black text-[#E5A93C] uppercase">
                               {roleTitle}
@@ -701,14 +767,14 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
                     onClick={() => setEvalSession(null)}
                     className="px-4 py-2 rounded-xl text-xs text-[#8FA4BD] hover:text-white"
                   >
-                    Cancel
+                    Done / Close (إغلاق)
                   </button>
                   <button
                     type="submit"
                     disabled={savingEval}
                     className="px-6 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md transition-all cursor-pointer"
                   >
-                    {savingEval ? "Submitting..." : "Submit Evaluation"}
+                    {savingEval ? "Saving..." : "Save Rating (حفظ التقييم)"}
                   </button>
                 </div>
               </form>

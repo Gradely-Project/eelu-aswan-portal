@@ -44,13 +44,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "You are not enrolled in this bootcamp track." }, { status: 403 });
     }
 
-    // Check deadline & closed status with student exceptions
+    // Check deadline & closed status with student exceptions and extension deadlines
     let hasException = false;
     if (task.exceptions) {
       try {
         const exList = JSON.parse(task.exceptions);
-        if (Array.isArray(exList) && (exList.includes(user.id) || exList.includes(user.email))) {
-          hasException = true;
+        if (Array.isArray(exList)) {
+          const match = exList.find((ex: any) =>
+            typeof ex === "string"
+              ? ex.toLowerCase() === user.email.toLowerCase() || ex === user.id
+              : ex?.studentId === user.id || ex?.studentEmail?.toLowerCase() === user.email.toLowerCase()
+          );
+
+          if (match) {
+            if (typeof match === "object" && match.until) {
+              if (new Date(match.until) > new Date()) {
+                hasException = true;
+              }
+            } else {
+              hasException = true;
+            }
+          }
         }
       } catch {}
     }
@@ -60,7 +74,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            "This task deadline has passed and submissions are locked. Please contact your track instructor to request an exception or reopening.",
+            "انتهى الموعد النهائي لتسليم هذا التكليف وتم قفل باب التسليم. يرجى التواصل مع مدرب التراك في حال وجود ظرف استثنائي.",
         },
         { status: 403 }
       );

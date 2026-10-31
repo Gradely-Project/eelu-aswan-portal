@@ -17,6 +17,7 @@ import {
   ExternalLink,
   KeyRound,
   Lock,
+  Trash2,
 } from "lucide-react";
 
 interface StudentItem {
@@ -62,6 +63,33 @@ export default function AdminStudentsDirectoryPage() {
   const [newPasswordVal, setNewPasswordVal] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
 
+  // Permanent Delete Modal
+  const [deleteStudentTarget, setDeleteStudentTarget] = useState<StudentItem | null>(null);
+  const [deletingStudent, setDeletingStudent] = useState(false);
+
+  const handleDeleteStudent = async () => {
+    if (!deleteStudentTarget) return;
+    setDeletingStudent(true);
+    setFeedback(null);
+    try {
+      const res = await fetch(`/api/admin/pending-students?studentId=${deleteStudentTarget.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFeedback(data.message || `Account for "${deleteStudentTarget.name}" permanently deleted.`);
+        setDeleteStudentTarget(null);
+        await fetchStudents();
+      } else {
+        alert(data.error || "Failed to delete student.");
+      }
+    } catch {
+      alert("Network error.");
+    } finally {
+      setDeletingStudent(false);
+    }
+  };
+
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passwordModalStudent || !newPasswordVal.trim()) return;
@@ -93,7 +121,7 @@ export default function AdminStudentsDirectoryPage() {
   const fetchStudents = async () => {
     try {
       const [studentsRes, tracksRes] = await Promise.all([
-        fetch(`/api/admin/pending-students?status=${statusFilter}`).then((r) => r.json()),
+        fetch(`/api/admin/pending-students?status=${statusFilter}&trackId=${selectedTrackId}`).then((r) => r.json()),
         fetch("/api/tracks").then((r) => r.json()),
       ]);
       setStudents(studentsRes.students || []);
@@ -121,7 +149,7 @@ export default function AdminStudentsDirectoryPage() {
 
   useEffect(() => {
     fetchStudents();
-  }, [statusFilter]);
+  }, [statusFilter, selectedTrackId]);
 
   const handleApprove = async (studentId: string, action: "APPROVE" | "REJECT") => {
     setActionLoading(studentId);
@@ -419,10 +447,10 @@ export default function AdminStudentsDirectoryPage() {
                             <div className="flex items-center justify-end gap-1.5 flex-wrap">
                               <button
                                 onClick={() => handleOpenAudit(st.id)}
-                                className="px-2 py-1 rounded-lg bg-[#10243C] hover:bg-[#1E3A5F] text-[#48D5F5] font-bold text-[11px] border border-[#1E3A5F] transition-all flex items-center gap-1 cursor-pointer"
+                                className="h-8 px-2.5 rounded-xl bg-[#10243C] hover:bg-[#1E3A5F] text-[#48D5F5] font-bold text-xs border border-[#1E3A5F] transition-all flex items-center gap-1 cursor-pointer"
                                 title="Inspect activity audit"
                               >
-                                <Eye className="w-3 h-3" />
+                                <Eye className="w-3.5 h-3.5" />
                                 Audit
                               </button>
 
@@ -432,10 +460,10 @@ export default function AdminStudentsDirectoryPage() {
                                     setPasswordModalStudent(st);
                                     setNewPasswordVal("");
                                   }}
-                                  className="px-2 py-1 rounded-lg bg-[#E5A93C]/15 hover:bg-[#E5A93C]/25 text-[#E5A93C] font-bold text-[11px] border border-[#E5A93C]/30 transition-all flex items-center gap-1 cursor-pointer"
+                                  className="h-8 px-2.5 rounded-xl bg-[#E5A93C]/15 hover:bg-[#E5A93C]/25 text-[#E5A93C] font-bold text-xs border border-[#E5A93C]/30 transition-all flex items-center gap-1 cursor-pointer"
                                   title="Reset password for this student"
                                 >
-                                  <KeyRound className="w-3 h-3" />
+                                  <KeyRound className="w-3.5 h-3.5" />
                                   Pass
                                 </button>
                               )}
@@ -445,14 +473,14 @@ export default function AdminStudentsDirectoryPage() {
                                   <button
                                     onClick={() => handleApprove(st.id, "APPROVE")}
                                     disabled={isLoadingThis}
-                                    className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] shadow-sm transition-all cursor-pointer"
+                                    className="h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
                                   >
                                     Approve
                                   </button>
                                   <button
                                     onClick={() => handleApprove(st.id, "REJECT")}
                                     disabled={isLoadingThis}
-                                    className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold text-[11px] border border-rose-500/30 cursor-pointer"
+                                    className="h-8 px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold text-xs border border-rose-500/30 cursor-pointer"
                                   >
                                     Reject
                                   </button>
@@ -463,14 +491,24 @@ export default function AdminStudentsDirectoryPage() {
                                 <button
                                   onClick={() => handleSuspendToggle(st.id, st.status)}
                                   disabled={isLoadingThis}
-                                  className={`px-2.5 py-1 rounded-lg font-bold text-[11px] border transition-all flex items-center gap-1 cursor-pointer ${
+                                  className={`h-8 px-3 rounded-xl font-bold text-xs border transition-all flex items-center gap-1 cursor-pointer ${
                                     isSuspended
                                       ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30"
-                                      : "bg-rose-500/10 text-rose-400 border-rose-500/30 hover:bg-rose-500/20"
+                                      : "bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25"
                                   }`}
                                 >
-                                  <Ban className="w-3 h-3" />
+                                  <Ban className="w-3.5 h-3.5" />
                                   {isSuspended ? "Reactivate" : "Suspend"}
+                                </button>
+                              )}
+
+                              {user?.role === "ADMIN" && (
+                                <button
+                                  onClick={() => setDeleteStudentTarget(st)}
+                                  className="h-8 px-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-all flex items-center gap-1 cursor-pointer"
+                                  title="Permanently delete student account"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               )}
                             </div>
@@ -738,6 +776,42 @@ export default function AdminStudentsDirectoryPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Permanent Student Account Deletion Confirmation */}
+      {deleteStudentTarget && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0D1D32] border border-rose-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center">
+            <div className="w-14 h-14 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-7 h-7" />
+            </div>
+
+            <h3 className="text-xl font-black text-[#F5F7FB] mb-2">
+              مسح حساب الطالب نهائياً؟
+            </h3>
+            <p className="text-xs text-[#8FA4BD] leading-relaxed mb-6">
+              هل أنت متأكد من حذف حساب الطالب <strong className="text-white">&quot;{deleteStudentTarget.name}&quot;</strong> ({deleteStudentTarget.email}) نهائياً من قاعدة البيانات؟ سيتم مسح سجلات حضوره، درجاته، وتكليفاته بشكل كامل ولا يمكن التراجع عن هذا الإجراء.
+            </p>
+
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteStudentTarget(null)}
+                className="px-5 py-2.5 rounded-xl bg-[#07172A] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white font-bold text-xs cursor-pointer"
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteStudent}
+                disabled={deletingStudent}
+                className="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/30 transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {deletingStudent ? "جاري الحذف..." : "تأكيد الحذف نهائياً"}
+              </button>
+            </div>
           </div>
         </div>
       )}

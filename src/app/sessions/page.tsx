@@ -170,6 +170,7 @@ export default function SessionsPage() {
   const [feedbackText, setFeedbackText] = useState("");
   const [savingEval, setSavingEval] = useState(false);
   const [evalSuccess, setEvalSuccess] = useState<string | null>(null);
+  const [existingEvaluations, setExistingEvaluations] = useState<Record<string, any>>({});
 
   // Admin Instructor Evaluations Audit Report
   const [instructorReports, setInstructorReports] = useState<any[]>([]);
@@ -177,6 +178,7 @@ export default function SessionsPage() {
   const [overallAverage, setOverallAverage] = useState<number>(0);
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [auditSubTab, setAuditSubTab] = useState<"instructors" | "sessions">("instructors");
+  const [auditTrackFilter, setAuditTrackFilter] = useState<string>("ALL");
   const [loadingReports, setLoadingReports] = useState(false);
 
   useEffect(() => {
@@ -210,7 +212,10 @@ export default function SessionsPage() {
       const loadedSessions: Session[] = data.sessions || [];
       setSessions(loadedSessions);
       if (loadedSessions.length > 0) {
-        setSelectedSessionId(loadedSessions[0].id);
+        setSelectedSessionId((prev) => {
+          if (prev && loadedSessions.some((s) => s.id === prev)) return prev;
+          return loadedSessions[0].id;
+        });
       } else {
         setSelectedSessionId(null);
       }
@@ -418,14 +423,57 @@ export default function SessionsPage() {
 
   const openEvaluationModal = (sess: Session) => {
     setEvalSession(sess);
+    setEvalSuccess(null);
     const instructors = sess.track?.instructors || [];
-    if (instructors.length > 0) {
-      setSelectedInstructor({
-        name: instructors[0].name,
-        role: getRoleTitle(instructors[0].trackTeamRole),
-      });
+    const firstInst =
+      instructors.length > 0
+        ? {
+            name: instructors[0].name,
+            role: getRoleTitle(instructors[0].trackTeamRole),
+          }
+        : { name: "Assigned Track Instructor", role: "Instructor" };
+    setSelectedInstructor(firstInst);
+
+    // Fetch existing evaluations for this session submitted by the student
+    fetch(`/api/sessions/evaluate?sessionId=${sess.id}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.evaluations && Array.isArray(d.evaluations)) {
+          const map: Record<string, any> = {};
+          d.evaluations.forEach((ev: any) => {
+            if (ev.instructorName) map[ev.instructorName] = ev;
+          });
+          setExistingEvaluations(map);
+          if (map[firstInst.name]) {
+            setClarityRating(map[firstInst.name].clarityRating);
+            setMaterialRating(map[firstInst.name].materialRating);
+            setOverallRating(map[firstInst.name].overallRating);
+            setFeedbackText(map[firstInst.name].feedbackText || "");
+          } else {
+            setClarityRating(5);
+            setMaterialRating(5);
+            setOverallRating(5);
+            setFeedbackText("");
+          }
+        }
+      })
+      .catch(() => {});
+  };
+
+  const selectInstructorToRate = (instName: string, roleTitle: string) => {
+    setSelectedInstructor({ name: instName, role: roleTitle });
+    setEvalSuccess(null);
+    const existing = existingEvaluations[instName];
+    if (existing) {
+      setClarityRating(existing.clarityRating);
+      setMaterialRating(existing.materialRating);
+      setOverallRating(existing.overallRating);
+      setFeedbackText(existing.feedbackText || "");
     } else {
-      setSelectedInstructor({ name: "Assigned Track Instructor", role: "Instructor" });
+      setClarityRating(5);
+      setMaterialRating(5);
+      setOverallRating(5);
+      setFeedbackText("");
     }
   };
 
@@ -450,11 +498,15 @@ export default function SessionsPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setEvalSuccess("Evaluation saved successfully. Thank you for your feedback!");
-        setTimeout(() => {
-          setEvalSession(null);
-          setEvalSuccess(null);
-        }, 1500);
+        setEvalSuccess(
+          `تم حفظ تقييمك لـ (${selectedInstructor?.name}) بنجاح! يمكنك الآن تقييم باقي أعضاء الفريق أو إغلاق النافذة.`
+        );
+        if (selectedInstructor?.name && data.evaluation) {
+          setExistingEvaluations((prev) => ({
+            ...prev,
+            [selectedInstructor.name]: data.evaluation,
+          }));
+        }
       } else {
         alert(data.error || "Failed to submit evaluation.");
       }
@@ -1407,52 +1459,59 @@ export default function SessionsPage() {
               Lecture: <strong className="text-[#48D5F5]">{evalSession.title}</strong>
             </p>
 
-            {evalSuccess ? (
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
+            {evalSuccess && (
+              <div className="mb-4 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                 <span>{evalSuccess}</span>
               </div>
-            ) : (
-              <form onSubmit={handleSaveEvaluation} className="space-y-4 text-xs">
-                <div>
-                  <label className="block font-bold text-[#8FA4BD] mb-1">
-                    Select Instructor / Team Member to Rate *
-                  </label>
-                  {evalSession.track?.instructors && evalSession.track.instructors.length > 0 ? (
-                    <div className="space-y-1.5">
-                      {evalSession.track.instructors.map((inst) => {
-                        const roleTitle = getRoleTitle(inst.trackTeamRole);
-                        const isChosen = selectedInstructor?.name === inst.name;
-                        return (
-                          <div
-                            key={inst.id}
-                            onClick={() => setSelectedInstructor({ name: inst.name, role: roleTitle })}
-                            className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                              isChosen
-                                ? "bg-[#10243C] border-[#E5A93C] text-white"
-                                : "bg-[#07172A] border-[#1E3A5F] text-[#8FA4BD] hover:border-slate-500"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${isChosen ? "bg-[#E5A93C]" : "bg-slate-600"}`} />
-                              <span className="font-bold text-xs text-white">{inst.name}</span>
-                            </div>
-                            <span className="text-[10px] font-black text-[#E5A93C] uppercase">
-                              {roleTitle}
-                            </span>
+            )}
+
+            <form onSubmit={handleSaveEvaluation} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-[#8FA4BD] mb-1">
+                  Select Instructor / Team Member to Rate *
+                </label>
+                {evalSession.track?.instructors && evalSession.track.instructors.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {evalSession.track.instructors.map((inst) => {
+                      const roleTitle = getRoleTitle(inst.trackTeamRole);
+                      const isChosen = selectedInstructor?.name === inst.name;
+                      const hasEvaluated = !!existingEvaluations[inst.name];
+                      return (
+                        <div
+                          key={inst.id}
+                          onClick={() => selectInstructorToRate(inst.name, roleTitle)}
+                          className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                            isChosen
+                              ? "bg-[#10243C] border-[#E5A93C] text-white"
+                              : "bg-[#07172A] border-[#1E3A5F] text-[#8FA4BD] hover:border-slate-500"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${isChosen ? "bg-[#E5A93C]" : "bg-slate-600"}`} />
+                            <span className="font-bold text-xs text-white">{inst.name}</span>
+                            {hasEvaluated && (
+                              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                                تم التقييم ✓
+                              </span>
+                            )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <input
-                      type="text"
-                      value={selectedInstructor?.name || "Assigned Track Instructor"}
-                      disabled
-                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-3 py-2 text-xs text-white"
-                    />
-                  )}
-                </div>
+                          <span className="text-[10px] font-black text-[#E5A93C] uppercase">
+                            {roleTitle}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    value={selectedInstructor?.name || "Assigned Track Instructor"}
+                    disabled
+                    className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                )}
+              </div>
 
                 <div>
                   <label className="block font-bold text-[#8FA4BD] mb-1">
@@ -1550,7 +1609,6 @@ export default function SessionsPage() {
                   </button>
                 </div>
               </form>
-            )}
           </div>
         </div>
       )}
@@ -1599,6 +1657,36 @@ export default function SessionsPage() {
               </div>
             </div>
 
+            {/* Track Selector inside Audit Modal */}
+            <div className="flex items-center gap-1.5 mb-4 bg-[#07172A] p-2 rounded-2xl border border-[#1E3A5F] overflow-x-auto">
+              <span className="text-[10px] font-black text-[#8FA4BD] px-2 uppercase flex-shrink-0">
+                Filter Track:
+              </span>
+              <button
+                onClick={() => setAuditTrackFilter("ALL")}
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex-shrink-0 cursor-pointer ${
+                  auditTrackFilter === "ALL"
+                    ? "bg-[#269CF0] text-white shadow-sm"
+                    : "text-[#8FA4BD] hover:text-white"
+                }`}
+              >
+                All Tracks
+              </button>
+              {tracks.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setAuditTrackFilter(t.id)}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex-shrink-0 cursor-pointer ${
+                    auditTrackFilter === t.id
+                      ? "bg-[#269CF0] text-white shadow-sm"
+                      : "text-[#8FA4BD] hover:text-white"
+                  }`}
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+
             {/* Sub-tab selection */}
             <div className="flex items-center gap-2 mb-4 border-b border-[#1E3A5F] pb-3">
               <button
@@ -1627,12 +1715,25 @@ export default function SessionsPage() {
               <div className="p-12 text-center text-xs text-[#8FA4BD]">Loading evaluation statistics...</div>
             ) : auditSubTab === "instructors" ? (
               <div className="space-y-4">
-                {instructorReports.length === 0 ? (
-                  <p className="p-8 text-center text-xs text-[#8FA4BD] bg-[#07172A] rounded-2xl border border-[#1E3A5F]">
-                    No instructor evaluations submitted by students yet.
-                  </p>
-                ) : (
-                  instructorReports.map((inst, idx) => (
+                {(() => {
+                  const filtered = instructorReports.filter((inst) => {
+                    if (auditTrackFilter === "ALL") return true;
+                    const targetTrack = tracks.find((t) => t.id === auditTrackFilter);
+                    return (
+                      targetTrack &&
+                      inst.trackName.toLowerCase().trim() === targetTrack.name.toLowerCase().trim()
+                    );
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <p className="p-8 text-center text-xs text-[#8FA4BD] bg-[#07172A] rounded-2xl border border-[#1E3A5F]">
+                        No instructor evaluations submitted yet for this track.
+                      </p>
+                    );
+                  }
+
+                  return filtered.map((inst, idx) => (
                     <div key={idx} className="p-4 rounded-2xl bg-[#07172A] border border-[#1E3A5F] space-y-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
@@ -1676,17 +1777,30 @@ export default function SessionsPage() {
                         </div>
                       )}
                     </div>
-                  ))
-                )}
+                  ));
+                })()}
               </div>
             ) : (
               <div className="space-y-3">
-                {sessionsReports.length === 0 ? (
-                  <p className="p-8 text-center text-xs text-[#8FA4BD] bg-[#07172A] rounded-2xl border border-[#1E3A5F]">
-                    No per-lecture evaluations submitted yet.
-                  </p>
-                ) : (
-                  sessionsReports.map((sess, idx) => (
+                {(() => {
+                  const filtered = sessionsReports.filter((sess) => {
+                    if (auditTrackFilter === "ALL") return true;
+                    const targetTrack = tracks.find((t) => t.id === auditTrackFilter);
+                    return (
+                      targetTrack &&
+                      sess.trackName.toLowerCase().trim() === targetTrack.name.toLowerCase().trim()
+                    );
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <p className="p-8 text-center text-xs text-[#8FA4BD] bg-[#07172A] rounded-2xl border border-[#1E3A5F]">
+                        No per-lecture evaluations submitted yet for this track.
+                      </p>
+                    );
+                  }
+
+                  return filtered.map((sess, idx) => (
                     <div key={idx} className="p-3.5 rounded-2xl bg-[#07172A] border border-[#1E3A5F] flex flex-wrap items-center justify-between gap-3 text-xs">
                       <div>
                         <h4 className="font-bold text-white text-sm">{sess.sessionTitle}</h4>
@@ -1704,8 +1818,8 @@ export default function SessionsPage() {
                         </span>
                       </div>
                     </div>
-                  ))
-                )}
+                  ));
+                })()}
               </div>
             )}
 

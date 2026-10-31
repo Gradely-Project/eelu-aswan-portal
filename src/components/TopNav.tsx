@@ -288,7 +288,7 @@ export default function TopNav({
             </div>
             <div className="flex flex-col">
               <span className="font-black text-xs sm:text-sm text-[#F5F7FB] tracking-tight group-hover:text-[#269CF0] transition-colors leading-none">
-                EELU Aswan Branch
+                EELU Aswan Student Branch
               </span>
               <span className="text-[9px] sm:text-[10px] font-bold text-[#E5A93C] tracking-wider uppercase mt-1">
                 STUDENT ACADEMY PORTAL

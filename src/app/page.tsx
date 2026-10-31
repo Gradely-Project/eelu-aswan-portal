@@ -28,6 +28,8 @@ import {
   EyeOff,
   CheckCircle2,
   Zap,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 interface Leader {
@@ -45,6 +47,32 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light") {
+        setIsDark(false);
+        document.documentElement.classList.remove("dark");
+      } else {
+        setIsDark(true);
+        document.documentElement.classList.add("dark");
+      }
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    if (isDark) {
+      document.documentElement.classList.remove("dark");
+      if (typeof window !== "undefined") localStorage.setItem("theme", "light");
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      if (typeof window !== "undefined") localStorage.setItem("theme", "dark");
+      setIsDark(true);
+    }
+  };
 
   // Dynamic leadership list & active tracks list
   const [leaders, setLeaders] = useState<Leader[]>([]);
@@ -352,7 +380,7 @@ export default function LandingPage() {
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-none">
-                EELU Aswan student branch
+                EELU Aswan Student Branch
               </span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -365,8 +393,8 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Clean Nav Links & Primary Action */}
-        <div className="flex items-center gap-4 sm:gap-6">
+        {/* Clean Nav Links & Actions (Theme Toggle, Navigation) */}
+        <div className="flex items-center gap-3 sm:gap-5">
           <button
             onClick={() => scrollToSection("tracks-section")}
             className="hidden md:inline-block text-xs font-bold text-[#8FA4BD] hover:text-[#48D5F5] transition-colors cursor-pointer"
@@ -379,12 +407,15 @@ export default function LandingPage() {
           >
             Governance
           </button>
+
+          {/* Theme Toggle Button (Sun / Moon) */}
           <button
-            onClick={() => scrollToSection("signin")}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#269CF0] to-[#1E82CB] hover:from-[#35A5F5] hover:to-[#269CF0] text-white text-xs font-black shadow-lg shadow-[#269CF0]/25 transition-all hover:scale-105 cursor-pointer"
+            onClick={toggleTheme}
+            className="p-2.5 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#269CF0] text-[#E5A93C] hover:text-white transition-all cursor-pointer shadow-sm"
+            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            aria-label="Toggle Theme"
           >
-            <LogIn className="w-3.5 h-3.5" />
-            Sign In to Portal
+            {isDark ? <Sun className="w-4 h-4 text-[#E5A93C]" /> : <Moon className="w-4 h-4 text-[#48D5F5]" />}
           </button>
         </div>
       </header>
@@ -427,46 +458,6 @@ export default function LandingPage() {
                 <Crown className="w-4 h-4" />
                 Branch Governance
               </button>
-            </div>
-
-            {/* Quick Stats / Highlights Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-[#1E3A5F]/50">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#269CF0]/10 border border-[#269CF0]/30 flex items-center justify-center text-[#269CF0]">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-black text-white">9 Tracks</div>
-                  <div className="text-[10px] text-[#8FA4BD]">Hands-on Labs</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                  <Award className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-black text-white">Live Ranks</div>
-                  <div className="text-[10px] text-[#8FA4BD]">Leaderboard</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-black text-white">QR Check-in</div>
-                  <div className="text-[10px] text-[#8FA4BD]">Attendance</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-black text-white">Certificates</div>
-                  <div className="text-[10px] text-[#8FA4BD]">Verified Skills</div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -632,12 +623,16 @@ export default function LandingPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {tracksLoaded && dynamicTracks.length === 0 ? (
+          {!tracksLoaded ? (
+            [1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-56 bg-[#0D1D32] rounded-3xl animate-pulse border border-[#1E3A5F]/60" />
+            ))
+          ) : dynamicTracks.length === 0 ? (
             <div className="col-span-full py-12 text-center text-[#8FA4BD] bg-[#0D1D32] border border-[#1E3A5F] rounded-2xl">
               No active training tracks currently available.
             </div>
           ) : (
-            (tracksLoaded ? dynamicTracks : tracks).map((trk: any, index: number) => {
+            dynamicTracks.map((trk: any, index: number) => {
             const theme = getTrackGradientTheme(index);
             const meta = getTrackMeta(trk.name);
             const Icon = trk.icon || meta.icon;
@@ -717,18 +712,18 @@ export default function LandingPage() {
           </span>
         </div>
 
-        {/* Executive Board Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Executive Board Cards - Centered, Balanced & Luxury */}
+        <div className="flex flex-wrap justify-center gap-6">
           {activeLeaders.map((leader, index) => {
             const LeaderIcon = getLeaderIcon(leader.roleTitle, index);
             return (
               <div
                 key={leader.id || index}
-                className="bg-[#0D1D32] rounded-3xl p-6 border border-[#1E3A5F] hover:border-[#E5A93C]/50 transition-all group flex flex-col justify-between hover:-translate-y-1 shadow-xl"
+                className="w-full sm:w-[280px] lg:w-[290px] bg-gradient-to-b from-[#0D1D32] to-[#091524] rounded-3xl p-6 border border-[#1E3A5F] hover:border-[#E5A93C]/70 transition-all duration-300 group flex flex-col justify-between hover:-translate-y-1.5 shadow-xl hover:shadow-[#E5A93C]/10"
               >
                 <div>
-                  <div className="w-12 h-12 rounded-2xl bg-[#07172A] border border-[#1E3A5F] group-hover:border-[#E5A93C]/50 flex items-center justify-center text-[#E5A93C] mb-4 transition-colors">
-                    <LeaderIcon className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-2xl bg-[#07172A] border border-[#1E3A5F] group-hover:border-[#E5A93C]/50 flex items-center justify-center text-[#E5A93C] mb-4 transition-colors shadow-inner">
+                    <LeaderIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
                   </div>
                   <h3 className="text-base font-black text-[#F5F7FB] mb-1 group-hover:text-[#E5A93C] transition-colors">
                     {leader.name}
@@ -744,9 +739,9 @@ export default function LandingPage() {
                 </div>
 
                 <div className="pt-4 mt-4 border-t border-[#1E3A5F]/70 flex items-center justify-between text-[10px] text-[#8FA4BD]">
-                  <span className="font-mono uppercase">EELU ASWAN</span>
-                  <span className="text-emerald-400 font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span className="font-mono uppercase font-bold text-[#8FA4BD]/80">EELU ASWAN</span>
+                  <span className="text-emerald-400 font-bold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     Active
                   </span>
                 </div>
