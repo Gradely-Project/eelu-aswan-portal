@@ -396,11 +396,9 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <div className="font-black text-base sm:text-lg tracking-tight leading-none flex items-center gap-1.5">
-                <span className={isDark ? "text-[#F5F7FB]" : "text-slate-900"}>EELU</span>
-                <AswanBrand size="md" />
-                <span className={isDark ? "text-[#F5F7FB]" : "text-slate-900"}>Student Branch</span>
-              </div>
+              <span className={`font-black text-base sm:text-lg tracking-tight leading-none ${isDark ? "text-[#F5F7FB]" : "text-slate-900"}`}>
+                EELU Aswan Student Branch
+              </span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Live
@@ -412,8 +410,8 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Clean Nav Links & Actions (Theme Toggle, Navigation) */}
-        <div className="flex items-center gap-3 sm:gap-5">
+        {/* Clean Nav Links & Actions (Tracks, Governance & AswaN Sun Theme Switcher) */}
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => scrollToSection("tracks-section")}
             className={`hidden md:inline-block text-xs font-bold transition-colors cursor-pointer ${isDark ? "text-[#8FA4BD] hover:text-[#48D5F5]" : "text-slate-600 hover:text-blue-600"}`}
@@ -427,19 +425,8 @@ export default function LandingPage() {
             Governance
           </button>
 
-          {/* Theme Toggle Button (Sun / Moon) */}
-          <button
-            onClick={toggleTheme}
-            className={`p-2.5 rounded-xl border transition-all cursor-pointer shadow-sm ${
-              isDark
-                ? "bg-[#0D1D32] border-[#1E3A5F] hover:border-[#269CF0] text-[#E5A93C] hover:text-white"
-                : "bg-slate-100 border-slate-300 hover:border-amber-500 text-amber-600 hover:bg-slate-200"
-            }`}
-            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            aria-label="Toggle Theme"
-          >
-            {isDark ? <Sun className="w-4 h-4 text-[#E5A93C]" /> : <Moon className="w-4 h-4 text-blue-600" />}
-          </button>
+          {/* AswaN Brand Emblem with Sun Crowns & Day/Night Switcher */}
+          <AswanBrand size="md" isDark={isDark} onToggleTheme={toggleTheme} />
         </div>
       </header>
 

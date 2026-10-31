@@ -295,11 +295,9 @@ export default function TopNav({
               />
             </div>
             <div className="flex flex-col">
-              <div className="font-black text-xs sm:text-sm text-[#F5F7FB] tracking-tight group-hover:text-[#269CF0] transition-colors leading-none flex items-center gap-1.5">
-                <span>EELU</span>
-                <AswanBrand size="sm" />
-                <span>Student Branch</span>
-              </div>
+              <span className="font-black text-xs sm:text-sm text-[#F5F7FB] tracking-tight group-hover:text-[#269CF0] transition-colors leading-none">
+                EELU Aswan Student Branch
+              </span>
               <span className="text-[9px] sm:text-[10px] font-bold text-[#E5A93C] tracking-wider uppercase mt-1">
                 STUDENT ACADEMY PORTAL
               </span>
@@ -384,14 +382,8 @@ export default function TopNav({
             <span className="hidden sm:inline">Sync</span>
           </button>
 
-          {/* Real Working Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-[#E5A93C] transition-colors cursor-pointer"
-            title={isDark ? "Toggle Light Theme" : "Toggle Dark Navy Theme"}
-          >
-            {isDark ? <Sun className="w-4 h-4 text-[#E5A93C]" /> : <Moon className="w-4 h-4 text-[#48D5F5]" />}
-          </button>
+          {/* AswaN Brand Emblem with Sun Crowns & Day/Night Switcher */}
+          <AswanBrand size="sm" isDark={isDark} onToggleTheme={toggleTheme} />
 
           {/* Notifications Bell with Popover */}
           <div className="relative">
