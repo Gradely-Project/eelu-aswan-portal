@@ -50,14 +50,72 @@ body {
 
 /* Light Mode Global Stylesheet */
 html.light-mode {
-  filter: invert(0.92) hue-rotate(180deg);
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --surface-elevated: #ffffff;
+  --surface-card: #ffffff;
+  --surface-hover: #f1f5f9;
+  --primary-blue: #269cf0;
+  --cyan-accent: #0284c7;
+  --gold-accent: #d97706;
+  --border-subtle: #e2e8f0;
+  --text-muted: #475569;
+  color-scheme: light;
 }
 
-html.light-mode img,
-html.light-mode video,
-html.light-mode canvas,
-html.light-mode .no-theme-invert {
-  filter: invert(1) hue-rotate(180deg);
+html.light-mode body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Global Light Mode token mapping for dashboard & pages */
+html.light-mode .bg-\[\#07172A\],
+html.light-mode .bg-\[\#061220\],
+html.light-mode .bg-\[\#0A1628\],
+html.light-mode main.bg-\[\#07172A\] {
+  background-color: #f8fafc !important;
+}
+
+html.light-mode .bg-\[\#0D1D32\],
+html.light-mode .bg-\[\#0B1A2D\],
+html.light-mode .bg-\[\#10243C\],
+html.light-mode .bg-\[\#112540\],
+html.light-mode .bg-\[\#0E2038\] {
+  background-color: #ffffff !important;
+}
+
+html.light-mode .bg-\[\#0D1D32\]\/90,
+html.light-mode .bg-\[\#0D1D32\]\/80,
+html.light-mode .bg-\[\#07172A\]\/90,
+html.light-mode .bg-\[\#07172A\]\/80,
+html.light-mode .bg-\[\#0B1A2D\]\/80 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+html.light-mode .border-\[\#1E3A5F\],
+html.light-mode .border-\[\#1A3555\],
+html.light-mode .border-\[\#152D4A\],
+html.light-mode .border-\[\#2A4D7A\] {
+  border-color: #e2e8f0 !important;
+}
+
+html.light-mode .text-\[\#F5F7FB\],
+html.light-mode .text-\[\#F1F5F9\],
+html.light-mode .text-\[\#E2E8F0\] {
+  color: #0f172a !important;
+}
+
+html.light-mode .text-\[\#8FA4BD\],
+html.light-mode .text-\[\#94A3B8\],
+html.light-mode .text-\[\#64748B\] {
+  color: #475569 !important;
+}
+
+html.light-mode ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+html.light-mode ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
 }
 
 /* Print Stylesheet for Reports and Certificates */

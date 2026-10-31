@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import AswanBrand from "@/components/AswanBrand";
 import {
   Search,
   RefreshCw,
@@ -96,7 +97,12 @@ export default function TopNav({
       const savedTheme = localStorage.getItem("theme");
       if (savedTheme === "light") {
         document.documentElement.classList.add("light-mode");
+        document.documentElement.classList.remove("dark");
         setIsDark(false);
+      } else {
+        document.documentElement.classList.remove("light-mode");
+        document.documentElement.classList.add("dark");
+        setIsDark(true);
       }
     }
 
@@ -166,11 +172,13 @@ export default function TopNav({
   const toggleTheme = () => {
     if (isDark) {
       document.documentElement.classList.add("light-mode");
+      document.documentElement.classList.remove("dark");
       if (typeof window !== "undefined") localStorage.setItem("theme", "light");
       setIsDark(false);
       setToastMsg("Switched to Light Theme");
     } else {
       document.documentElement.classList.remove("light-mode");
+      document.documentElement.classList.add("dark");
       if (typeof window !== "undefined") localStorage.setItem("theme", "dark");
       setIsDark(true);
       setToastMsg("Switched to Dark Navy Theme");
@@ -287,9 +295,11 @@ export default function TopNav({
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-xs sm:text-sm text-[#F5F7FB] tracking-tight group-hover:text-[#269CF0] transition-colors leading-none">
-                EELU Aswan Student Branch
-              </span>
+              <div className="font-black text-xs sm:text-sm text-[#F5F7FB] tracking-tight group-hover:text-[#269CF0] transition-colors leading-none flex items-center gap-1.5">
+                <span>EELU</span>
+                <AswanBrand size="sm" />
+                <span>Student Branch</span>
+              </div>
               <span className="text-[9px] sm:text-[10px] font-bold text-[#E5A93C] tracking-wider uppercase mt-1">
                 STUDENT ACADEMY PORTAL
               </span>
