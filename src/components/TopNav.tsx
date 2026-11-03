@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import AswanBrand from "@/components/AswanBrand";
 import {
   Search,
   RefreshCw,
@@ -383,15 +384,8 @@ export default function TopNav({
             <span className="hidden sm:inline">Sync</span>
           </button>
 
-          {/* Real Working Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-[#E5A93C] hover:border-[#269CF0] transition-colors cursor-pointer flex items-center justify-center h-9 w-9 flex-shrink-0"
-            title={isDark ? "Switch to Light Theme" : "Switch to Dark Navy Theme"}
-            aria-label="Toggle Theme"
-          >
-            {isDark ? <Sun className="w-4 h-4 text-[#E5A93C]" /> : <Moon className="w-4 h-4 text-[#48D5F5]" />}
-          </button>
+          {/* AswaN Signature Brand & Working Theme Toggle Pill */}
+          <AswanBrand isDark={isDark} onToggleTheme={toggleTheme} />
 
           {/* Notifications Bell with Popover */}
           <div className="relative">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import AswanBrand from "@/components/AswanBrand";
 import {
   LogIn,
   AlertCircle,
@@ -408,15 +409,8 @@ export default function LandingPage() {
             Governance
           </button>
 
-          {/* Theme Toggle Button (Sun / Moon) */}
-          <button
-            onClick={toggleTheme}
-            className="p-2.5 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#269CF0] text-[#E5A93C] hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center flex-shrink-0"
-            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            aria-label="Toggle Theme"
-          >
-            {isDark ? <Sun className="w-4 h-4 text-[#E5A93C]" /> : <Moon className="w-4 h-4 text-[#48D5F5]" />}
-          </button>
+          {/* AswaN Signature Brand & Working Theme Toggle Pill */}
+          <AswanBrand isDark={isDark} onToggleTheme={toggleTheme} />
         </div>
       </header>
 
