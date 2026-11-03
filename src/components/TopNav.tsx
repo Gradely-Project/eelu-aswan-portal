@@ -295,11 +295,13 @@ export default function TopNav({
               />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-black text-xs sm:text-sm text-[#F5F7FB] tracking-tight group-hover:text-[#269CF0] transition-colors leading-none truncate max-w-[140px] sm:max-w-none">
-                EELU Aswan Student Branch
+              <span className="font-black text-xs sm:text-sm text-[#F5F7FB] tracking-tight group-hover:text-[#269CF0] transition-colors leading-none truncate">
+                <span className="sm:hidden">EELU Aswan</span>
+                <span className="hidden sm:inline">EELU Aswan Student Branch</span>
               </span>
               <span className="text-[9px] sm:text-[10px] font-bold text-[#E5A93C] tracking-wider uppercase mt-1 truncate">
-                STUDENT ACADEMY PORTAL
+                <span className="sm:hidden">PORTAL</span>
+                <span className="hidden sm:inline">STUDENT ACADEMY PORTAL</span>
               </span>
             </div>
           </Link>

@@ -307,29 +307,29 @@ export default function DashboardPage() {
   const isInstructor = user?.role === "INSTRUCTOR";
 
   return (
-    <div className="min-h-screen bg-[#07172A] text-[#F5F7FB] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#07172A] text-[#F5F7FB] flex flex-col font-sans overflow-x-hidden">
       <TopNav selectedTrackId={selectedTrackId} onTrackChange={(id) => setSelectedTrackId(id)} />
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-w-0">
         <Sidebar userRole={user?.role} />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto w-full min-w-0 overflow-x-hidden">
           {/* Top Operational Alert / Mobile App Banner (Matching Reference 2) */}
-          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#269CF0]/20 text-[#269CF0] border border-[#269CF0]/30 flex items-center justify-center font-bold">
+          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 shadow-sm min-w-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#269CF0]/20 text-[#269CF0] border border-[#269CF0]/30 flex items-center justify-center font-bold flex-shrink-0">
                 📱
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-[#F5F7FB]">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-black text-[#F5F7FB] truncate">
                     EELU Aswan Branch Operational Portal
                   </span>
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30 uppercase">
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30 uppercase flex-shrink-0">
                     Live System
                   </span>
                 </div>
-                <p className="text-[11px] text-[#8FA4BD] font-medium mt-0.5">
+                <p className="text-[11px] text-[#8FA4BD] font-medium mt-0.5 line-clamp-2 sm:line-clamp-none">
                   Track governance, live classroom check-in, assignment grading, and academic audits.
                 </p>
               </div>
@@ -337,12 +337,12 @@ export default function DashboardPage() {
           </div>
 
           {/* Academy Operations & Live Pulse Banner (Matching Reference 2) */}
-          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 shadow-md">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-md min-w-0">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 sm:mb-6">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-[#E5A93C]">⚡</span>
-                  <h2 className="text-lg font-black text-[#F5F7FB]">
+                  <h2 className="text-base sm:text-lg font-black text-[#F5F7FB]">
                     Academy Operations & Live Pulse
                   </h2>
                 </div>
@@ -352,10 +352,10 @@ export default function DashboardPage() {
               </div>
 
               {/* Action Shortcuts (Focused & Clean) */}
-              <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
                 <Link
                   href="/attendance"
-                  className="px-4 py-2 rounded-xl bg-[#07172A] hover:bg-[#10243C] border border-[#1E3A5F] hover:border-[#10B981] text-[#10B981] font-black text-xs transition-all flex items-center gap-1.5"
+                  className="flex-1 sm:flex-none justify-center px-3.5 sm:px-4 py-2 rounded-xl bg-[#07172A] hover:bg-[#10243C] border border-[#1E3A5F] hover:border-[#10B981] text-[#10B981] font-black text-xs transition-all flex items-center gap-1.5 shadow-sm"
                 >
                   <Users className="w-3.5 h-3.5" />
                   Take Attendance
@@ -364,7 +364,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setShowBroadcastModal(true)}
-                  className="px-4 py-2 rounded-xl bg-[#07172A] hover:bg-[#10243C] border border-[#1E3A5F] hover:border-[#48D5F5] text-[#48D5F5] font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  className="flex-1 sm:flex-none justify-center px-3.5 sm:px-4 py-2 rounded-xl bg-[#07172A] hover:bg-[#10243C] border border-[#1E3A5F] hover:border-[#48D5F5] text-[#48D5F5] font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
                   <Megaphone className="w-3.5 h-3.5" />
                   Broadcast Notice
@@ -373,62 +373,62 @@ export default function DashboardPage() {
             </div>
 
             {/* 4 Primary Metric Cards (Matching Reference 2 exact numbers & icons) */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
               {/* Card 1: Enrolled Students */}
-              <div className="bg-[#10243C] border border-[#1E3A5F] rounded-2xl p-4 flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-xl bg-[#269CF0]/10 border border-[#269CF0]/20 flex items-center justify-center text-[#269CF0]">
-                  <Users className="w-5 h-5" />
+              <div className="bg-[#10243C] border border-[#1E3A5F] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-[#269CF0]/10 border border-[#269CF0]/20 flex items-center justify-center text-[#269CF0] flex-shrink-0">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <span className="text-2xl font-black text-[#F5F7FB] block leading-none">
+                <div className="min-w-0">
+                  <span className="text-xl sm:text-2xl font-black text-[#F5F7FB] block leading-none">
                     {stats.approvedCount}
                   </span>
-                  <span className="text-[11px] font-bold text-[#8FA4BD] mt-1 block">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-[#8FA4BD] mt-1 block truncate">
                     Enrolled Students
                   </span>
                 </div>
               </div>
 
               {/* Card 2: Pending Admissions */}
-              <div className="bg-[#10243C] border border-[#1E3A5F] rounded-2xl p-4 flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-xl bg-[#E5A93C]/10 border border-[#E5A93C]/20 flex items-center justify-center text-[#E5A93C]">
-                  <Clock className="w-5 h-5" />
+              <div className="bg-[#10243C] border border-[#1E3A5F] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-[#E5A93C]/10 border border-[#E5A93C]/20 flex items-center justify-center text-[#E5A93C] flex-shrink-0">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <span className="text-2xl font-black text-[#E5A93C] block leading-none">
+                <div className="min-w-0">
+                  <span className="text-xl sm:text-2xl font-black text-[#E5A93C] block leading-none">
                     {stats.pendingCount}
                   </span>
-                  <span className="text-[11px] font-bold text-[#8FA4BD] mt-1 block">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-[#8FA4BD] mt-1 block truncate">
                     Pending Admissions
                   </span>
                 </div>
               </div>
 
               {/* Card 3: Task Submissions */}
-              <div className="bg-[#10243C] border border-[#1E3A5F] rounded-2xl p-4 flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                  <FileCheck2 className="w-5 h-5" />
+              <div className="bg-[#10243C] border border-[#1E3A5F] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                  <FileCheck2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <span className="text-2xl font-black text-[#F5F7FB] block leading-none">
+                <div className="min-w-0">
+                  <span className="text-xl sm:text-2xl font-black text-[#F5F7FB] block leading-none">
                     {totalSubmissionsCount}
                   </span>
-                  <span className="text-[11px] font-bold text-[#8FA4BD] mt-1 block">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-[#8FA4BD] mt-1 block truncate">
                     Task Submissions
                   </span>
                 </div>
               </div>
 
               {/* Card 4: Active Sessions */}
-              <div className="bg-[#10243C] border border-[#1E3A5F] rounded-2xl p-4 flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-                  <Calendar className="w-5 h-5" />
+              <div className="bg-[#10243C] border border-[#1E3A5F] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 flex-shrink-0">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <span className="text-2xl font-black text-[#F5F7FB] block leading-none">
+                <div className="min-w-0">
+                  <span className="text-xl sm:text-2xl font-black text-[#F5F7FB] block leading-none">
                     {activeSessionsCount}
                   </span>
-                  <span className="text-[11px] font-bold text-[#8FA4BD] mt-1 block">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-[#8FA4BD] mt-1 block truncate">
                     Active Sessions
                   </span>
                 </div>
@@ -445,7 +445,7 @@ export default function DashboardPage() {
           )}
 
           {/* Bootcamp Control Panel & Admissions (Matching Reference 2 Lower Section) */}
-          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 shadow-md">
+          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-md min-w-0">
             {/* Header with Export CTA */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
