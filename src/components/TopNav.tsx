@@ -294,11 +294,11 @@ export default function TopNav({
                 priority
               />
             </div>
-            <div className="flex flex-col">
-              <span className="font-black text-xs sm:text-sm text-[#F5F7FB] tracking-tight group-hover:text-[#269CF0] transition-colors leading-none">
+            <div className="flex flex-col min-w-0">
+              <span className="font-black text-xs sm:text-sm text-[#F5F7FB] tracking-tight group-hover:text-[#269CF0] transition-colors leading-none truncate max-w-[140px] sm:max-w-none">
                 EELU Aswan Student Branch
               </span>
-              <span className="text-[9px] sm:text-[10px] font-bold text-[#E5A93C] tracking-wider uppercase mt-1">
+              <span className="text-[9px] sm:text-[10px] font-bold text-[#E5A93C] tracking-wider uppercase mt-1 truncate">
                 STUDENT ACADEMY PORTAL
               </span>
             </div>
@@ -375,7 +375,7 @@ export default function TopNav({
           {/* Sync Button */}
           <button
             onClick={handleSync}
-            className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-[#F5F7FB] hover:border-[#269CF0] text-xs font-bold transition-all cursor-pointer"
+            className="hidden sm:flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-[#F5F7FB] hover:border-[#269CF0] text-xs font-bold transition-all cursor-pointer h-9 flex-shrink-0"
             title="Synchronize state with database"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-[#269CF0] ${syncing ? "animate-spin" : ""}`} />

@@ -60,7 +60,12 @@ export default function CertificatesPage() {
   const [certificates, setCertificates] = useState<CertificateItem[]>([]);
   const [students, setStudents] = useState<StudentOption[]>([]);
   const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
-  const [userRole, setUserRole] = useState("STUDENT");
+  const [userRole, setUserRole] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("eelu_user_role") || "STUDENT";
+    }
+    return "STUDENT";
+  });
   const [loading, setLoading] = useState(true);
   const [filterTrackId, setFilterTrackId] = useState<string>("ALL");
 

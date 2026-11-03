@@ -50,11 +50,11 @@ export default function Sidebar({
   const [internalMobileOpen, setInternalMobileOpen] = useState(false);
 
   const [effectiveRole, setEffectiveRole] = useState<string>(() => {
-    if (userRole) return userRole;
     if (typeof window !== "undefined") {
-      return localStorage.getItem("eelu_user_role") || "";
+      const cached = localStorage.getItem("eelu_user_role");
+      if (cached) return cached;
     }
-    return "";
+    return userRole || "STUDENT";
   });
 
   // Dynamic Supervisor Card State (Cached in localStorage to eliminate flicker)

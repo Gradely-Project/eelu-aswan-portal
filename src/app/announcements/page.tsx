@@ -30,7 +30,12 @@ interface Announcement {
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
-  const [userRole, setUserRole] = useState("STUDENT");
+  const [userRole, setUserRole] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("eelu_user_role") || "STUDENT";
+    }
+    return "STUDENT";
+  });
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
 
