@@ -469,6 +469,7 @@ export default function DashboardPage() {
                   {isInstructor ? `Track Students (${stats.totalCount})` : `Admission Applications (${stats.totalCount})`}
                 </span>
               </div>
+            </div>
 
             {/* Table Filter Pills */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
@@ -665,8 +666,7 @@ export default function DashboardPage() {
               </table>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
       </div>
 
       {/* Detailed Student Activity Audit Modal (User requirement: "يظهر الطالب سلم ايه وغاب أمتي ومغابش أمتي وهكذا") */}
