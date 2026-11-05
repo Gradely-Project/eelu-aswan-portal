@@ -37,6 +37,18 @@ export async function POST(req: Request) {
       );
     }
 
+    let graderRoleTitle = "Main Admin";
+    if (user.role === "CHAIR_PERSON") {
+      graderRoleTitle = "Branch Chairperson";
+    } else if (user.role === "VICE_CHAIR") {
+      graderRoleTitle = "Vice Chairperson";
+    } else if (user.role === "INSTRUCTOR") {
+      if (user.trackTeamRole === "HEAD") graderRoleTitle = "Track Head";
+      else if (user.trackTeamRole === "VICE_HEAD") graderRoleTitle = "Vice Head";
+      else if (user.trackTeamRole === "CORE_TEAM") graderRoleTitle = "Core Team";
+      else graderRoleTitle = "Instructor";
+    }
+
     const updated = await prisma.taskSubmission.update({
       where: { id: submissionId },
       data: {
@@ -44,6 +56,7 @@ export async function POST(req: Request) {
         feedback: feedback ? feedback.trim() : null,
         gradedAt: new Date(),
         gradedBy: user.name,
+        gradedByRole: graderRoleTitle,
       },
     });
 

@@ -67,12 +67,20 @@ export default function WeightedLeaderboardPage() {
   const [bonusSuccess, setBonusSuccess] = useState<string | null>(null);
   const [bonusError, setBonusError] = useState<string | null>(null);
 
-  // Admin Manual Adjustment Modal
+  // Bonus / Minus Adjustment Modal (Head, Core Team, Chair, Admin)
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [adjustStudent, setAdjustStudent] = useState<RankedStudent | null>(null);
-  const [adjustPoints, setAdjustPoints] = useState<number>(0);
-  const [adjustReason, setAdjustReason] = useState<string>("Manual Admin Override");
+  const [adjustMode, setAdjustMode] = useState<"BONUS" | "MINUS">("BONUS");
+  const [adjustPoints, setAdjustPoints] = useState<number>(5);
+  const [adjustReason, setAdjustReason] = useState<string>("");
+  const [adjustError, setAdjustError] = useState<string | null>(null);
   const [submittingAdjust, setSubmittingAdjust] = useState(false);
+
+  const canManageBonus =
+    user?.role === "ADMIN" ||
+    user?.role === "CHAIR_PERSON" ||
+    user?.role === "VICE_CHAIR" ||
+    (user?.role === "INSTRUCTOR" && (!user?.assignedTrackId || user?.assignedTrackId === selectedTrackId));
 
   // Track Caching & Hall of Fame
   const [trackCache, setTrackCache] = useState<Record<string, { leaderboard: RankedStudent[]; stats: any }>>({});
@@ -255,6 +263,10 @@ export default function WeightedLeaderboardPage() {
     e.preventDefault();
     if (!selectedTrackId || !adjustStudent) return;
     setSubmittingAdjust(true);
+    setAdjustError(null);
+
+    const numericPoints = Math.abs(adjustPoints || 0);
+    const finalPoints = adjustMode === "BONUS" ? numericPoints : -numericPoints;
 
     try {
       const res = await fetch("/api/bonus", {
@@ -263,8 +275,8 @@ export default function WeightedLeaderboardPage() {
         body: JSON.stringify({
           trackId: selectedTrackId,
           studentId: adjustStudent.id,
-          points: adjustPoints,
-          reason: adjustReason.trim() || "Manual Admin Adjustment",
+          points: finalPoints,
+          reason: adjustReason.trim() || (adjustMode === "BONUS" ? "بونص تفوق إداري" : "خصم درجات إداري"),
         }),
       });
 
@@ -273,12 +285,11 @@ export default function WeightedLeaderboardPage() {
         setShowAdjustModal(false);
         setAdjustStudent(null);
         await fetchLeaderboard(selectedTrackId);
-        alert(data.message || "Leaderboard score successfully adjusted.");
       } else {
-        alert(data.error || "Failed to adjust score.");
+        setAdjustError(data.error || "Failed to adjust score.");
       }
     } catch {
-      alert("Network error.");
+      setAdjustError("Network error. Please try again.");
     } finally {
       setSubmittingAdjust(false);
     }
@@ -584,21 +595,21 @@ export default function WeightedLeaderboardPage() {
                     <th className="py-3 px-4 text-center">Tasks Pts</th>
                     <th className="py-3 px-4 text-center">Bonus Pts</th>
                     <th className="py-3 px-4 text-center">Total Score</th>
-                    {user?.role === "ADMIN" && (
-                      <th className="py-3 px-4 text-center">Admin Controls</th>
+                    {canManageBonus && (
+                      <th className="py-3 px-4 text-center">بونص / خصم (Bonus / Minus)</th>
                     )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1E3A5F]/60">
                   {loading ? (
                     <tr>
-                      <td colSpan={user?.role === "ADMIN" ? 8 : 7} className="py-8 text-center text-[#8FA4BD]">
+                      <td colSpan={canManageBonus ? 8 : 7} className="py-8 text-center text-[#8FA4BD]">
                         Calculating track leaderboard...
                       </td>
                     </tr>
                   ) : leaderboard.length === 0 ? (
                     <tr>
-                      <td colSpan={user?.role === "ADMIN" ? 8 : 7} className="py-8 text-center text-[#8FA4BD]">
+                      <td colSpan={canManageBonus ? 8 : 7} className="py-8 text-center text-[#8FA4BD]">
                         No graded records available for this track yet.
                       </td>
                     </tr>
@@ -668,20 +679,24 @@ export default function WeightedLeaderboardPage() {
                             {st.totalScore}
                           </span>
                         </td>
-                        {user?.role === "ADMIN" && (
+                        {canManageBonus && (
                           <td className="py-3 px-4 text-center">
                             <button
                               onClick={() => {
                                 setAdjustStudent(st);
-                                setAdjustPoints(0);
-                                setAdjustReason("تعديل يدوي - الإدارة المركزية");
+                                setAdjustMode("BONUS");
+                                setAdjustPoints(5);
+                                setAdjustReason("");
+                                setAdjustError(null);
                                 setShowAdjustModal(true);
                               }}
-                              className="px-2.5 py-1 rounded-lg bg-[#E5A93C]/15 hover:bg-[#E5A93C]/25 text-[#E5A93C] border border-[#E5A93C]/30 font-bold text-xs transition-colors inline-flex items-center gap-1 cursor-pointer"
-                              title="تعديل الدرجة يدويًا (الادمن فقط)"
+                              className="px-2.5 py-1.5 rounded-xl bg-[#07172A] hover:bg-[#1E3A5F] text-[#48D5F5] hover:text-white border border-[#269CF0]/40 font-bold text-xs transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm group"
+                              title="إضافة بونص أو خصم درجات للطالب"
                             >
-                              <Sliders className="w-3.5 h-3.5" />
-                              تعديل الدرجة
+                              <span className="font-mono font-black text-emerald-400 group-hover:scale-110 transition-transform">+</span>
+                              <span className="font-mono text-[#8FA4BD]">/</span>
+                              <span className="font-mono font-black text-rose-400 group-hover:scale-110 transition-transform">-</span>
+                              <span>بونص / خصم</span>
                             </button>
                           </td>
                         )}
@@ -775,63 +790,113 @@ export default function WeightedLeaderboardPage() {
             </div>
           )}
 
-          {/* Modal: Admin Manual Score Override (ADMIN ONLY) */}
-          {showAdjustModal && adjustStudent && user?.role === "ADMIN" && (
-            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="bg-[#0D1D32] border border-[#E5A93C]/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+          {/* Modal: Bonus / Minus Score Adjustment (Head, Core Team, Chair, Admin) */}
+          {showAdjustModal && adjustStudent && canManageBonus && (
+            <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-[#0D1D32] border border-[#269CF0]/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="p-2 rounded-xl bg-[#E5A93C]/20 text-[#E5A93C]">
+                  <span className="p-2 rounded-xl bg-[#269CF0]/20 text-[#48D5F5]">
                     <Sliders className="w-5 h-5" />
                   </span>
                   <div>
-                    <h3 className="text-xl font-black text-[#F5F7FB]">Manual Score Override</h3>
-                    <p className="text-[11px] text-[#E5A93C] font-bold">صلاحية حصرية للأدمن الرئيسي فقط</p>
+                    <h3 className="text-xl font-black text-[#F5F7FB]">
+                      {adjustMode === "BONUS" ? "إضافة بونص تفوق (+)" : "تطبيق خصم درجات (-)"}
+                    </h3>
+                    <p className="text-[11px] text-[#8FA4BD] font-bold">صلاحية معتمدة لإدارة التراك والمشرف الأكاديمي</p>
                   </div>
                 </div>
 
-                <div className="my-4 p-3.5 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-xs space-y-1">
+                {/* Mode Switcher */}
+                <div className="grid grid-cols-2 gap-2 my-4 bg-[#07172A] p-1.5 rounded-2xl border border-[#1E3A5F]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAdjustMode("BONUS");
+                      if (adjustPoints < 0) setAdjustPoints(Math.abs(adjustPoints));
+                    }}
+                    className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      adjustMode === "BONUS"
+                        ? "bg-emerald-600 text-white shadow-md"
+                        : "text-[#8FA4BD] hover:text-white"
+                    }`}
+                  >
+                    <span className="text-sm font-black">+</span>
+                    <span>إضافة بونص (Bonus)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAdjustMode("MINUS");
+                      if (adjustPoints < 0) setAdjustPoints(Math.abs(adjustPoints));
+                    }}
+                    className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      adjustMode === "MINUS"
+                        ? "bg-rose-600 text-white shadow-md"
+                        : "text-[#8FA4BD] hover:text-white"
+                    }`}
+                  >
+                    <span className="text-sm font-black">-</span>
+                    <span>خصم درجات (Minus)</span>
+                  </button>
+                </div>
+
+                <div className="my-3 p-3.5 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-xs space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-[#8FA4BD]">الطالب:</span>
+                    <span className="text-[#8FA4BD]">الطالب المستهدف:</span>
                     <span className="font-bold text-white">{adjustStudent.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#8FA4BD]">المجموع الحالي:</span>
                     <span className="font-mono font-bold text-[#48D5F5]">{adjustStudent.totalScore} pts</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8FA4BD]">النتيجة المتوقعة بعد الإجراء:</span>
+                    <span className="font-mono font-black text-white">
+                      {Math.round(
+                        (adjustStudent.totalScore + (adjustMode === "BONUS" ? Math.abs(adjustPoints || 0) : -Math.abs(adjustPoints || 0))) * 10
+                      ) / 10}{" "}
+                      pts
+                    </span>
+                  </div>
                 </div>
+
+                {adjustError && (
+                  <div className="mb-3 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
+                    {adjustError}
+                  </div>
+                )}
 
                 <form onSubmit={handleAdminAdjust} className="space-y-4 text-xs">
                   <div>
                     <label className="block font-bold text-[#8FA4BD] mb-1">
-                      درجة التعديل (+ للزيادة أو - للخصم) *
+                      {adjustMode === "BONUS" ? "عدد نقاط البونص المراد إضافتها *" : "عدد درجات الخصم المراد تطبيقها *"}
                     </label>
                     <input
                       type="number"
+                      min={1}
+                      max={100}
                       step="any"
                       required
                       value={adjustPoints}
-                      onChange={(e) => setAdjustPoints(parseFloat(e.target.value) || 0)}
-                      placeholder="e.g. 15 or -10"
-                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C] font-mono text-center text-base font-black"
+                      onChange={(e) => setAdjustPoints(Math.abs(parseFloat(e.target.value) || 0))}
+                      placeholder={adjustMode === "BONUS" ? "e.g. 5 or 10" : "e.g. 5 or 10"}
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0] font-mono text-center text-base font-black"
                     />
-                    <p className="text-[11px] text-[#8FA4BD] mt-1">
-                      النتيجة الجديدة المتوقعة:{" "}
-                      <strong className="text-emerald-400">
-                        {Math.round((adjustStudent.totalScore + adjustPoints) * 10) / 10}
-                      </strong>{" "}
-                      نقطة
-                    </p>
                   </div>
 
                   <div>
-                    <label className="block font-bold text-[#8FA4BD] mb-1">سبب التعديل أو القرار الإداري *</label>
+                    <label className="block font-bold text-[#8FA4BD] mb-1">سبب التعديل أو الملاحظة *</label>
                     <input
                       type="text"
                       required
                       value={adjustReason}
                       onChange={(e) => setAdjustReason(e.target.value)}
-                      placeholder="e.g. قرار إداري / مراجعة أكاديمية / تميز خاص"
-                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C]"
+                      placeholder={
+                        adjustMode === "BONUS"
+                          ? "مثال: تميز استثنائي في حل التكليف / إجابة مميزة في السيشن"
+                          : "مثال: تأخر عن موعد الحضور / مخالفة تعليمات السيشن"
+                      }
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
                     />
                   </div>
 
@@ -849,9 +914,17 @@ export default function WeightedLeaderboardPage() {
                     <button
                       type="submit"
                       disabled={submittingAdjust}
-                      className="px-5 py-2.5 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black cursor-pointer shadow-lg disabled:opacity-50"
+                      className={`px-5 py-2.5 rounded-xl font-black text-white shadow-md transition-all cursor-pointer ${
+                        adjustMode === "BONUS"
+                          ? "bg-emerald-600 hover:bg-emerald-700"
+                          : "bg-rose-600 hover:bg-rose-700"
+                      }`}
                     >
-                      {submittingAdjust ? "جاري الحفظ..." : "حفظ وتعديل الترتيب فوراً"}
+                      {submittingAdjust
+                        ? "جاري الحفظ..."
+                        : adjustMode === "BONUS"
+                        ? "تأكيد إضافة البونص"
+                        : "تأكيد تطبيق الخصم"}
                     </button>
                   </div>
                 </form>

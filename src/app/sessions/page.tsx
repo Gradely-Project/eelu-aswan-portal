@@ -38,7 +38,7 @@ import {
 interface MaterialItem {
   title: string;
   url: string;
-  type?: "slides" | "video" | "code" | "dataset" | "other";
+  type?: "slides" | "video" | "code" | "dataset" | "folder" | "other";
 }
 
 interface InstructorMember {
@@ -114,7 +114,7 @@ export default function SessionsPage() {
   const [materialSourceMode, setMaterialSourceMode] = useState<"FILE" | "LINK">("FILE");
   const [newMaterialTitle, setNewMaterialTitle] = useState("");
   const [newMaterialUrl, setNewMaterialUrl] = useState("");
-  const [newMaterialType, setNewMaterialType] = useState<"slides" | "video" | "code" | "dataset" | "other">("slides");
+  const [newMaterialType, setNewMaterialType] = useState<"slides" | "video" | "code" | "dataset" | "folder" | "other">("slides");
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [uploadedFileSize, setUploadedFileSize] = useState<number | null>(null);
@@ -170,6 +170,7 @@ export default function SessionsPage() {
   const [feedbackText, setFeedbackText] = useState("");
   const [savingEval, setSavingEval] = useState(false);
   const [evalSuccess, setEvalSuccess] = useState<string | null>(null);
+  const [evalError, setEvalError] = useState<string | null>(null);
   const [existingEvaluations, setExistingEvaluations] = useState<Record<string, any>>({});
 
   // Admin Instructor Evaluations Audit Report
@@ -424,6 +425,7 @@ export default function SessionsPage() {
   const openEvaluationModal = (sess: Session) => {
     setEvalSession(sess);
     setEvalSuccess(null);
+    setEvalError(null);
     const instructors = sess.track?.instructors || [];
     const firstInst =
       instructors.length > 0
@@ -463,6 +465,7 @@ export default function SessionsPage() {
   const selectInstructorToRate = (instName: string, roleTitle: string) => {
     setSelectedInstructor({ name: instName, role: roleTitle });
     setEvalSuccess(null);
+    setEvalError(null);
     const existing = existingEvaluations[instName];
     if (existing) {
       setClarityRating(existing.clarityRating);
@@ -482,6 +485,7 @@ export default function SessionsPage() {
     if (!evalSession) return;
 
     setSavingEval(true);
+    setEvalError(null);
     try {
       const res = await fetch("/api/sessions/evaluate", {
         method: "POST",
@@ -508,10 +512,10 @@ export default function SessionsPage() {
           }));
         }
       } else {
-        alert(data.error || "Failed to submit evaluation.");
+        setEvalError(data.error || "Failed to submit evaluation.");
       }
     } catch {
-      alert("Network error.");
+      setEvalError("Network error. Please try again.");
     } finally {
       setSavingEval(false);
     }
@@ -538,12 +542,14 @@ export default function SessionsPage() {
     if (materialFilter === "VIDEO") return m.type === "video" || m.title.toLowerCase().includes("video") || m.title.toLowerCase().includes("recording");
     if (materialFilter === "CODE") return m.type === "code" || m.title.toLowerCase().includes("code") || m.title.toLowerCase().includes("github");
     if (materialFilter === "DATASET") return m.type === "dataset" || m.title.toLowerCase().includes("data");
+    if (materialFilter === "FOLDER") return m.type === "folder" || m.title.toLowerCase().includes("folder") || m.title.toLowerCase().includes("drive");
     return true;
   });
 
   const getMaterialIcon = (item: MaterialItem) => {
     const t = (item.type || "").toLowerCase();
     const title = item.title.toLowerCase();
+    if (t === "folder" || title.includes("folder") || title.includes("drive")) return FolderOpen;
     if (t === "video" || title.includes("recording") || title.includes("video")) return Video;
     if (t === "code" || title.includes("github") || title.includes("code")) return Code;
     if (t === "dataset" || title.includes("data")) return Database;
@@ -875,17 +881,30 @@ export default function SessionsPage() {
                             </button>
                           )}
 
-                          {currentMaterials.length > 0 && currentMaterials[0]?.url && (
-                            <a
-                              href={currentMaterials[0].url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#269CF0]/10 border border-[#269CF0]/30 hover:border-[#269CF0] text-[#48D5F5] hover:text-white text-xs font-bold transition-all"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                              <span>Open Drive Folder</span>
-                            </a>
-                          )}
+                          {(() => {
+                            const driveFolderMat = currentMaterials.find(
+                              (m) =>
+                                m.type?.toLowerCase() === "folder" ||
+                                m.url?.includes("/folders/") ||
+                                m.url?.includes("drive.google.com/drive/u/") ||
+                                (m.url?.includes("drive.google.com") && !m.url?.includes("/file/d/") && !m.url?.includes("/view"))
+                            );
+                            if (driveFolderMat?.url) {
+                              return (
+                                <a
+                                  href={driveFolderMat.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#269CF0]/10 border border-[#269CF0]/30 hover:border-[#269CF0] text-[#48D5F5] hover:text-white text-xs font-bold transition-all shadow-sm"
+                                  title="Open Google Drive folder containing all session materials"
+                                >
+                                  <FolderOpen className="w-3.5 h-3.5 text-[#269CF0]" />
+                                  <span>Open Drive Folder</span>
+                                </a>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
                       </div>
 
@@ -1235,6 +1254,7 @@ export default function SessionsPage() {
                   onChange={(e) => setNewMaterialType(e.target.value as any)}
                   className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#269CF0]"
                 >
+                  <option value="folder">Google Drive Folder (مجلد درايف كامل للمحاضرة)</option>
                   <option value="slides">Slides / Presentation (PDF/PPT)</option>
                   <option value="video">Video Recording / Tutorial</option>
                   <option value="code">Code Repository / GitHub / ZIP</option>
@@ -1386,6 +1406,7 @@ export default function SessionsPage() {
                         <option value="video">Video</option>
                         <option value="code">Code</option>
                         <option value="dataset">Dataset</option>
+                        <option value="folder">Drive Folder</option>
                       </select>
 
                       <input
@@ -1463,6 +1484,13 @@ export default function SessionsPage() {
               <div className="mb-4 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                 <span>{evalSuccess}</span>
+              </div>
+            )}
+
+            {evalError && (
+              <div className="mb-4 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{evalError}</span>
               </div>
             )}
 
@@ -1766,9 +1794,15 @@ export default function SessionsPage() {
                           <div className="space-y-1.5 max-h-36 overflow-y-auto">
                             {inst.feedbacks.map((f: any, fIdx: number) => (
                               <div key={fIdx} className="p-2 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] text-[11px]">
-                                <div className="flex justify-between text-[10px] text-[#8FA4BD] mb-0.5">
-                                  <span>{f.sessionTitle} • {f.studentName || "Student"}</span>
-                                  <span className="text-[#E5A93C] font-black">★ {f.overall}</span>
+                                <div className="flex justify-between items-center text-[10px] text-[#8FA4BD] mb-0.5">
+                                  <div className="flex items-center gap-1.5 truncate">
+                                    <span>{f.sessionTitle} •</span>
+                                    <strong className="text-white font-bold">{f.studentName || "Student"}</strong>
+                                    {f.studentEmail && (
+                                      <span className="text-[9px] text-[#48D5F5] font-mono">({f.studentEmail})</span>
+                                    )}
+                                  </div>
+                                  <span className="text-[#E5A93C] font-black flex-shrink-0">★ {f.overall}</span>
                                 </div>
                                 <p className="text-slate-200 italic">&ldquo;{f.comment}&rdquo;</p>
                               </div>

@@ -139,6 +139,7 @@ model TaskSubmission {
   feedback     String?
   gradedAt     DateTime?
   gradedBy     String?
+  gradedByRole String?
   submittedAt  DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -175,6 +176,7 @@ model BranchLeader {
   name         String
   roleTitle    String   // e.g. Academic Supervisor, Chairperson, Vice Chair
   affiliation  String?  // e.g. EELU Aswan Faculty of IT
+  contactLink  String?  // e.g. WhatsApp wa.me/..., mailto:..., or linkedin.com/...
   displayOrder Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -196,6 +198,7 @@ model SessionEvaluation {
   sessionId      String
   studentId      String
   studentName    String?
+  studentEmail   String?
   instructorName String?
   instructorRole String?
   clarityRating  Int      @default(5) // 1 to 5 (Explanation & Information delivery)
@@ -204,6 +207,7 @@ model SessionEvaluation {
   feedbackText   String?
   createdAt      DateTime @default(now())
 
+  @@unique([sessionId, studentId, instructorName])
   @@index([sessionId, studentId])
 }
 

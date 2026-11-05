@@ -19,6 +19,7 @@ import {
   Megaphone,
   GraduationCap,
   ArrowRight,
+  Lock,
 } from "lucide-react";
 
 interface StudentPortalProps {
@@ -41,6 +42,7 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
   const [submittingTaskId, setSubmittingTaskId] = useState<string | null>(null);
   const [solutionLink, setSolutionLink] = useState("");
   const [taskSubmitting, setTaskSubmitting] = useState(false);
+  const [submissionAlert, setSubmissionAlert] = useState<{ title: string; message: string; type?: "error" | "info" } | null>(null);
 
   // Session Evaluation modal
   const [evalSession, setEvalSession] = useState<any | null>(null);
@@ -189,10 +191,18 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
         setSolutionLink("");
         await fetchStudentData();
       } else {
-        alert(data.error || "Failed to submit assignment.");
+        setSubmissionAlert({
+          title: "تنبيه تسليم التكليف",
+          message: data.error || "Failed to submit assignment.",
+          type: "error",
+        });
       }
     } catch {
-      alert("Network error.");
+      setSubmissionAlert({
+        title: "خطأ في الاتصال",
+        message: "تعذر الاتصال بالخادم، يرجى المحاولة مرة أخرى.",
+        type: "error",
+      });
     } finally {
       setTaskSubmitting(false);
     }
@@ -517,6 +527,9 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
                   const mySub = task.mySubmission;
                   const isSubmitted = !!mySub;
                   const isGraded = mySub?.score !== null && mySub?.score !== undefined;
+                  const isLocked =
+                    task.isSubmissionLocked ??
+                    (!task.hasException && (task.isClosed || new Date(task.deadline).getTime() < Date.now()));
 
                   return (
                     <div
@@ -539,6 +552,11 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#269CF0]/20 text-[#48D5F5] border border-[#269CF0]/30">
                             Under Review
                           </span>
+                        ) : isLocked ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center gap-1">
+                            <Lock className="w-2.5 h-2.5" />
+                            Locked
+                          </span>
                         ) : (
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30">
                             Due Soon
@@ -546,8 +564,18 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
                         )}
                       </div>
 
-                      {/* Inline Submission Input */}
-                      {submittingTaskId === task.id ? (
+                      {/* Locked State vs Active Submission */}
+                      {isLocked ? (
+                        <div className="flex items-center justify-between pt-2.5 border-t border-[#1E3A5F]/60 text-xs">
+                          <span className="text-[11px] font-bold text-rose-400/90 flex items-center gap-1.5">
+                            <Lock className="w-3.5 h-3.5 text-rose-400" />
+                            Submission Closed (انتهت المهلة)
+                          </span>
+                          <span className="text-[10px] text-[#8FA4BD] font-medium">
+                            تواصل مع مدرب التراك في حال وجود عذر
+                          </span>
+                        </div>
+                      ) : submittingTaskId === task.id ? (
                         <div className="mt-3 pt-3 border-t border-[#1E3A5F] space-y-2">
                           <input
                             type="url"
@@ -779,6 +807,29 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* In-App Styled Alert Modal for Task Submissions */}
+      {submissionAlert && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0D1D32] border border-rose-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-4 mx-auto">
+              <Lock className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-black text-[#F5F7FB] mb-2">
+              {submissionAlert.title}
+            </h3>
+            <p className="text-xs text-[#8FA4BD] leading-relaxed mb-6 font-medium">
+              {submissionAlert.message}
+            </p>
+            <button
+              onClick={() => setSubmissionAlert(null)}
+              className="w-full py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md transition-all cursor-pointer"
+            >
+              حسناً / إغلاق
+            </button>
           </div>
         </div>
       )}

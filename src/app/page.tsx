@@ -31,6 +31,7 @@ import {
   Zap,
   Sun,
   Moon,
+  MessageCircle,
 } from "lucide-react";
 
 interface Leader {
@@ -38,6 +39,7 @@ interface Leader {
   name: string;
   roleTitle: string;
   affiliation?: string | null;
+  contactLink?: string | null;
   displayOrder: number;
 }
 
@@ -734,10 +736,29 @@ export default function LandingPage() {
 
                 <div className="pt-4 mt-4 border-t border-[#1E3A5F]/70 flex items-center justify-between text-[10px] text-[#8FA4BD]">
                   <span className="font-mono uppercase font-bold text-[#8FA4BD]/80">EELU ASWAN</span>
-                  <span className="text-emerald-400 font-bold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Active
-                  </span>
+                  {leader.contactLink ? (
+                    <a
+                      href={
+                        leader.contactLink.startsWith("http") || leader.contactLink.startsWith("mailto:")
+                          ? leader.contactLink
+                          : leader.contactLink.includes("@")
+                          ? `mailto:${leader.contactLink}`
+                          : `https://wa.me/${leader.contactLink.replace(/[^0-9]/g, "")}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#269CF0]/15 hover:bg-[#269CF0] text-[#48D5F5] hover:text-white border border-[#269CF0]/30 font-bold text-[10px] transition-all cursor-pointer shadow-sm group-hover:border-[#269CF0]"
+                      title="تواصل مباشر مع عضو القيادة"
+                    >
+                      <MessageCircle className="w-3 h-3 text-[#269CF0] group-hover:text-white" />
+                      <span>Contact Me</span>
+                    </a>
+                  ) : (
+                    <span className="text-emerald-400 font-bold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Active
+                    </span>
+                  )}
                 </div>
               </div>
             );

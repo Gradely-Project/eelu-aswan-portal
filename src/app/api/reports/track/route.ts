@@ -16,6 +16,13 @@ export async function GET(req: Request) {
     const { error, canEdit, user } = await requireTrackAccess(trackId);
     if (error || !user) return error;
 
+    if (user.role === "STUDENT") {
+      return NextResponse.json(
+        { error: "Access denied. Students can only view their own individual academic transcript." },
+        { status: 403 }
+      );
+    }
+
     // Track details & team
     const track = await prisma.track.findUnique({
       where: { id: trackId },

@@ -28,6 +28,7 @@ interface Submission {
   score: number | null;
   feedback: string | null;
   gradedBy: string | null;
+  gradedByRole?: string | null;
   gradedAt: string | null;
   submittedAt: string;
   student: {
@@ -331,6 +332,12 @@ export default function TaskDetailPage() {
                       Instructor Feedback: &quot;{mySubmission.feedback}&quot;
                     </div>
                   )}
+                  {mySubmission.gradedBy && (
+                    <div className="mt-2 pt-2 border-t border-emerald-500/20 text-[11px] text-emerald-400 font-bold flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Graded by: <strong className="text-white">{mySubmission.gradedBy}</strong> {mySubmission.gradedByRole ? `(${mySubmission.gradedByRole})` : ""}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -462,6 +469,20 @@ export default function TaskDetailPage() {
                               <span className="font-bold text-[#F5F7FB]">Student Notes: </span>
                               {sub.notes}
                             </p>
+                          )}
+
+                          {sub.gradedBy && (
+                            <div className="flex items-center gap-1.5 text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 w-fit">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              <span>
+                                Graded by: <strong className="text-white">{sub.gradedBy}</strong> {sub.gradedByRole ? `(${sub.gradedByRole})` : ""}
+                              </span>
+                              {sub.gradedAt && (
+                                <span className="text-[#8FA4BD] ml-1 font-mono">
+                                  • {new Date(sub.gradedAt).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
 

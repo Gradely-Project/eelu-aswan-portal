@@ -39,6 +39,9 @@ interface StudentOption {
   id: string;
   name: string;
   email: string;
+  role?: string;
+  trackTeamRole?: string | null;
+  assignedTrackId?: string | null;
   enrollments: Array<{ track: { id: string; name: string } }>;
 }
 
@@ -472,11 +475,15 @@ export default function CertificatesPage() {
               <h3 className="font-bold text-base text-[#F5F7FB]">
                 {userRole === "STUDENT"
                   ? "No completion certificates issued yet"
+                  : userRole === "INSTRUCTOR"
+                  ? "No certificates issued for your track yet"
                   : "No certificates generated yet"}
               </h3>
               <p className="text-xs text-[#8FA4BD] mt-1">
                 {userRole === "STUDENT"
                   ? "Certificates are published upon successful completion and evaluation of your track."
+                  : userRole === "INSTRUCTOR"
+                  ? "Certificates for students in your track will appear here once officially issued by Branch Administration."
                   : "Click '+ Issue New Certificate' to award an official graduation certificate."}
               </p>
             </div>
@@ -579,11 +586,11 @@ export default function CertificatesPage() {
                   className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
                 >
                   {filteredStudents.length === 0 ? (
-                    <option value="">No enrolled approved students in this track</option>
+                    <option value="">No enrolled students or instructors in this track</option>
                   ) : (
                     filteredStudents.map((st) => (
                       <option key={st.id} value={st.id}>
-                        {st.name} ({st.email})
+                        {st.name} {st.role === "INSTRUCTOR" ? `★ [${st.trackTeamRole || "TRACK LEAD"}]` : ""} ({st.email})
                       </option>
                     ))
                   )}
@@ -598,6 +605,7 @@ export default function CertificatesPage() {
                     onChange={(e) => setGrade(e.target.value)}
                     className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
                   >
+                    <option value="Leadership Award">Leadership & Excellence Award (تقدير قيادي)</option>
                     <option value="Distinction">Distinction (امتياز)</option>
                     <option value="Honors">With Honors (مرتبة الشرف)</option>
                     <option value="Excellent">Excellent (ممتاز)</option>

@@ -21,6 +21,7 @@ interface Leader {
   name: string;
   roleTitle: string;
   affiliation: string | null;
+  contactLink?: string | null;
   displayOrder: number;
 }
 
@@ -35,6 +36,7 @@ export default function LeadershipManagementPage() {
   const [name, setName] = useState("");
   const [roleTitle, setRoleTitle] = useState("");
   const [affiliation, setAffiliation] = useState("");
+  const [contactLink, setContactLink] = useState("");
   const [displayOrder, setDisplayOrder] = useState<number>(1);
   const [submitting, setSubmitting] = useState(false);
 
@@ -70,6 +72,7 @@ export default function LeadershipManagementPage() {
     setName(leader.name);
     setRoleTitle(leader.roleTitle);
     setAffiliation(leader.affiliation || "");
+    setContactLink(leader.contactLink || "");
     setDisplayOrder(leader.displayOrder);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -79,6 +82,7 @@ export default function LeadershipManagementPage() {
     setName("");
     setRoleTitle("");
     setAffiliation("");
+    setContactLink("");
     setDisplayOrder(leaders.length + 1);
   };
 
@@ -92,8 +96,8 @@ export default function LeadershipManagementPage() {
       const url = "/api/leadership";
       const method = editingId ? "PUT" : "POST";
       const payload = editingId
-        ? { id: editingId, name, roleTitle, affiliation, displayOrder }
-        : { name, roleTitle, affiliation, displayOrder };
+        ? { id: editingId, name, roleTitle, affiliation, contactLink, displayOrder }
+        : { name, roleTitle, affiliation, contactLink, displayOrder };
 
       const res = await fetch(url, {
         method,
@@ -230,6 +234,20 @@ export default function LeadershipManagementPage() {
                     placeholder="e.g. Faculty of Information Technology, EELU"
                     className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
                   />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#8FA4BD] mb-1">Contact Link (WhatsApp, Email, or LinkedIn)</label>
+                  <input
+                    type="text"
+                    value={contactLink}
+                    onChange={(e) => setContactLink(e.target.value)}
+                    placeholder="e.g. https://wa.me/201126575146 or email@eelu.edu.eg"
+                    className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                  />
+                  <span className="text-[10px] text-[#8FA4BD] mt-1 block">
+                    ظهر زر &quot;Contact Me&quot; في الصفحة الرئيسية للزوار والطلاب للتواصل المباشر.
+                  </span>
                 </div>
 
                 <div>

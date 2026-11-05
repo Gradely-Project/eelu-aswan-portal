@@ -53,9 +53,23 @@ export async function GET(req: Request) {
       let hasException = false;
       if (t.exceptions) {
         try {
-          const ex = JSON.parse(t.exceptions);
-          if (Array.isArray(ex) && (ex.includes(user.id) || ex.includes(user.email))) {
-            hasException = true;
+          const exList = JSON.parse(t.exceptions);
+          if (Array.isArray(exList)) {
+            const match = exList.find((ex: any) =>
+              typeof ex === "string"
+                ? ex.toLowerCase() === user.email.toLowerCase() || ex === user.id
+                : ex?.studentId === user.id || ex?.studentEmail?.toLowerCase() === user.email.toLowerCase()
+            );
+
+            if (match) {
+              if (typeof match === "object" && match.until) {
+                if (new Date(match.until) > now) {
+                  hasException = true;
+                }
+              } else {
+                hasException = true;
+              }
+            }
           }
         } catch {}
       }

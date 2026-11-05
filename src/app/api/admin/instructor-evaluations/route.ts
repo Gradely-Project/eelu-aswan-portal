@@ -44,6 +44,7 @@ export async function GET(req: Request) {
         overallTotal: number;
         feedbacks: Array<{
           studentName: string | null;
+          studentEmail?: string | null;
           comment: string;
           overall: number;
           sessionTitle: string;
@@ -82,6 +83,7 @@ export async function GET(req: Request) {
       if (ev.feedbackText && ev.feedbackText.trim() !== "") {
         instructorStats[key].feedbacks.push({
           studentName: ev.studentName,
+          studentEmail: ev.studentEmail,
           comment: ev.feedbackText,
           overall: ev.overallRating,
           sessionTitle: sess?.title || "Session",

@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     if (error) return error;
 
     const body = await req.json();
-    const { name, roleTitle, affiliation, displayOrder } = body;
+    const { name, roleTitle, affiliation, contactLink, displayOrder } = body;
 
     if (!name || !roleTitle) {
       return NextResponse.json(
@@ -89,6 +89,7 @@ export async function POST(req: Request) {
         name: name.trim(),
         roleTitle: roleTitle.trim(),
         affiliation: affiliation ? affiliation.trim() : null,
+        contactLink: contactLink ? contactLink.trim() : null,
         displayOrder: Number(displayOrder) || 0,
       },
     });
@@ -106,7 +107,7 @@ export async function PUT(req: Request) {
     if (error) return error;
 
     const body = await req.json();
-    const { id, name, roleTitle, affiliation, displayOrder } = body;
+    const { id, name, roleTitle, affiliation, contactLink, displayOrder } = body;
 
     if (!id || !name || !roleTitle) {
       return NextResponse.json(
@@ -121,6 +122,7 @@ export async function PUT(req: Request) {
         name: name.trim(),
         roleTitle: roleTitle.trim(),
         affiliation: affiliation ? affiliation.trim() : null,
+        contactLink: contactLink ? contactLink.trim() : null,
         displayOrder: Number(displayOrder) || 0,
       },
     });

@@ -99,7 +99,13 @@ export default function ReportExportSuitePage() {
     ])
       .then(([meData, trackData, sigData]) => {
         const u = meData.user;
-        if (u?.role) setUserRole(u.role);
+        if (u?.role) {
+          setUserRole(u.role);
+          if (u.role === "STUDENT") {
+            setReportMode("INDIVIDUAL_STUDENT");
+            setSelectedStudentId(u.id);
+          }
+        }
         if (sigData.config) setSignatoriesConfig(sigData.config);
 
         const allTracks = trackData.tracks || [];
@@ -107,6 +113,12 @@ export default function ReportExportSuitePage() {
           const myTracks = allTracks.filter((t: any) => t.id === u.assignedTrackId);
           setTracks(myTracks.length > 0 ? myTracks : (u.assignedTrack ? [u.assignedTrack] : []));
           setSelectedTrackId(u.assignedTrackId);
+        } else if (u?.role === "STUDENT") {
+          const studentTrackIds = u.enrollments?.map((en: any) => en.trackId || en.track?.id) || [];
+          const myTracks = allTracks.filter((t: any) => studentTrackIds.includes(t.id));
+          setTracks(myTracks.length > 0 ? myTracks : allTracks);
+          if (myTracks.length > 0) setSelectedTrackId(myTracks[0].id);
+          else if (allTracks.length > 0) setSelectedTrackId(allTracks[0].id);
         } else {
           setTracks(allTracks);
           if (allTracks.length > 0) setSelectedTrackId(allTracks[0].id);
@@ -117,6 +129,11 @@ export default function ReportExportSuitePage() {
 
   useEffect(() => {
     if (!selectedTrackId) return;
+
+    if (userRole === "STUDENT") {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setStudentAuditData(null);
@@ -230,7 +247,7 @@ export default function ReportExportSuitePage() {
   const coreInstructors = track?.instructors.filter((i) => i.trackTeamRole === "CORE_TEAM") || [];
 
   return (
-    <div className="min-h-screen bg-[#07172A] text-[#F5F7FB] flex flex-col font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-[#07172A] text-[#F5F7FB] flex flex-col font-sans">
       <TopNav />
 
       <div className="flex flex-1">
@@ -254,28 +271,35 @@ export default function ReportExportSuitePage() {
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {/* Report Mode Toggle */}
-              <div className="flex items-center gap-1 bg-[#07172A] p-1 rounded-xl border border-[#1E3A5F] text-xs font-bold">
-                <button
-                  onClick={() => setReportMode("TRACK_MATRIX")}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
-                    reportMode === "TRACK_MATRIX"
-                      ? "bg-[#269CF0] text-white shadow-sm"
-                      : "text-[#8FA4BD] hover:text-white"
-                  }`}
-                >
-                  Full Track Matrix
-                </button>
-                <button
-                  onClick={() => setReportMode("INDIVIDUAL_STUDENT")}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
-                    reportMode === "INDIVIDUAL_STUDENT"
-                      ? "bg-[#269CF0] text-white shadow-sm"
-                      : "text-[#8FA4BD] hover:text-white"
-                  }`}
-                >
-                  Individual Student Audit
-                </button>
-              </div>
+              {userRole !== "STUDENT" ? (
+                <div className="flex items-center gap-1 bg-[#07172A] p-1 rounded-xl border border-[#1E3A5F] text-xs font-bold">
+                  <button
+                    onClick={() => setReportMode("TRACK_MATRIX")}
+                    className={`px-3 py-1.5 rounded-lg transition-all ${
+                      reportMode === "TRACK_MATRIX"
+                        ? "bg-[#269CF0] text-white shadow-sm"
+                        : "text-[#8FA4BD] hover:text-white"
+                    }`}
+                  >
+                    Full Track Matrix
+                  </button>
+                  <button
+                    onClick={() => setReportMode("INDIVIDUAL_STUDENT")}
+                    className={`px-3 py-1.5 rounded-lg transition-all ${
+                      reportMode === "INDIVIDUAL_STUDENT"
+                        ? "bg-[#269CF0] text-white shadow-sm"
+                        : "text-[#8FA4BD] hover:text-white"
+                    }`}
+                  >
+                    Individual Student Audit
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-[#07172A] px-3.5 py-1.5 rounded-xl border border-[#269CF0]/40 text-xs font-black text-[#48D5F5] flex items-center gap-1.5 shadow-sm">
+                  <Award className="w-3.5 h-3.5 text-[#E5A93C]" />
+                  <span>My Academic Transcript (السجل الأكاديمي للطالب)</span>
+                </div>
+              )}
 
               {/* Track Selector */}
               {tracks.length > 0 && (
@@ -300,8 +324,8 @@ export default function ReportExportSuitePage() {
                 </div>
               )}
 
-              {/* Student Selector (If Individual Mode) */}
-              {reportMode === "INDIVIDUAL_STUDENT" && reportRows.length > 0 && (
+              {/* Student Selector (If Individual Mode and not student) */}
+              {reportMode === "INDIVIDUAL_STUDENT" && userRole !== "STUDENT" && reportRows.length > 0 && (
                 <div className="flex items-center gap-2 bg-[#07172A] px-3 py-1.5 rounded-xl border border-[#1E3A5F]">
                   <span className="text-xs font-bold text-[#8FA4BD]">Student:</span>
                   <select

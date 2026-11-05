@@ -119,6 +119,8 @@ export async function POST(req: Request) {
           materialRating: Number(materialRating) || 5,
           overallRating: Number(overallRating) || 5,
           feedbackText: feedbackText ? feedbackText.trim() : null,
+          studentName: user.name,
+          studentEmail: user.email,
         },
       });
     } else {
@@ -127,6 +129,7 @@ export async function POST(req: Request) {
           sessionId,
           studentId: user.id,
           studentName: user.name,
+          studentEmail: user.email,
           instructorName: instructorName || null,
           instructorRole: instructorRole || null,
           clarityRating: Number(clarityRating) || 5,

@@ -18,7 +18,20 @@ export async function GET(req: Request) {
       return NextResponse.json({ certificates: myCertificates });
     }
 
-    const isExec = ["ADMIN", "CHAIR_PERSON"].includes(user.role);
+    if (user.role === "INSTRUCTOR") {
+      // Instructor/Head: Read-only access to certificates issued to their track
+      const whereClause: any = {};
+      if (user.assignedTrackId) {
+        whereClause.trackId = user.assignedTrackId;
+      }
+      const trackCertificates = await prisma.certificate.findMany({
+        where: whereClause,
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json({ certificates: trackCertificates, isReadOnly: true });
+    }
+
+    const isExec = ["ADMIN", "CHAIR_PERSON", "VICE_CHAIR"].includes(user.role);
     if (!isExec) {
       return NextResponse.json({ error: "Access restricted to Executive Leadership." }, { status: 403 });
     }
@@ -36,19 +49,27 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
     });
 
-    // Also return list of students for selection
+    // Return list of students AND instructors so Admin / Chairperson can award certificates to Heads/Instructors too!
     const students = await prisma.user.findMany({
       where: {
-        role: "STUDENT",
+        role: { in: ["STUDENT", "INSTRUCTOR"] },
         status: "APPROVED",
         ...(trackId && trackId !== "ALL"
-          ? { enrollments: { some: { trackId } } }
+          ? {
+              OR: [
+                { enrollments: { some: { trackId } } },
+                { assignedTrackId: trackId },
+              ],
+            }
           : {}),
       },
       select: {
         id: true,
         name: true,
         email: true,
+        role: true,
+        trackTeamRole: true,
+        assignedTrackId: true,
         enrollments: {
           include: { track: true },
         },

@@ -307,13 +307,13 @@ export default function DashboardPage() {
   const isInstructor = user?.role === "INSTRUCTOR";
 
   return (
-    <div className="min-h-screen bg-[#07172A] text-[#F5F7FB] flex flex-col font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-[#07172A] text-[#F5F7FB] flex flex-col font-sans">
       <TopNav selectedTrackId={selectedTrackId} onTrackChange={(id) => setSelectedTrackId(id)} />
 
       <div className="flex flex-1 min-w-0">
         <Sidebar userRole={user?.role} />
 
-        <main className="flex-1 p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto w-full min-w-0 overflow-x-hidden">
+        <main className="flex-1 p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto w-full min-w-0">
           {/* Top Operational Alert / Mobile App Banner (Matching Reference 2) */}
           <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 shadow-sm min-w-0">
             <div className="flex items-center gap-3 min-w-0">
