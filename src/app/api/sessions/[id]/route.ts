@@ -75,9 +75,16 @@ export async function PATCH(
         return NextResponse.json({ error: "Material title and URL are required." }, { status: 400 });
       }
 
+      const cleanMatUrl = String(material.url).trim();
+      if (cleanMatUrl.toLowerCase().startsWith("javascript:") || cleanMatUrl.toLowerCase().startsWith("data:")) {
+        return NextResponse.json({ error: "Invalid material URL scheme." }, { status: 400 });
+      }
+
+      const finalMatUrl = /^https?:\/\//i.test(cleanMatUrl) ? cleanMatUrl : `https://${cleanMatUrl}`;
+
       currentMaterials.push({
-        title: material.title.trim(),
-        url: material.url.trim(),
+        title: String(material.title).trim().substring(0, 150),
+        url: finalMatUrl.substring(0, 500),
         type: material.type || "slides",
       });
     } else if (action === "DELETE_MATERIAL") {

@@ -50,13 +50,18 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { name, title, phone, email, linkedin, statusBadge } = body;
 
+    const cleanLinkedin = (linkedin || "https://www.linkedin.com/in/abdelrahman-mahmoud-6912801a0").trim();
+    if (cleanLinkedin.toLowerCase().startsWith("javascript:") || cleanLinkedin.toLowerCase().startsWith("data:")) {
+      return NextResponse.json({ error: "Invalid LinkedIn URL protocol." }, { status: 400 });
+    }
+
     const updatedData = {
-      name: (name || "Abdelrahman Mahmoud").trim(),
-      title: (title || "Software Engineer & Branch Supervisor").trim(),
-      phone: (phone || "").trim(),
-      email: (email || "").trim(),
-      linkedin: (linkedin || "https://www.linkedin.com/in/abdelrahman-mahmoud-6912801a0").trim(),
-      statusBadge: (statusBadge || "Active Supervision").trim(),
+      name: (name || "Abdelrahman Mahmoud").trim().substring(0, 100),
+      title: (title || "Software Engineer & Branch Supervisor").trim().substring(0, 150),
+      phone: (phone || "").trim().substring(0, 30),
+      email: (email || "").trim().substring(0, 100),
+      linkedin: cleanLinkedin.substring(0, 300),
+      statusBadge: (statusBadge || "Active Supervision").trim().substring(0, 50),
       updatedAt: new Date().toISOString(),
       updatedBy: user.name,
     };

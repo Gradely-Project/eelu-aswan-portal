@@ -84,12 +84,17 @@ export async function POST(req: Request) {
       );
     }
 
+    const cleanContact = contactLink ? String(contactLink).trim() : null;
+    if (cleanContact && (cleanContact.toLowerCase().startsWith("javascript:") || cleanContact.toLowerCase().startsWith("data:"))) {
+      return NextResponse.json({ error: "Invalid contact link protocol." }, { status: 400 });
+    }
+
     const leader = await prisma.branchLeader.create({
       data: {
-        name: name.trim(),
-        roleTitle: roleTitle.trim(),
-        affiliation: affiliation ? affiliation.trim() : null,
-        contactLink: contactLink ? contactLink.trim() : null,
+        name: name.trim().substring(0, 100),
+        roleTitle: roleTitle.trim().substring(0, 100),
+        affiliation: affiliation ? affiliation.trim().substring(0, 200) : null,
+        contactLink: cleanContact ? cleanContact.substring(0, 300) : null,
         displayOrder: Number(displayOrder) || 0,
       },
     });
@@ -116,13 +121,18 @@ export async function PUT(req: Request) {
       );
     }
 
+    const cleanContact = contactLink ? String(contactLink).trim() : null;
+    if (cleanContact && (cleanContact.toLowerCase().startsWith("javascript:") || cleanContact.toLowerCase().startsWith("data:"))) {
+      return NextResponse.json({ error: "Invalid contact link protocol." }, { status: 400 });
+    }
+
     const leader = await prisma.branchLeader.update({
       where: { id },
       data: {
-        name: name.trim(),
-        roleTitle: roleTitle.trim(),
-        affiliation: affiliation ? affiliation.trim() : null,
-        contactLink: contactLink ? contactLink.trim() : null,
+        name: name.trim().substring(0, 100),
+        roleTitle: roleTitle.trim().substring(0, 100),
+        affiliation: affiliation ? affiliation.trim().substring(0, 200) : null,
+        contactLink: cleanContact ? cleanContact.substring(0, 300) : null,
         displayOrder: Number(displayOrder) || 0,
       },
     });

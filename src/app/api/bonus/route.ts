@@ -20,12 +20,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized to award bonus points in this track." }, { status: 403 });
     }
 
+    // Verify student exists and is enrolled in this track
+    const student = await prisma.user.findUnique({
+      where: { id: studentId },
+      include: { enrollments: true },
+    });
+
+    if (!student) {
+      return NextResponse.json({ error: "Student not found." }, { status: 404 });
+    }
+
+    const isEnrolled = student.enrollments.some((e) => e.trackId === trackId);
+    if (!isEnrolled) {
+      return NextResponse.json(
+        { error: "This student is not enrolled in this track." },
+        { status: 400 }
+      );
+    }
+
+    // Strictly clamp bonus/deduction points between -100 and +100 per action
+    const numericPoints = Math.max(-100, Math.min(100, Math.round(Number(points) || 0)));
+    const cleanReason = String(reason).trim().substring(0, 250);
+
     const bonus = await prisma.bonusPoint.create({
       data: {
         trackId,
         studentId,
-        points: Number(points) || 0,
-        reason: reason.trim(),
+        points: numericPoints,
+        reason: cleanReason,
         awardedBy: user.name,
       },
       include: {

@@ -24,6 +24,20 @@ export async function POST(req: Request) {
       );
     }
 
+    if (password.length < 6 || password.length > 128) {
+      return NextResponse.json(
+        { error: "Password must be between 6 and 128 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (name.trim().length > 100) {
+      return NextResponse.json(
+        { error: "Name is too long (maximum 100 characters)." },
+        { status: 400 }
+      );
+    }
+
     if (!phone) {
       return NextResponse.json(
         { error: "Please provide your phone / WhatsApp number." },

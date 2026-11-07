@@ -16,6 +16,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid parameters." }, { status: 400 });
     }
 
+    const targetUser = await prisma.user.findUnique({
+      where: { id: studentId },
+      select: { id: true, role: true, name: true },
+    });
+
+    if (!targetUser) {
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
+
+    if (targetUser.role === "ADMIN") {
+      return NextResponse.json({ error: "Cannot suspend the Main Administrator account." }, { status: 400 });
+    }
+
     const newStatus = action === "SUSPEND" ? "SUSPENDED" : "APPROVED";
 
     const user = await prisma.user.update({

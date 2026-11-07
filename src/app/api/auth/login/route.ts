@@ -3,8 +3,33 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signJwtToken, COOKIE_NAME } from "@/lib/auth";
 
+// In-memory sliding-window anti-brute-force tracker
+interface RateLimitRecord {
+  attempts: number;
+  blockedUntil: number;
+  lastAttempt: number;
+}
+const loginAttemptsMap = new Map<string, RateLimitRecord>();
+
+function getClientIp(req: Request): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return req.headers.get("x-real-ip") || "unknown";
+}
+
+function cleanExpiredRecords() {
+  const now = Date.now();
+  loginAttemptsMap.forEach((record, key) => {
+    if (now - record.lastAttempt > 10 * 60 * 1000) {
+      loginAttemptsMap.delete(key);
+    }
+  });
+}
+
 export async function POST(req: Request) {
   try {
+    cleanExpiredRecords();
+
     const body = await req.json();
     const { email, password } = body;
 
@@ -16,6 +41,22 @@ export async function POST(req: Request) {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    const clientIp = getClientIp(req);
+    const rateLimitKey = `${clientIp}_${normalizedEmail}`;
+
+    // Check if currently blocked
+    const now = Date.now();
+    const existingRecord = loginAttemptsMap.get(rateLimitKey);
+    if (existingRecord && existingRecord.blockedUntil > now) {
+      const waitSeconds = Math.ceil((existingRecord.blockedUntil - now) / 1000);
+      return NextResponse.json(
+        {
+          error: `تم تجاوز الحد الأقصى للمحاولات الخاطئة. لحماية الحساب، يرجى الانتظار ${waitSeconds} ثانية والمحاولة مجدداً.`,
+          retryAfter: waitSeconds,
+        },
+        { status: 429 }
+      );
+    }
 
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
@@ -24,20 +65,36 @@ export async function POST(req: Request) {
       },
     });
 
-    if (!user) {
+    const isMatch = user ? await bcrypt.compare(password, user.password) : false;
+
+    if (!user || !isMatch) {
+      // Record failed attempt
+      const attempts = (existingRecord?.attempts || 0) + 1;
+      const blockedUntil = attempts >= 5 ? now + 60 * 1000 : 0; // 60s cooldown after 5 failed attempts
+      loginAttemptsMap.set(rateLimitKey, {
+        attempts,
+        blockedUntil,
+        lastAttempt: now,
+      });
+
+      if (attempts >= 5) {
+        return NextResponse.json(
+          {
+            error: "تم حظر المحاولات مؤقتاً بسبب تكرار كلمة المرور الخاطئة 5 مرات. يرجى الانتظار دقيقة كاملة.",
+            retryAfter: 60,
+          },
+          { status: 429 }
+        );
+      }
+
       return NextResponse.json(
         { error: "Invalid credentials. Please verify your email and password." },
         { status: 401 }
       );
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return NextResponse.json(
-        { error: "Invalid credentials. Please verify your email and password." },
-        { status: 401 }
-      );
-    }
+    // Reset rate limit record on successful authentication
+    loginAttemptsMap.delete(rateLimitKey);
 
     // Check approval & suspension status
     if (user.status === "PENDING") {

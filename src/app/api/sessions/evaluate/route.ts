@@ -100,12 +100,44 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Session ID is required." }, { status: 400 });
     }
 
+    // Verify session exists and student is enrolled in its track
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      select: { id: true, trackId: true },
+    });
+
+    if (!session) {
+      return NextResponse.json({ error: "Lecture session not found." }, { status: 404 });
+    }
+
+    const isEnrolled = user.enrollments?.some((e) => e.trackId === session.trackId);
+    if (!isEnrolled) {
+      return NextResponse.json(
+        { error: "غير مصرح: لا يمكنك تقييم محاضرة في تراك غير مسجل به." },
+        { status: 403 }
+      );
+    }
+
+    // Strictly sanitize and clamp ratings between 1 and 5
+    const clampRating = (val: any) => {
+      const num = Number(val);
+      if (isNaN(num)) return 5;
+      return Math.max(1, Math.min(5, Math.round(num)));
+    };
+
+    const safeClarity = clampRating(clarityRating);
+    const safeMaterial = clampRating(materialRating);
+    const safeOverall = clampRating(overallRating);
+    const safeFeedback = feedbackText ? String(feedbackText).trim().substring(0, 1000) : null;
+    const safeInstructorName = instructorName ? String(instructorName).trim().substring(0, 100) : null;
+    const safeInstructorRole = instructorRole ? String(instructorRole).trim().substring(0, 50) : null;
+
     // Find existing evaluation for this student + session + instructor
     const existing = await prisma.sessionEvaluation.findFirst({
       where: {
         sessionId,
         studentId: user.id,
-        instructorName: instructorName || null,
+        instructorName: safeInstructorName,
       },
     });
 
@@ -114,11 +146,11 @@ export async function POST(req: Request) {
       evaluation = await prisma.sessionEvaluation.update({
         where: { id: existing.id },
         data: {
-          instructorRole: instructorRole || null,
-          clarityRating: Number(clarityRating) || 5,
-          materialRating: Number(materialRating) || 5,
-          overallRating: Number(overallRating) || 5,
-          feedbackText: feedbackText ? feedbackText.trim() : null,
+          instructorRole: safeInstructorRole,
+          clarityRating: safeClarity,
+          materialRating: safeMaterial,
+          overallRating: safeOverall,
+          feedbackText: safeFeedback,
           studentName: user.name,
           studentEmail: user.email,
         },
@@ -130,12 +162,12 @@ export async function POST(req: Request) {
           studentId: user.id,
           studentName: user.name,
           studentEmail: user.email,
-          instructorName: instructorName || null,
-          instructorRole: instructorRole || null,
-          clarityRating: Number(clarityRating) || 5,
-          materialRating: Number(materialRating) || 5,
-          overallRating: Number(overallRating) || 5,
-          feedbackText: feedbackText ? feedbackText.trim() : null,
+          instructorName: safeInstructorName,
+          instructorRole: safeInstructorRole,
+          clarityRating: safeClarity,
+          materialRating: safeMaterial,
+          overallRating: safeOverall,
+          feedbackText: safeFeedback,
         },
       });
     }

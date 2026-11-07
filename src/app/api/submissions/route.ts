@@ -21,6 +21,13 @@ export async function POST(req: Request) {
       );
     }
 
+    const cleanUrl = String(solutionLink).trim();
+    if (cleanUrl.toLowerCase().startsWith("javascript:") || cleanUrl.toLowerCase().startsWith("data:")) {
+      return NextResponse.json({ error: "Invalid solution URL protocol." }, { status: 400 });
+    }
+    const finalSolutionLink = /^https?:\/\//i.test(cleanUrl) ? cleanUrl : `https://${cleanUrl}`;
+    const cleanNotes = notes ? String(notes).trim().substring(0, 1000) : null;
+
     // Verify task existence and status
     const task = await prisma.task.findUnique({
       where: { id: taskId },
@@ -89,15 +96,15 @@ export async function POST(req: Request) {
         },
       },
       update: {
-        solutionLink: solutionLink.trim(),
-        notes: notes ? notes.trim() : null,
+        solutionLink: finalSolutionLink,
+        notes: cleanNotes,
         submittedAt: new Date(),
       },
       create: {
         taskId,
         studentId: user.id,
-        solutionLink: solutionLink.trim(),
-        notes: notes ? notes.trim() : null,
+        solutionLink: finalSolutionLink,
+        notes: cleanNotes,
       },
     });
 

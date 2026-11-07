@@ -163,16 +163,23 @@ export async function GET(req: Request) {
       };
     });
 
-    // If Anonymous Mode is ON and the requester is a student, mask all OTHER students
+    // Privacy protection: If requester is a student, protect classmates' personal phone numbers and emails
     const finalLeaderboard = rankedLeaderboard.map((st) => {
-      if (isAnonymousMode && user.role === "STUDENT" && st.id !== user.id) {
+      if (user.role === "STUDENT" && st.id !== user.id) {
+        if (isAnonymousMode) {
+          return {
+            ...st,
+            name: `Participant #${st.rank} (مشارك)`,
+            email: "masked@academy.internal",
+            phone: null,
+            college: "Confidential",
+            academicYear: "-",
+          };
+        }
         return {
           ...st,
-          name: `Participant #${st.rank} (مشارك)`,
-          email: "masked@academy.internal",
-          phone: null,
-          college: "Confidential",
-          academicYear: "-",
+          phone: null, // Keep personal WhatsApp/phone private among peers
+          email: "confidential@student.eelu.edu.eg",
         };
       }
       return st;

@@ -76,12 +76,12 @@ export async function POST(req: Request) {
 
       const slot = await prisma.hallSlot.create({
         data: {
-          hallName: hallName.trim(),
+          hallName: hallName.trim().substring(0, 100),
           dayOfWeek: slotDay,
           date: slotDate,
-          timeSlot: timeSlot.trim(),
-          capacity: capacity ? parseInt(capacity, 10) : 50,
-          notes: notes ? notes.trim() : null,
+          timeSlot: timeSlot.trim().substring(0, 50),
+          capacity: capacity ? Math.max(1, Math.min(1000, parseInt(capacity, 10) || 50)) : 50,
+          notes: notes ? String(notes).trim().substring(0, 500) : null,
           status: "AVAILABLE",
         },
       });
