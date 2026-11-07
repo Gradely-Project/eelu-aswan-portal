@@ -25,6 +25,7 @@ import {
 interface ReportStudentRow {
   id: string;
   name: string;
+  trackName?: string;
   email: string;
   phone: string;
   college: string;
@@ -430,35 +431,37 @@ export default function ReportExportSuitePage() {
                   </div>
                 </div>
 
-                {/* Instructors in Charge */}
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6 text-xs grid grid-cols-3 gap-4">
-                  <div>
-                    <span className="font-bold text-slate-500 block text-[10px] uppercase">
-                      Lead Instructor (Head)
-                    </span>
-                    <span className="font-black text-slate-900">
-                      {headInstructor ? headInstructor.name : "Not Assigned"}
-                    </span>
+                {/* Instructors in Charge (Shown only for individual tracks, hidden in Consolidated All-Tracks report per user request) */}
+                {track.id !== "ALL" && (
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6 text-xs grid grid-cols-3 gap-4">
+                    <div>
+                      <span className="font-bold text-slate-500 block text-[10px] uppercase">
+                        Lead Instructor (Head)
+                      </span>
+                      <span className="font-black text-slate-900">
+                        {headInstructor ? headInstructor.name : "Not Assigned"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-slate-500 block text-[10px] uppercase">
+                        Vice Head
+                      </span>
+                      <span className="font-black text-slate-900">
+                        {viceInstructor ? viceInstructor.name : "Not Assigned"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-slate-500 block text-[10px] uppercase">
+                        Core Instructors
+                      </span>
+                      <span className="font-black text-slate-900">
+                        {coreInstructors.length > 0
+                          ? coreInstructors.map((c) => c.name).join(", ")
+                          : "Not Assigned"}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-bold text-slate-500 block text-[10px] uppercase">
-                      Vice Head
-                    </span>
-                    <span className="font-black text-slate-900">
-                      {viceInstructor ? viceInstructor.name : "Not Assigned"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-bold text-slate-500 block text-[10px] uppercase">
-                      Core Instructors
-                    </span>
-                    <span className="font-black text-slate-900">
-                      {coreInstructors.length > 0
-                        ? coreInstructors.map((c) => c.name).join(", ")
-                        : "Not Assigned"}
-                    </span>
-                  </div>
-                </div>
+                )}
 
                 {/* Data Table */}
                 <div className="overflow-x-auto mb-10">
@@ -467,6 +470,9 @@ export default function ReportExportSuitePage() {
                       <tr className="bg-slate-100 text-slate-900 font-black border-y-2 border-slate-300">
                         <th className="py-2.5 px-3 text-center">Rank</th>
                         <th className="py-2.5 px-3">Student Full Name</th>
+                        {track.id === "ALL" && (
+                          <th className="py-2.5 px-3">Enrolled Track</th>
+                        )}
                         <th className="py-2.5 px-3">Faculty & Year</th>
                         <th className="py-2.5 px-3 text-center">Attendance %</th>
                         <th className="py-2.5 px-3 text-center">Att. Pts</th>
@@ -485,6 +491,13 @@ export default function ReportExportSuitePage() {
                             <span className="font-bold text-slate-950 block">{r.name}</span>
                             <span className="text-[10px] text-slate-500 font-mono">{r.email}</span>
                           </td>
+                          {track.id === "ALL" && (
+                            <td className="py-2 px-3">
+                              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-200 uppercase tracking-wide">
+                                {r.trackName || "General Track"}
+                              </span>
+                            </td>
+                          )}
                           <td className="py-2 px-3 text-slate-600">
                             {r.college} {r.academicYear && `(${r.academicYear})`}
                           </td>
@@ -509,14 +522,8 @@ export default function ReportExportSuitePage() {
                   </table>
                 </div>
 
-                {/* Official Academic Signatures (Controlled Dynamically by Admin) */}
-                <div
-                  className={`pt-8 border-t-2 border-slate-300 grid gap-4 text-center text-xs ${
-                    signatoriesConfig?.showOfficialSeal
-                      ? "grid-cols-2 sm:grid-cols-4"
-                      : "grid-cols-2 sm:grid-cols-3"
-                  }`}
-                >
+                {/* Official Academic Signatures (Centered and evenly aligned per user request) */}
+                <div className="pt-8 border-t-2 border-slate-300 flex flex-wrap items-center justify-center gap-8 sm:gap-14 text-center text-xs max-w-4xl mx-auto">
                   {(signatoriesConfig?.reportSignatories || [
                     { name: "Eng. Abdelrahman Mahmoud", role: "Software & Technology Director", order: 1, enabled: true },
                     { name: "Eng. Mostafa Hassan", role: "Branch Chairperson", order: 2, enabled: true },
@@ -525,7 +532,7 @@ export default function ReportExportSuitePage() {
                     .filter((s) => s.enabled)
                     .sort((a, b) => a.order - b.order)
                     .map((sig, idx) => (
-                      <div key={idx} className="flex flex-col justify-between">
+                      <div key={idx} className="flex flex-col justify-between min-w-[170px]">
                         <div>
                           <span className="font-bold text-slate-600 block uppercase text-[10px]">
                             {sig.role}
@@ -534,13 +541,11 @@ export default function ReportExportSuitePage() {
                             {sig.name}
                           </span>
                         </div>
-                        <span className="text-slate-400 block font-mono mt-10">
+                        <span className="text-slate-400 block font-mono mt-8">
                           ...................................
                         </span>
                       </div>
                     ))}
-
-
                 </div>
               </div>
             </div>

@@ -1068,23 +1068,23 @@ export default function SessionsPage() {
                               >
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                   <div>
-                                    <h5 className="font-bold text-sm text-white flex items-center gap-2">
+                                    <h5 className="font-bold text-sm text-[#0F172A] dark:text-white flex items-center gap-2">
                                       <span>{inst.instructorName}</span>
                                       <span className="text-[10px] font-black uppercase text-[#E5A93C] bg-[#E5A93C]/10 px-2 py-0.5 rounded border border-[#E5A93C]/20">
                                         {inst.instructorRole}
                                       </span>
                                     </h5>
-                                    <span className="text-[10px] text-[#8FA4BD]">{inst.trackName}</span>
+                                    <span className="text-[10px] text-[#64748B] dark:text-[#8FA4BD]">{inst.trackName}</span>
                                   </div>
 
-                                  <div className="flex items-center gap-3 font-mono text-xs">
-                                    <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F]">
+                                  <div className="flex items-center gap-3 font-mono text-xs text-[#0F172A] dark:text-[#F5F7FB]">
+                                    <span className="bg-[#F8F6F0] dark:bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#E2D7C3] dark:border-[#1E3A5F]">
                                       Clarity: <strong className="text-[#E5A93C]">★ {inst.avgClarity}</strong>
                                     </span>
-                                    <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F]">
+                                    <span className="bg-[#F8F6F0] dark:bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#E2D7C3] dark:border-[#1E3A5F]">
                                       Materials: <strong className="text-[#269CF0]">★ {inst.avgMaterial}</strong>
                                     </span>
-                                    <span className="bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/30 text-emerald-400 font-bold">
+                                    <span className="bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold">
                                       Overall: ★ {inst.avgOverall} ({inst.totalReviews} reviews)
                                     </span>
                                   </div>
@@ -1784,49 +1784,49 @@ export default function SessionsPage() {
                   }
 
                   return filtered.map((inst, idx) => (
-                    <div key={idx} className="p-4 rounded-2xl bg-[#07172A] border border-[#1E3A5F] space-y-3">
+                    <div key={idx} className="p-4 rounded-2xl bg-[#F8F6F0] dark:bg-[#07172A] border border-[#E2D7C3] dark:border-[#1E3A5F] space-y-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
-                          <h4 className="font-bold text-sm text-white flex items-center gap-2">
+                          <h4 className="font-bold text-sm text-[#0F172A] dark:text-white flex items-center gap-2">
                             <span>{inst.instructorName}</span>
                             <span className="px-2 py-0.5 rounded text-[10px] font-black bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30 uppercase">
                               {inst.instructorRole}
                             </span>
                           </h4>
-                          <span className="text-[11px] text-[#8FA4BD]">{inst.trackName}</span>
+                          <span className="text-[11px] text-[#64748B] dark:text-[#8FA4BD]">{inst.trackName}</span>
                         </div>
-                        <div className="flex items-center gap-3 font-mono text-xs">
-                          <span className="bg-[#10243C] px-3 py-1 rounded-lg border border-[#1E3A5F]">
+                        <div className="flex items-center gap-3 font-mono text-xs text-[#0F172A] dark:text-[#F5F7FB]">
+                          <span className="bg-white dark:bg-[#10243C] px-3 py-1 rounded-lg border border-[#E2D7C3] dark:border-[#1E3A5F]">
                             Clarity: <strong className="text-[#E5A93C]">★ {inst.avgClarity}</strong>
                           </span>
-                          <span className="bg-[#10243C] px-3 py-1 rounded-lg border border-[#1E3A5F]">
+                          <span className="bg-white dark:bg-[#10243C] px-3 py-1 rounded-lg border border-[#E2D7C3] dark:border-[#1E3A5F]">
                             Materials: <strong className="text-[#269CF0]">★ {inst.avgMaterial}</strong>
                           </span>
-                          <span className="bg-emerald-500/15 px-3 py-1 rounded-lg border border-emerald-500/30 text-emerald-400 font-black">
+                          <span className="bg-emerald-500/15 px-3 py-1 rounded-lg border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-black">
                             Overall: ★ {inst.avgOverall} ({inst.totalReviews} reviews)
                           </span>
                         </div>
                       </div>
 
                       {inst.feedbacks && inst.feedbacks.length > 0 && (
-                        <div className="pt-2 border-t border-[#1E3A5F]/60 space-y-1.5">
-                          <span className="text-[10px] font-bold text-[#8FA4BD] uppercase block">
+                        <div className="pt-2 border-t border-[#E2D7C3] dark:border-[#1E3A5F]/60 space-y-1.5">
+                          <span className="text-[10px] font-bold text-[#64748B] dark:text-[#8FA4BD] uppercase block">
                             Student Written Comments:
                           </span>
                           <div className="space-y-1.5 max-h-36 overflow-y-auto">
                             {inst.feedbacks.map((f: any, fIdx: number) => (
-                              <div key={fIdx} className="p-2 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] text-[11px]">
-                                <div className="flex justify-between items-center text-[10px] text-[#8FA4BD] mb-0.5">
+                              <div key={fIdx} className="p-2 rounded-xl bg-white dark:bg-[#0D1D32] border border-[#E2D7C3] dark:border-[#1E3A5F] text-[11px]">
+                                <div className="flex justify-between items-center text-[10px] text-[#64748B] dark:text-[#8FA4BD] mb-0.5">
                                   <div className="flex items-center gap-1.5 truncate">
                                     <span>{f.sessionTitle} •</span>
-                                    <strong className="text-white font-bold">{f.studentName || "Student"}</strong>
+                                    <strong className="text-[#0F172A] dark:text-white font-bold">{f.studentName || "Student"}</strong>
                                     {f.studentEmail && (
-                                      <span className="text-[9px] text-[#48D5F5] font-mono">({f.studentEmail})</span>
+                                      <span className="text-[9px] text-[#1D6FB8] dark:text-[#48D5F5] font-mono">({f.studentEmail})</span>
                                     )}
                                   </div>
                                   <span className="text-[#E5A93C] font-black flex-shrink-0">★ {f.overall}</span>
                                 </div>
-                                <p className="text-slate-200 italic">&ldquo;{f.comment}&rdquo;</p>
+                                <p className="text-slate-700 dark:text-slate-200 italic">&ldquo;{f.comment}&rdquo;</p>
                               </div>
                             ))}
                           </div>
@@ -1850,45 +1850,45 @@ export default function SessionsPage() {
 
                   if (filtered.length === 0) {
                     return (
-                      <p className="p-8 text-center text-xs text-[#8FA4BD] bg-[#07172A] rounded-2xl border border-[#1E3A5F]">
+                      <p className="p-8 text-center text-xs text-[#64748B] dark:text-[#8FA4BD] bg-[#F8F6F0] dark:bg-[#07172A] rounded-2xl border border-[#E2D7C3] dark:border-[#1E3A5F]">
                         No per-lecture evaluations submitted yet for this track.
                       </p>
                     );
                   }
 
                   return filtered.map((sess: any, idx: number) => (
-                    <div key={idx} className="p-4 rounded-2xl bg-[#07172A] border border-[#1E3A5F] space-y-3 text-xs">
+                    <div key={idx} className="p-4 rounded-2xl bg-[#F8F6F0] dark:bg-[#07172A] border border-[#E2D7C3] dark:border-[#1E3A5F] space-y-3 text-xs">
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                          <h4 className="font-bold text-white text-sm">{sess.sessionTitle}</h4>
-                          <span className="text-[11px] text-[#8FA4BD]">{sess.trackName} • {sess.date}</span>
+                          <h4 className="font-bold text-[#0F172A] dark:text-white text-sm">{sess.sessionTitle}</h4>
+                          <span className="text-[11px] text-[#64748B] dark:text-[#8FA4BD]">{sess.trackName} • {sess.date}</span>
                         </div>
-                        <div className="flex items-center gap-2 font-mono">
-                          <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F] text-[11px]">
+                        <div className="flex items-center gap-2 font-mono text-[#0F172A] dark:text-[#F5F7FB]">
+                          <span className="bg-white dark:bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#E2D7C3] dark:border-[#1E3A5F] text-[11px]">
                             Clarity: <strong className="text-[#E5A93C]">★ {sess.avgClarity}</strong>
                           </span>
-                          <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F] text-[11px]">
+                          <span className="bg-white dark:bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#E2D7C3] dark:border-[#1E3A5F] text-[11px]">
                             Material: <strong className="text-[#269CF0]">★ {sess.avgMaterial}</strong>
                           </span>
-                          <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg font-black text-xs">
+                          <span className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg font-black text-xs">
                             Overall: ★ {sess.avgOverall} ({sess.totalReviews} reviews)
                           </span>
                         </div>
                       </div>
 
                       {sess.feedbacks && sess.feedbacks.length > 0 && (
-                        <div className="pt-2 border-t border-[#1E3A5F]/60 space-y-1.5">
-                          <span className="text-[10px] font-bold text-[#8FA4BD] uppercase block">
+                        <div className="pt-2 border-t border-[#E2D7C3] dark:border-[#1E3A5F]/60 space-y-1.5">
+                          <span className="text-[10px] font-bold text-[#64748B] dark:text-[#8FA4BD] uppercase block">
                             Student Reviews for this Lecture ({sess.feedbacks.length}):
                           </span>
                           <div className="space-y-1.5 max-h-40 overflow-y-auto">
                             {sess.feedbacks.map((f: any, fIdx: number) => (
-                              <div key={fIdx} className="p-2.5 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] text-[11px]">
-                                <div className="flex justify-between items-center text-[10px] text-[#8FA4BD] mb-1">
+                              <div key={fIdx} className="p-2.5 rounded-xl bg-white dark:bg-[#0D1D32] border border-[#E2D7C3] dark:border-[#1E3A5F] text-[11px]">
+                                <div className="flex justify-between items-center text-[10px] text-[#64748B] dark:text-[#8FA4BD] mb-1">
                                   <div className="flex items-center gap-1.5 truncate">
-                                    <strong className="text-white font-bold">{f.studentName || "Student"}</strong>
+                                    <strong className="text-[#0F172A] dark:text-white font-bold">{f.studentName || "Student"}</strong>
                                     {f.studentEmail && (
-                                      <span className="text-[9px] text-[#48D5F5] font-mono">({f.studentEmail})</span>
+                                      <span className="text-[9px] text-[#1D6FB8] dark:text-[#48D5F5] font-mono">({f.studentEmail})</span>
                                     )}
                                     {f.instructorName && (
                                       <span className="text-[9px] text-[#E5A93C] bg-[#E5A93C]/10 px-1.5 py-0.2 rounded border border-[#E5A93C]/20">
@@ -1899,11 +1899,11 @@ export default function SessionsPage() {
                                   <div className="flex items-center gap-1.5 font-mono text-[10px]">
                                     <span>Clarity: <strong className="text-[#E5A93C]">★{f.clarity}</strong></span>
                                     <span>Mat: <strong className="text-[#269CF0]">★{f.material}</strong></span>
-                                    <span className="text-emerald-400 font-bold bg-emerald-500/10 px-1.5 rounded">★{f.overall}</span>
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-1.5 rounded">★{f.overall}</span>
                                   </div>
                                 </div>
                                 {f.comment && (
-                                  <p className="text-slate-200 italic mt-0.5">&ldquo;{f.comment}&rdquo;</p>
+                                  <p className="text-slate-700 dark:text-slate-200 italic mt-0.5">&ldquo;{f.comment}&rdquo;</p>
                                 )}
                               </div>
                             ))}

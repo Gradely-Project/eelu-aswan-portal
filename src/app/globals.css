@@ -87,12 +87,19 @@ html.light-mode .bg-\[\#0D1D32\] {
 html.light-mode .bg-\[\#10243C\] {
   background-color: #F3EFE6 !important;
   border-color: #E2D7C3 !important;
+  color: #0F172A !important;
 }
 
 html.light-mode .bg-\[\#0A1628\],
 html.light-mode .bg-\[\#061220\],
 html.light-mode .bg-\[\#0b1728\] {
   background-color: #F8F6F0 !important;
+}
+
+html.light-mode .bg-\[\#050d18\] {
+  background-color: #FFFFFF !important;
+  border-color: #E2D7C3 !important;
+  color: #0F172A !important;
 }
 
 html.light-mode .text-\[\#F5F7FB\] {
@@ -110,6 +117,58 @@ html.light-mode .border-\[\#1E3A5F\] {
 html.light-mode header {
   background-color: #FFFFFF !important;
   border-color: #E2D7C3 !important;
+}
+
+/* In Light Mode, prevent invisible white text on cards and surfaces */
+html.light-mode main .text-white:not(button):not(button *):not(a.bg-blue-600):not(a.bg-blue-600 *):not([class*="bg-blue-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-indigo-"]):not([class*="bg-gradient"]):not([class*="badge"]),
+html.light-mode section .text-white:not(button):not(button *):not([class*="bg-blue-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-gradient"]),
+html.light-mode .bg-\[\#07172A\] .text-white:not(button):not(button *):not([class*="bg-"]),
+html.light-mode .bg-\[\#0D1D32\] .text-white:not(button):not(button *):not([class*="bg-"]),
+html.light-mode .bg-\[\#10243C\] .text-white:not(button):not(button *):not([class*="bg-"]) {
+  color: #0F172A !important;
+}
+
+html.light-mode .text-slate-200,
+html.light-mode .text-slate-300,
+html.light-mode .text-slate-100 {
+  color: #334155 !important;
+}
+
+/* Modals and dialogs in light mode */
+html.light-mode .fixed .bg-\[\#0B1728\],
+html.light-mode .fixed .bg-\[\#0D1D32\],
+html.light-mode .fixed .bg-\[\#07172A\] {
+  background-color: #FFFFFF !important;
+  border-color: #E2D7C3 !important;
+  color: #0F172A !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
+html.light-mode .fixed .bg-\[\#0B1728\] h1,
+html.light-mode .fixed .bg-\[\#0B1728\] h2,
+html.light-mode .fixed .bg-\[\#0B1728\] h3,
+html.light-mode .fixed .bg-\[\#0B1728\] h4,
+html.light-mode .fixed .bg-\[\#0B1728\] h5,
+html.light-mode .fixed .bg-\[\#0D1D32\] h1,
+html.light-mode .fixed .bg-\[\#0D1D32\] h2,
+html.light-mode .fixed .bg-\[\#0D1D32\] h3,
+html.light-mode .fixed .bg-\[\#0D1D32\] h4,
+html.light-mode .fixed .bg-\[\#0D1D32\] h5 {
+  color: #0F172A !important;
+}
+
+/* Form inputs in light mode */
+html.light-mode input:not([type="checkbox"]):not([type="radio"]),
+html.light-mode select,
+html.light-mode textarea {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #D6C8AF !important;
+}
+
+html.light-mode input::placeholder,
+html.light-mode textarea::placeholder {
+  color: #94A3B8 !important;
 }
 
 /* Retain dark navy navigation sidebar for elegant high contrast matching reference */

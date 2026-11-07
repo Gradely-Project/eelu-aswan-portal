@@ -94,7 +94,29 @@ export default function DashboardPage() {
   const [broadcastCategory, setBroadcastCategory] = useState("SCHEDULE");
   const [broadcastTrackId, setBroadcastTrackId] = useState("ALL");
   const [broadcasting, setBroadcasting] = useState(false);
-  const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
+  const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("eelu_tracks_cache");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    fetch("/api/tracks")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.tracks && Array.isArray(d.tracks)) {
+          setTracks(d.tracks);
+          try {
+            localStorage.setItem("eelu_tracks_cache", JSON.stringify(d.tracks));
+          } catch {}
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSendBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();

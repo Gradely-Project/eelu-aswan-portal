@@ -90,6 +90,9 @@ export default function CertificatesPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Recipient Filter: "ALL" | "STUDENTS" | "STAFF"
+  const [recipientFilter, setRecipientFilter] = useState<"ALL" | "STUDENTS" | "STAFF">("ALL");
+
   // Certificate Print / Fullscreen Preview Modal
   const [previewCert, setPreviewCert] = useState<CertificateItem | null>(null);
 
@@ -121,6 +124,26 @@ export default function CertificatesPage() {
   useEffect(() => {
     fetchCertificatesData();
   }, []);
+
+  // Ensure recipient is automatically selected when category or track changes
+  useEffect(() => {
+    if (showIssueModal) {
+      const available = students.filter((st) => {
+        const isInst = st.role === "INSTRUCTOR";
+        if (recipientCategory === "INSTRUCTOR" && !isInst) return false;
+        if (recipientCategory === "STUDENT" && isInst) return false;
+        if (isInst) return st.assignedTrackId === selectedTrackId;
+        return st.enrollments?.some((en) => en.track.id === selectedTrackId);
+      });
+      if (available.length > 0) {
+        if (!selectedStudentId || !available.some((a) => a.id === selectedStudentId)) {
+          setSelectedStudentId(available[0].id);
+        }
+      } else {
+        setSelectedStudentId("");
+      }
+    }
+  }, [recipientCategory, selectedTrackId, students, showIssueModal]);
 
   const handleOpenSignatoriesModal = () => {
     if (signatoriesConfig) {
@@ -312,30 +335,36 @@ export default function CertificatesPage() {
     ctx.lineTo(1330, 770);
     ctx.stroke();
 
-    // 4 Signatures matching Image 1
-    const sigs = [
-      { name: "Mayar Ramadan", role: "Branch Chairwoman", x: 530 },
-      { name: "Mohamed Mahmoud", role: "Vice Supervisor Branch", x: 760 },
-      { name: "Eng. Abdelrahman Mahmoud", role: "Supervisor Branch", x: 1000 },
-      { name: "Prof. Mohamed Nagdy", role: "Center Manager", x: 1230 },
-    ];
+    // Dynamic Signatures (Controlled by Admin Signatories Configuration)
+    const activeSigs = (signatoriesConfig?.certificateSignatories?.filter((s) => s.enabled) || [
+      { name: "Mayar Ramadan", role: "Branch Chairwoman" },
+      { name: "Mohamed Mahmoud", role: "Vice Supervisor Branch" },
+      { name: "Eng. Abdelrahman Mahmoud", role: "Supervisor Branch" },
+      { name: "Prof. Mohamed Nagdy", role: "Center Manager" },
+    ]);
 
-    sigs.forEach((s) => {
+    const numSigs = activeSigs.length;
+    const startX = 460;
+    const endX = 1300;
+    const step = numSigs > 1 ? (endX - startX) / (numSigs - 1) : (endX + startX) / 2;
+
+    activeSigs.forEach((s, idx) => {
+      const posX = numSigs > 1 ? startX + idx * step : step;
       ctx.textAlign = "center";
       ctx.fillStyle = "#0F172A";
       ctx.font = "bold italic 21px Georgia, serif";
-      ctx.fillText(s.name, s.x, 830);
+      ctx.fillText(s.name, posX, 830);
 
-      ctx.strokeStyle = "#94A3B8";
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#C88A1A";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(s.x - 70, 845);
-      ctx.lineTo(s.x + 70, 845);
+      ctx.moveTo(posX - 75, 845);
+      ctx.lineTo(posX + 75, 845);
       ctx.stroke();
 
       ctx.fillStyle = "#64748B";
       ctx.font = "bold 13px Inter, sans-serif";
-      ctx.fillText(s.role, s.x, 875);
+      ctx.fillText(s.role, posX, 875);
     });
 
     // Serial & Issue Date at very bottom
@@ -482,39 +511,74 @@ export default function CertificatesPage() {
             </div>
           )}
 
-          {/* Multi-track Filter Chips (For Execs) */}
-          {userRole !== "INSTRUCTOR" && certificates.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 pb-1">
-              <span className="text-[11px] font-black text-[#8FA4BD] uppercase px-1">
-                Filter Track:
-              </span>
-              <button
-                onClick={() => setFilterTrackId("ALL")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  filterTrackId === "ALL"
-                    ? "bg-[#269CF0] text-white shadow-sm font-black"
-                    : "bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white"
-                }`}
-              >
-                All Tracks ({certificates.length})
-              </button>
-              {tracks.map((t) => {
-                const count = certificates.filter((c) => c.trackId === t.id || c.trackName === t.name).length;
-                if (count === 0 && userRole === "STUDENT") return null;
-                return (
+          {/* Multi-track & Recipient Type Filter Chips */}
+          {certificates.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0D1D32] p-3 rounded-2xl border border-[#1E3A5F]">
+              {/* Recipient Type Filter: Students vs Staff/Heads */}
+              <div className="flex items-center gap-1.5 bg-[#07172A] p-1 rounded-xl border border-[#1E3A5F]">
+                <button
+                  onClick={() => setRecipientFilter("ALL")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    recipientFilter === "ALL"
+                      ? "bg-[#269CF0] text-white font-black shadow-sm"
+                      : "text-[#8FA4BD] hover:text-white"
+                  }`}
+                >
+                  All ({certificates.length})
+                </button>
+                <button
+                  onClick={() => setRecipientFilter("STUDENTS")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    recipientFilter === "STUDENTS"
+                      ? "bg-[#269CF0] text-white font-black shadow-sm"
+                      : "text-[#8FA4BD] hover:text-white"
+                  }`}
+                >
+                  🎓 Students (شهادات الطلبة)
+                </button>
+                <button
+                  onClick={() => setRecipientFilter("STAFF")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    recipientFilter === "STAFF"
+                      ? "bg-[#E5A93C] text-[#07172A] font-black shadow-sm"
+                      : "text-[#8FA4BD] hover:text-white"
+                  }`}
+                >
+                  ⭐ Staff & Leads (شهادات الهيد والفايس)
+                </button>
+              </div>
+
+              {/* Track Selector Filter (For Execs) */}
+              {userRole !== "INSTRUCTOR" && (
+                <div className="flex items-center gap-1.5 overflow-x-auto">
+                  <span className="text-[10px] font-black text-[#8FA4BD] uppercase px-1">
+                    Track:
+                  </span>
                   <button
-                    key={t.id}
-                    onClick={() => setFilterTrackId(t.id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                      filterTrackId === t.id
+                    onClick={() => setFilterTrackId("ALL")}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      filterTrackId === "ALL"
                         ? "bg-[#269CF0] text-white shadow-sm font-black"
-                        : "bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white"
+                        : "text-[#8FA4BD] hover:text-white"
                     }`}
                   >
-                    {t.name} {count > 0 ? `(${count})` : ""}
+                    All Tracks
                   </button>
-                );
-              })}
+                  {tracks.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setFilterTrackId(t.id)}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        filterTrackId === t.id
+                          ? "bg-[#269CF0] text-white shadow-sm font-black"
+                          : "text-[#8FA4BD] hover:text-white"
+                      }`}
+                    >
+                      {t.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -546,71 +610,109 @@ export default function CertificatesPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {certificates
-                .filter((c) => filterTrackId === "ALL" || c.trackId === filterTrackId || c.trackName === filterTrackId)
-                .map((cert) => (
-                  <div
-                    key={cert.id}
-                    className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 shadow-xl hover:border-[#269CF0]/50 transition-all flex flex-col justify-between group"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#269CF0]/15 text-[#48D5F5] border border-[#269CF0]/30">
-                          {cert.trackName}
-                        </span>
-                        <span className="text-[10px] text-[#8FA4BD] font-mono">
-                          {cert.certificateNo}
-                        </span>
+                .filter((c) => {
+                  const matchesTrack =
+                    filterTrackId === "ALL" || c.trackId === filterTrackId || c.trackName === filterTrackId;
+                  if (!matchesTrack) return false;
+
+                  const isInstructor =
+                    students.some((s) => s.id === c.studentId && s.role === "INSTRUCTOR") ||
+                    c.grade?.toLowerCase().includes("leadership") ||
+                    c.grade?.toLowerCase().includes("lead") ||
+                    c.studentName?.toLowerCase().includes("eng.") ||
+                    c.studentEmail?.toLowerCase().includes("head@") ||
+                    c.studentEmail?.toLowerCase().includes("core@");
+
+                  if (recipientFilter === "STUDENTS" && isInstructor) return false;
+                  if (recipientFilter === "STAFF" && !isInstructor) return false;
+
+                  return true;
+                })
+                .map((cert) => {
+                  const isInstructor =
+                    students.some((s) => s.id === cert.studentId && s.role === "INSTRUCTOR") ||
+                    cert.grade?.toLowerCase().includes("leadership") ||
+                    cert.grade?.toLowerCase().includes("lead") ||
+                    cert.studentName?.toLowerCase().includes("eng.") ||
+                    cert.studentEmail?.toLowerCase().includes("head@") ||
+                    cert.studentEmail?.toLowerCase().includes("core@");
+
+                  return (
+                    <div
+                      key={cert.id}
+                      className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 shadow-xl hover:border-[#269CF0]/50 transition-all flex flex-col justify-between group"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#269CF0]/15 text-[#48D5F5] border border-[#269CF0]/30">
+                              {cert.trackName}
+                            </span>
+                            {isInstructor ? (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30">
+                                ⭐ Staff / Lead
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                🎓 Student
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-[#8FA4BD] font-mono">
+                            {cert.certificateNo}
+                          </span>
+                        </div>
+
+                        <h3 className="text-xl font-black text-[#F5F7FB] mb-1 group-hover:text-[#269CF0] transition-colors">
+                          {cert.studentName}
+                        </h3>
+                        <p className="text-xs text-[#8FA4BD] mb-4">
+                          Specialized Bootcamp Graduation Certificate • Rating: <strong className="text-[#E5A93C]">{cert.grade}</strong>
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-3 py-3 border-y border-[#1E3A5F] text-xs">
+                          <div>
+                            <span className="text-[10px] font-bold text-[#8FA4BD] block">Issue Date</span>
+                            <span className="font-mono text-white text-[11px]">{cert.issueDate}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-[#8FA4BD] block">Certification Authority</span>
+                            <span className="text-[#48D5F5] font-bold text-[11px]">EELU Aswan Branch</span>
+                          </div>
+                        </div>
                       </div>
 
-                      <h3 className="text-xl font-black text-[#F5F7FB] mb-1 group-hover:text-[#269CF0] transition-colors">
-                        {cert.studentName}
-                      </h3>
-                      <p className="text-xs text-[#8FA4BD] mb-4">
-                        Specialized Bootcamp Graduation Certificate • Rating: <strong className="text-[#E5A93C]">{cert.grade}</strong>
-                      </p>
+                      <div className="pt-4 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setPreviewCert(cert)}
+                            className="px-4 py-2 rounded-xl bg-[#07172A] hover:bg-[#1E3A5F] text-[#F5F7FB] border border-[#1E3A5F] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-[#269CF0]" />
+                            Preview
+                          </button>
+                          <button
+                            onClick={() => handleDownloadPNG(cert)}
+                            className="px-4 py-2 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white text-xs font-black flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            Download PNG
+                          </button>
+                        </div>
 
-                      <div className="grid grid-cols-2 gap-3 py-3 border-y border-[#1E3A5F] text-xs">
-                        <div>
-                          <span className="text-[10px] font-bold text-[#8FA4BD] block">Issue Date</span>
-                          <span className="font-mono text-white text-[11px]">{cert.issueDate}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold text-[#8FA4BD] block">Certification Authority</span>
-                          <span className="text-[#48D5F5] font-bold text-[11px]">EELU Aswan Branch</span>
-                        </div>
+                        {isExec && (
+                          <button
+                            onClick={() => handleRevoke(cert.id, cert.studentName)}
+                            className="p-2 rounded-xl text-[#8FA4BD] hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            title="Revoke Certificate"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
-
-                    <div className="pt-4 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setPreviewCert(cert)}
-                          className="px-4 py-2 rounded-xl bg-[#07172A] hover:bg-[#1E3A5F] text-[#F5F7FB] border border-[#1E3A5F] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5 text-[#269CF0]" />
-                          Preview
-                        </button>
-                        <button
-                          onClick={() => handleDownloadPNG(cert)}
-                          className="px-4 py-2 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white text-xs font-black flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          Download PNG
-                        </button>
-                      </div>
-
-                      {isExec && (
-                        <button
-                          onClick={() => handleRevoke(cert.id, cert.studentName)}
-                          className="p-2 rounded-xl text-[#8FA4BD] hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                          title="Revoke Certificate"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           )}
         </main>
@@ -691,8 +793,11 @@ export default function CertificatesPage() {
                   onChange={(e) => setSelectedStudentId(e.target.value)}
                   className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
                 >
+                  <option value="" disabled>
+                    -- Select {recipientCategory === "INSTRUCTOR" ? "Instructor / Head" : "Student"} --
+                  </option>
                   {filteredRecipients.length === 0 ? (
-                    <option value="">
+                    <option value="" disabled>
                       No {recipientCategory === "INSTRUCTOR" ? "instructors" : "enrolled students"} found in this track
                     </option>
                   ) : (
@@ -807,9 +912,24 @@ export default function CertificatesPage() {
                   <span className="text-[10px] text-[#E5A93C] font-bold tracking-wider uppercase">Student Branch</span>
                 </div>
 
-                {/* Center Track Icon */}
-                <div className="my-6 p-4 rounded-2xl bg-[#0D1D32] border border-[#E5A93C]/40 text-[#E5A93C] shadow-lg">
-                  <Sparkles className="w-12 h-12" />
+                {/* Center Track High-Tech Brain & Circuit Icon matching Image 1 */}
+                <div className="my-6 p-4 rounded-3xl bg-[#0D1D32] border-2 border-[#E5A93C]/60 text-[#E5A93C] shadow-xl flex items-center justify-center relative">
+                  <svg className="w-16 h-16 text-[#E5A93C]" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Brain Outline with Circuit Paths */}
+                    <path d="M26 12C20 12 16 16 16 22C16 25 18 28 18 32C18 36 15 40 15 44C15 50 20 54 26 54C28 54 30 52 32 50C34 52 36 54 38 54C44 54 49 50 49 44C49 40 46 36 46 32C46 28 48 25 48 22C48 16 44 12 38 12C36 12 34 13 32 15C30 13 28 12 26 12Z" stroke="#E5A93C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <line x1="32" y1="15" x2="32" y2="49" stroke="#E5A93C" strokeWidth="2" strokeDasharray="3 3" />
+                    {/* Circuit Nodes */}
+                    <circle cx="24" cy="24" r="3" fill="#E5A93C" />
+                    <circle cx="40" cy="24" r="3" fill="#E5A93C" />
+                    <circle cx="22" cy="36" r="3" fill="#E5A93C" />
+                    <circle cx="42" cy="36" r="3" fill="#E5A93C" />
+                    <circle cx="28" cy="46" r="3" fill="#E5A93C" />
+                    <circle cx="36" cy="46" r="3" fill="#E5A93C" />
+                    {/* Interconnecting traces */}
+                    <path d="M24 24L32 28L40 24" stroke="#E5A93C" strokeWidth="1.5" />
+                    <path d="M22 36L32 36L42 36" stroke="#E5A93C" strokeWidth="1.5" />
+                    <path d="M28 46L32 42L36 46" stroke="#E5A93C" strokeWidth="1.5" />
+                  </svg>
                 </div>
 
                 {/* Bottom Track Name */}
@@ -860,35 +980,21 @@ export default function CertificatesPage() {
                   Thank you for your commitment, curiosity, and active participation.
                 </p>
 
-                {/* 4 Official Signatures matching Reference 1 */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-slate-200 mt-6 text-xs">
-                  <div className="text-center">
-                    <span className="font-serif italic font-bold text-slate-800 text-sm block mb-1 font-mono underline decoration-slate-300">
-                      Mayar Ramadan
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase block">Branch Chairwoman</span>
-                  </div>
-
-                  <div className="text-center">
-                    <span className="font-serif italic font-bold text-slate-800 text-sm block mb-1 font-mono underline decoration-slate-300">
-                      Mohamed Mahmoud
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase block">Vice Supervisor Branch</span>
-                  </div>
-
-                  <div className="text-center">
-                    <span className="font-serif italic font-bold text-slate-800 text-sm block mb-1 font-mono underline decoration-slate-300">
-                      Eng. Abdelrahman Mahmoud
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase block">Supervisor Branch</span>
-                  </div>
-
-                  <div className="text-center">
-                    <span className="font-serif italic font-bold text-slate-800 text-sm block mb-1 font-mono underline decoration-slate-300">
-                      Prof. Mohamed Nagdy
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase block">Center Manager</span>
-                  </div>
+                {/* Dynamic Official Signatures matching Reference 1 */}
+                <div className="flex flex-wrap items-center justify-around gap-4 pt-6 border-t border-slate-200 mt-6 text-xs">
+                  {(signatoriesConfig?.certificateSignatories?.filter((s) => s.enabled) || [
+                    { name: "Mayar Ramadan", role: "Branch Chairwoman" },
+                    { name: "Mohamed Mahmoud", role: "Vice Supervisor Branch" },
+                    { name: "Eng. Abdelrahman Mahmoud", role: "Supervisor Branch" },
+                    { name: "Prof. Mohamed Nagdy", role: "Center Manager" },
+                  ]).map((sig, sIdx) => (
+                    <div key={sIdx} className="text-center min-w-[130px]">
+                      <span className="font-serif italic font-bold text-slate-800 text-sm block mb-1 font-mono underline decoration-slate-300">
+                        {sig.name}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-bold uppercase block">{sig.role}</span>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Serial Footer */}
@@ -898,12 +1004,29 @@ export default function CertificatesPage() {
                 </div>
               </div>
 
-              {/* Right Column: Dark Navy Tech Pillar with Badge */}
-              <div className="w-28 bg-[#07172A] rounded-l-[3.5rem] p-4 hidden lg:flex flex-col items-center justify-center border-l-4 border-[#C88A1A] text-[#E5A93C] relative shadow-inner">
-                <div className="w-14 h-14 rounded-2xl border-2 border-[#E5A93C] bg-[#0B1A2D] flex items-center justify-center font-black font-mono text-sm shadow-lg">
-                  {previewCert.trackName.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "ACC"}
+              {/* Right Column: Dark Navy Tech Pillar with Cyber Circuit Graphics matching Image 1 */}
+              <div className="w-32 bg-[#07172A] rounded-l-[3.5rem] p-4 hidden lg:flex flex-col items-center justify-between border-l-4 border-[#C88A1A] text-[#E5A93C] relative shadow-inner overflow-hidden py-8">
+                {/* Tech chip top icon */}
+                <div className="w-8 h-8 rounded-lg border border-[#E5A93C]/40 flex items-center justify-center text-[10px] font-mono text-[#E5A93C] mb-2 opacity-80">
+                  ⚡
                 </div>
-                <span className="text-[9px] text-[#8FA4BD] font-mono uppercase mt-2">Verified</span>
+
+                {/* Central Cyber Chip with Glowing Track Code */}
+                <div className="relative my-auto flex flex-col items-center">
+                  <div className="w-16 h-16 rounded-2xl border-2 border-[#E5A93C] bg-[#0B1A2D] flex items-center justify-center font-black font-mono text-base shadow-xl text-[#E5A93C] z-10">
+                    {previewCert.trackName.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "ENG"}
+                  </div>
+                  {/* Decorative Circuit Traces radiating */}
+                  <div className="w-1 h-6 bg-gradient-to-b from-[#E5A93C] to-transparent my-1" />
+                  <span className="text-[9px] font-black tracking-widest text-[#E5A93C] uppercase font-mono">
+                    VERIFIED
+                  </span>
+                </div>
+
+                {/* Cyber network nodes at bottom */}
+                <div className="text-[10px] text-slate-500 font-mono tracking-tighter opacity-70">
+                  &lt;/&gt; 2026
+                </div>
               </div>
             </div>
           </div>
@@ -975,6 +1098,87 @@ export default function CertificatesPage() {
                   />
                 </div>
               )}
+
+              {/* Dynamic Signatories List Editor (User requested ability to customize/change signatures) */}
+              <div className="space-y-3 pt-3 border-t border-[#1E3A5F]">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[#E5A93C] uppercase tracking-wider block">
+                    Certificate Signatories (الموقعون المعتمدون على الشهادة)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextOrder = (editingConfig.certificateSignatories?.length || 0) + 1;
+                      setEditingConfig({
+                        ...editingConfig,
+                        certificateSignatories: [
+                          ...(editingConfig.certificateSignatories || []),
+                          { name: "", role: "", order: nextOrder, enabled: true },
+                        ],
+                      });
+                    }}
+                    className="text-[11px] font-bold text-[#48D5F5] hover:underline cursor-pointer"
+                  >
+                    + Add Signatory
+                  </button>
+                </div>
+
+                <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                  {(editingConfig.certificateSignatories || []).map((sig, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 bg-[#07172A] rounded-xl border border-[#1E3A5F] flex items-center gap-2"
+                    >
+                      <input
+                        type="text"
+                        placeholder="Signatory Name (e.g. Mayar Ramadan)"
+                        value={sig.name}
+                        onChange={(e) => {
+                          const copy = [...editingConfig.certificateSignatories];
+                          copy[idx].name = e.target.value;
+                          setEditingConfig({ ...editingConfig, certificateSignatories: copy });
+                        }}
+                        className="flex-1 bg-[#0B1A2D] border border-[#1E3A5F] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#E5A93C]"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Title / Role (e.g. Branch Chairwoman)"
+                        value={sig.role}
+                        onChange={(e) => {
+                          const copy = [...editingConfig.certificateSignatories];
+                          copy[idx].role = e.target.value;
+                          setEditingConfig({ ...editingConfig, certificateSignatories: copy });
+                        }}
+                        className="flex-1 bg-[#0B1A2D] border border-[#1E3A5F] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#E5A93C]"
+                      />
+                      <label className="flex items-center gap-1 text-[10px] text-[#8FA4BD] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={sig.enabled}
+                          onChange={(e) => {
+                            const copy = [...editingConfig.certificateSignatories];
+                            copy[idx].enabled = e.target.checked;
+                            setEditingConfig({ ...editingConfig, certificateSignatories: copy });
+                          }}
+                          className="rounded border-[#1E3A5F]"
+                        />
+                        <span>Active</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const copy = editingConfig.certificateSignatories.filter((_, i) => i !== idx);
+                          setEditingConfig({ ...editingConfig, certificateSignatories: copy });
+                        }}
+                        className="p-1 text-[#8FA4BD] hover:text-rose-400"
+                        title="Remove Signatory"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               <div className="pt-3 border-t border-[#1E3A5F] flex justify-end gap-2">
                 <button

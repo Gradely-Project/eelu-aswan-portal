@@ -93,7 +93,8 @@ export async function GET(req: Request) {
 
         return {
           id: st.id,
-          name: `${st.name} (${trackNames})`,
+          name: st.name,
+          trackName: trackNames,
           email: st.email,
           phone: st.phone || "-",
           college: st.college || "-",

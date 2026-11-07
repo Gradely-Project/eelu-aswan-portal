@@ -418,22 +418,18 @@ export default function LandingPage() {
           
           {/* Left Column: Slogans & Mission (lg:col-span-7) */}
           <div className="lg:col-span-7 flex flex-col justify-center text-left">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0D1D32]/90 border border-[#269CF0]/30 text-[#48D5F5] text-xs font-bold mb-6 w-fit shadow-lg shadow-[#269CF0]/5 backdrop-blur-md">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0D1D32]/90 border border-[#269CF0]/30 text-[#48D5F5] text-xs font-bold mb-6 w-fit shadow-lg shadow-[#269CF0]/5 backdrop-blur-md">
               <Sparkles className="w-3.5 h-3.5 text-[#E5A93C]" />
-              <span>Official Academic Season 2026</span>
-              <span className="text-[#1E3A5F]">•</span>
-              <span className="text-[#8FA4BD]">
-                {tracks.length > 0 ? `${tracks.length} Training Tracks` : "Intensive Training Tracks"}
-              </span>
+              <span>Official Academic Season 2025 – 2026</span>
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.05] mb-5">
-              Learn.<br />
-              <span className="bg-gradient-to-r from-white via-[#E8F0FA] to-[#9AB3D1] bg-clip-text text-transparent">Build.</span><br />
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] mb-5">
+              <span className="text-[#07172A] dark:text-white">Learn.</span><br />
+              <span className="text-[#C88A1A] dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:via-[#E8F0FA] dark:to-[#9AB3D1]">Build.</span><br />
               <span className="bg-gradient-to-r from-[#269CF0] via-[#48D5F5] to-[#269CF0] bg-clip-text text-transparent">Compete.</span>
             </h1>
 
-            <p className="text-sm sm:text-base text-[#8FA4BD] leading-relaxed font-medium mb-8 max-w-xl">
+            <p className="text-sm sm:text-base text-[#475569] dark:text-[#8FA4BD] leading-relaxed font-medium mb-8 max-w-xl">
               Build high-impact engineering skills through intensive bootcamps, hands-on projects, and practical training designed for industry readiness.
             </p>
 
@@ -460,23 +456,23 @@ export default function LandingPage() {
             {/* Ambient card aura */}
             <div className="absolute -inset-1 bg-gradient-to-r from-[#269CF0]/20 via-[#48D5F5]/10 to-[#E5A93C]/20 rounded-3xl blur-xl opacity-75 pointer-events-none -z-10" />
 
-            <div className="w-full bg-[#0B1728]/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 border border-[#1E3A5F]/80 shadow-2xl relative overflow-hidden">
+            <div className="w-full bg-white dark:bg-[#0B1728]/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 border border-[#E2D7C3] dark:border-[#1E3A5F]/80 shadow-2xl relative overflow-hidden">
               {/* Card top edge highlight line */}
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#269CF0] to-transparent opacity-80" />
 
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-2xl font-black text-[#F5F7FB]">Welcome Back</h2>
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#269CF0]/15 text-[#48D5F5] border border-[#269CF0]/30 shadow-sm flex items-center gap-1">
+                <h2 className="text-2xl font-black text-[#0F172A] dark:text-[#F5F7FB]">Welcome Back</h2>
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#269CF0]/15 text-[#1D6FB8] dark:text-[#48D5F5] border border-[#269CF0]/30 shadow-sm flex items-center gap-1">
                   <Lock className="w-3 h-3" />
                   Secure Access
                 </span>
               </div>
-              <p className="text-xs text-[#8FA4BD] mb-5 font-medium">
+              <p className="text-xs text-[#64748B] dark:text-[#8FA4BD] mb-5 font-medium">
                 Sign in to access your track dashboard, sessions, and tasks.
               </p>
 
               {error && (
-                <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-start gap-2">
+                <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>{error}</span>
                 </div>
@@ -484,40 +480,40 @@ export default function LandingPage() {
 
               <form onSubmit={handleSignIn} className="space-y-4 text-left">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#8FA4BD] uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] font-bold text-[#475569] dark:text-[#8FA4BD] uppercase tracking-wider mb-1.5">
                     Email Address
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-[#8FA4BD] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Mail className="w-4 h-4 text-[#64748B] dark:text-[#8FA4BD] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="student@eelu.edu.eg"
-                      className="w-full bg-[#050d18] border border-[#1E3A5F] rounded-xl pl-10 pr-4 py-3 text-xs text-[#F5F7FB] placeholder-[#8FA4BD]/50 focus:outline-none focus:border-[#269CF0] focus:ring-1 focus:ring-[#269CF0]/40 transition-all shadow-inner"
+                      className="w-full bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] rounded-xl pl-10 pr-4 py-3 text-xs text-[#0F172A] dark:text-[#F5F7FB] placeholder-[#94A3B8] dark:placeholder-[#8FA4BD]/50 focus:outline-none focus:border-[#269CF0] focus:ring-1 focus:ring-[#269CF0]/40 transition-all shadow-inner"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-[#8FA4BD] uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] font-bold text-[#475569] dark:text-[#8FA4BD] uppercase tracking-wider mb-1.5">
                     Password
                   </label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-[#8FA4BD] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Lock className="w-4 h-4 text-[#64748B] dark:text-[#8FA4BD] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type={showPassword ? "text" : "password"}
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full bg-[#050d18] border border-[#1E3A5F] rounded-xl pl-10 pr-10 py-3 text-xs text-[#F5F7FB] placeholder-[#8FA4BD]/50 focus:outline-none focus:border-[#269CF0] focus:ring-1 focus:ring-[#269CF0]/40 transition-all shadow-inner"
+                      className="w-full bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] rounded-xl pl-10 pr-10 py-3 text-xs text-[#0F172A] dark:text-[#F5F7FB] placeholder-[#94A3B8] dark:placeholder-[#8FA4BD]/50 focus:outline-none focus:border-[#269CF0] focus:ring-1 focus:ring-[#269CF0]/40 transition-all shadow-inner"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8FA4BD] hover:text-[#48D5F5] transition-colors cursor-pointer"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B] dark:text-[#8FA4BD] hover:text-[#269CF0] transition-colors cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -534,29 +530,29 @@ export default function LandingPage() {
                 </button>
               </form>
 
-              <div className="mt-4 pt-3 text-center text-xs text-[#8FA4BD] border-t border-[#1E3A5F]/50">
+              <div className="mt-4 pt-3 text-center text-xs text-[#64748B] dark:text-[#8FA4BD] border-t border-[#E2D7C3] dark:border-[#1E3A5F]/50">
                 New student without an account?{" "}
                 <Link
                   href="/register"
-                  className="text-[#269CF0] hover:text-[#48D5F5] font-black underline ml-1"
+                  className="text-[#1D6FB8] dark:text-[#269CF0] hover:underline font-black ml-1"
                 >
                   Apply for admission
                 </Link>
               </div>
 
               {/* Fast 1-Click Fast Demo Login */}
-              <div className="mt-5 pt-4 border-t border-[#1E3A5F]/60">
+              <div className="mt-5 pt-4 border-t border-[#E2D7C3] dark:border-[#1E3A5F]/60">
                 <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-[10px] font-black text-[#8FA4BD] uppercase tracking-wider">
+                  <span className="text-[10px] font-black text-[#64748B] dark:text-[#8FA4BD] uppercase tracking-wider">
                     ⚡ 1-Click Fast Demo Login
                   </span>
-                  <span className="text-[10px] text-[#48D5F5] font-mono">Instant Fill</span>
+                  <span className="text-[10px] text-[#1D6FB8] dark:text-[#48D5F5] font-mono font-bold">Instant Fill</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setDemoCredentials("admin@branch.org", "admin123")}
-                    className="p-2.5 rounded-xl bg-[#050d18] border border-[#1E3A5F] hover:border-rose-500/60 text-[11px] font-bold text-[#8FA4BD] hover:text-white hover:bg-rose-500/5 transition-all flex items-center justify-center gap-2 cursor-pointer group"
+                    className="p-2.5 rounded-xl bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-rose-500/60 text-[11px] font-bold text-[#334155] dark:text-[#8FA4BD] hover:text-rose-600 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer group"
                   >
                     <span className="w-2 h-2 rounded-full bg-rose-500 group-hover:animate-ping" />
                     <span>👑 Main Admin</span>
@@ -564,7 +560,7 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={() => setDemoCredentials("chair@branch.org", "chair123")}
-                    className="p-2.5 rounded-xl bg-[#050d18] border border-[#1E3A5F] hover:border-amber-500/60 text-[11px] font-bold text-[#8FA4BD] hover:text-white hover:bg-amber-500/5 transition-all flex items-center justify-center gap-2 cursor-pointer group"
+                    className="p-2.5 rounded-xl bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-amber-500/60 text-[11px] font-bold text-[#334155] dark:text-[#8FA4BD] hover:text-amber-600 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer group"
                   >
                     <span className="w-2 h-2 rounded-full bg-amber-500 group-hover:animate-ping" />
                     <span>🎖️ Chairperson</span>
@@ -572,7 +568,7 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={() => setDemoCredentials("web.head@branch.org", "head123")}
-                    className="p-2.5 rounded-xl bg-[#050d18] border border-[#1E3A5F] hover:border-cyan-500/60 text-[11px] font-bold text-[#8FA4BD] hover:text-white hover:bg-cyan-500/5 transition-all flex items-center justify-center gap-2 cursor-pointer group"
+                    className="p-2.5 rounded-xl bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-cyan-500/60 text-[11px] font-bold text-[#334155] dark:text-[#8FA4BD] hover:text-cyan-600 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer group"
                   >
                     <span className="w-2 h-2 rounded-full bg-cyan-500 group-hover:animate-ping" />
                     <span>💻 Web Head</span>
@@ -580,7 +576,7 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={() => setDemoCredentials("ahmed@student.com", "student123")}
-                    className="p-2.5 rounded-xl bg-[#050d18] border border-[#1E3A5F] hover:border-emerald-500/60 text-[11px] font-bold text-[#8FA4BD] hover:text-white hover:bg-emerald-500/5 transition-all flex items-center justify-center gap-2 cursor-pointer group"
+                    className="p-2.5 rounded-xl bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-emerald-500/60 text-[11px] font-bold text-[#334155] dark:text-[#8FA4BD] hover:text-emerald-600 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer group"
                   >
                     <span className="w-2 h-2 rounded-full bg-emerald-500 group-hover:animate-ping" />
                     <span>🎓 Student (Ahmed)</span>
@@ -594,22 +590,22 @@ export default function LandingPage() {
       </section>
 
       {/* Bootcamps & Track Overview Section */}
-      <section id="tracks-section" className="px-4 sm:px-6 lg:px-8 py-16 max-w-7xl mx-auto w-full border-t border-[#1E3A5F]/40 scroll-mt-20">
+      <section id="tracks-section" className="px-4 sm:px-6 lg:px-8 py-16 max-w-7xl mx-auto w-full border-t border-[#E2D7C3] dark:border-[#1E3A5F]/40 scroll-mt-20">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
           <div>
-            <span className="text-xs font-bold text-[#269CF0] uppercase tracking-wider block mb-1">
+            <span className="text-xs font-bold text-[#1D6FB8] dark:text-[#269CF0] uppercase tracking-wider block mb-1">
               OUR BOOTCAMPS
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#F5F7FB]">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#0F172A] dark:text-[#F5F7FB]">
               Choose Your Technical Path
             </h2>
-            <p className="text-xs sm:text-sm text-[#8FA4BD] mt-1 max-w-xl">
+            <p className="text-xs sm:text-sm text-[#64748B] dark:text-[#8FA4BD] mt-1 max-w-xl">
               Each track is led by an official four-student instruction team (Head, Vice Head, and two Core Instructors) with hands-on workshops and real evaluations.
             </p>
           </div>
           <Link
             href="/register"
-            className="px-6 py-3 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-bold text-xs shadow-md transition-all self-start sm:self-auto flex items-center gap-2"
+            className="px-6 py-3 rounded-xl bg-[#1D6FB8] hover:bg-[#155b96] dark:bg-[#269CF0] dark:hover:bg-[#1E82CB] text-white font-bold text-xs shadow-md transition-all self-start sm:self-auto flex items-center gap-2"
           >
             Register for a Track
             <ArrowRight className="w-4 h-4" />
@@ -619,10 +615,10 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {!tracksLoaded ? (
             [1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-56 bg-[#0D1D32] rounded-3xl animate-pulse border border-[#1E3A5F]/60" />
+              <div key={i} className="h-56 bg-white dark:bg-[#0D1D32] rounded-3xl animate-pulse border border-[#E2D7C3] dark:border-[#1E3A5F]/60" />
             ))
           ) : dynamicTracks.length === 0 ? (
-            <div className="col-span-full py-12 text-center text-[#8FA4BD] bg-[#0D1D32] border border-[#1E3A5F] rounded-2xl">
+            <div className="col-span-full py-12 text-center text-[#64748B] dark:text-[#8FA4BD] bg-white dark:bg-[#0D1D32] border border-[#E2D7C3] dark:border-[#1E3A5F] rounded-2xl">
               No active training tracks currently available.
             </div>
           ) : (
@@ -638,7 +634,7 @@ export default function LandingPage() {
             return (
               <div
                 key={trk.id || trk.name}
-                className={`bg-[#0D1D32] rounded-3xl p-6 border ${theme.cardBorder} transition-all group flex flex-col justify-between hover:-translate-y-1.5 shadow-xl`}
+                className={`bg-white dark:bg-[#0D1D32] rounded-3xl p-6 border border-[#E2D7C3] dark:${theme.cardBorder} transition-all group flex flex-col justify-between hover:-translate-y-1.5 shadow-lg shadow-black/5 dark:shadow-xl`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -655,18 +651,18 @@ export default function LandingPage() {
                   <h3 className={`text-xl font-black bg-gradient-to-r ${theme.titleGradient} bg-clip-text text-transparent mb-1 transition-all`}>
                     {trk.name}
                   </h3>
-                  <span className="text-[10px] font-bold text-[#8FA4BD] tracking-wider uppercase block mb-3">
+                  <span className="text-[10px] font-bold text-[#64748B] dark:text-[#8FA4BD] tracking-wider uppercase block mb-3">
                     BOOTCAMP TRACK
                   </span>
-                  <p className="text-xs text-[#8FA4BD] font-medium leading-relaxed mb-6">
+                  <p className="text-xs text-[#64748B] dark:text-[#8FA4BD] font-medium leading-relaxed mb-6">
                     {description}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-[#1E3A5F]/70 flex items-center justify-between text-xs text-[#8FA4BD]">
+                <div className="pt-4 border-t border-[#E2D7C3] dark:border-[#1E3A5F]/70 flex items-center justify-between text-xs text-[#64748B] dark:text-[#8FA4BD]">
                   <div className="flex items-center gap-3">
                     <span className="flex items-center gap-1 text-[11px]">
-                      <Clock className="w-3.5 h-3.5 text-[#269CF0]" />
+                      <Clock className="w-3.5 h-3.5 text-[#1D6FB8] dark:text-[#269CF0]" />
                       {duration}
                     </span>
                     <span>•</span>
@@ -674,7 +670,7 @@ export default function LandingPage() {
                   </div>
                   <Link
                     href="/register"
-                    className="p-1.5 rounded-lg bg-[#07172A] text-[#48D5F5] group-hover:bg-[#269CF0] group-hover:text-white transition-colors"
+                    className="p-1.5 rounded-lg bg-[#F8F6F0] dark:bg-[#07172A] text-[#1D6FB8] dark:text-[#48D5F5] hover:bg-[#269CF0] hover:text-white transition-colors border border-[#E2D7C3] dark:border-transparent"
                   >
                     <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -686,22 +682,22 @@ export default function LandingPage() {
       </section>
 
       {/* Dedicated Branch Governance Board Section */}
-      <section id="governance-section" className="px-4 sm:px-6 lg:px-8 py-16 max-w-7xl mx-auto w-full border-t border-[#1E3A5F]/40 scroll-mt-20">
+      <section id="governance-section" className="px-4 sm:px-6 lg:px-8 py-16 max-w-7xl mx-auto w-full border-t border-[#E2D7C3] dark:border-[#1E3A5F]/40 scroll-mt-20">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5A93C]/10 border border-[#E5A93C]/30 text-[#E5A93C] text-[11px] font-black uppercase mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C88A1A]/10 border border-[#C88A1A]/30 text-[#C88A1A] dark:text-[#E5A93C] text-[11px] font-black uppercase mb-2">
               <Crown className="w-3.5 h-3.5" />
               CAMPUS GOVERNANCE & ACADEMIC SUPERVISION
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#F5F7FB]">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#0F172A] dark:text-[#F5F7FB]">
               Branch Leadership Board
             </h2>
-            <p className="text-xs sm:text-sm text-[#8FA4BD] mt-1 max-w-xl">
+            <p className="text-xs sm:text-sm text-[#64748B] dark:text-[#8FA4BD] mt-1 max-w-xl">
               Official faculty and executive leadership overseeing track quality, academic standards, and transparent assessment.
             </p>
           </div>
-          <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 flex items-center gap-1.5 self-start sm:self-auto">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 flex items-center gap-1.5 self-start sm:self-auto">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             OFFICIALLY ACCREDITED
           </span>
         </div>
@@ -713,27 +709,27 @@ export default function LandingPage() {
             return (
               <div
                 key={leader.id || index}
-                className="w-full sm:w-[280px] lg:w-[290px] bg-gradient-to-b from-[#0D1D32] to-[#091524] rounded-3xl p-6 border border-[#1E3A5F] hover:border-[#E5A93C]/70 transition-all duration-300 group flex flex-col justify-between hover:-translate-y-1.5 shadow-xl hover:shadow-[#E5A93C]/10"
+                className="w-full sm:w-[280px] lg:w-[290px] bg-white dark:bg-gradient-to-b dark:from-[#0D1D32] dark:to-[#091524] rounded-3xl p-6 border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-[#C88A1A] transition-all duration-300 group flex flex-col justify-between hover:-translate-y-1.5 shadow-lg shadow-black/5 dark:shadow-xl dark:hover:shadow-[#E5A93C]/10"
               >
                 <div>
-                  <div className="w-12 h-12 rounded-2xl bg-[#07172A] border border-[#1E3A5F] group-hover:border-[#E5A93C]/50 flex items-center justify-center text-[#E5A93C] mb-4 transition-colors shadow-inner">
+                  <div className="w-12 h-12 rounded-2xl bg-[#F8F6F0] dark:bg-[#07172A] border border-[#E2D7C3] dark:border-[#1E3A5F] group-hover:border-[#C88A1A]/50 flex items-center justify-center text-[#C88A1A] dark:text-[#E5A93C] mb-4 transition-colors shadow-inner">
                     <LeaderIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
                   </div>
-                  <h3 className="text-base font-black text-[#F5F7FB] mb-1 group-hover:text-[#E5A93C] transition-colors">
+                  <h3 className="text-base font-black text-[#0F172A] dark:text-[#F5F7FB] mb-1 group-hover:text-[#C88A1A] transition-colors">
                     {leader.name}
                   </h3>
-                  <div className="text-xs font-black text-[#E5A93C] uppercase tracking-wide leading-snug mb-2">
+                  <div className="text-xs font-black text-[#C88A1A] dark:text-[#E5A93C] uppercase tracking-wide leading-snug mb-2">
                     {leader.roleTitle}
                   </div>
                   {leader.affiliation && (
-                    <p className="text-[11px] text-[#8FA4BD] font-medium leading-relaxed">
+                    <p className="text-[11px] text-[#64748B] dark:text-[#8FA4BD] font-medium leading-relaxed">
                       {leader.affiliation}
                     </p>
                   )}
                 </div>
 
-                <div className="pt-4 mt-4 border-t border-[#1E3A5F]/70 flex items-center justify-between text-[10px] text-[#8FA4BD]">
-                  <span className="font-mono uppercase font-bold text-[#8FA4BD]/80">EELU ASWAN</span>
+                <div className="pt-4 mt-4 border-t border-[#E2D7C3] dark:border-[#1E3A5F]/70 flex items-center justify-between text-[10px] text-[#64748B] dark:text-[#8FA4BD]">
+                  <span className="font-mono uppercase font-bold text-[#64748B]/80 dark:text-[#8FA4BD]/80">EELU ASWAN</span>
                   {leader.contactLink ? (
                     <a
                       href={
@@ -745,15 +741,15 @@ export default function LandingPage() {
                       }
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#269CF0]/15 hover:bg-[#269CF0] text-[#48D5F5] hover:text-white border border-[#269CF0]/30 font-bold text-[10px] transition-all cursor-pointer shadow-sm group-hover:border-[#269CF0]"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1D6FB8]/10 dark:bg-[#269CF0]/15 hover:bg-[#1D6FB8] dark:hover:bg-[#269CF0] text-[#1D6FB8] dark:text-[#48D5F5] hover:text-white border border-[#1D6FB8]/30 dark:border-[#269CF0]/30 font-bold text-[10px] transition-all cursor-pointer shadow-sm"
                       title="تواصل مباشر مع عضو القيادة"
                     >
-                      <MessageCircle className="w-3 h-3 text-[#269CF0] group-hover:text-white" />
+                      <MessageCircle className="w-3 h-3 text-[#1D6FB8] dark:text-[#269CF0] group-hover:text-white" />
                       <span>Contact Me</span>
                     </a>
                   ) : (
-                    <span className="text-emerald-400 font-bold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       Active
                     </span>
                   )}

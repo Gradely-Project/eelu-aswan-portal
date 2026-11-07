@@ -62,17 +62,17 @@ export default function AswanBrand({
       {/* 2. Bottom Row: The wordmark 'AswaN' tightly grouped as one cohesive word */}
       <div className="flex items-baseline justify-center select-none leading-none tracking-normal">
         {/* Capital 'A' in Nubian Golden Amber */}
-        <span className="font-black text-xs sm:text-[13px] text-amber-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+        <span className="font-black text-xs sm:text-[13px] text-amber-500 dark:text-amber-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">
           A
         </span>
 
         {/* Lowercase 'swa' in Pure Contrast */}
-        <span className="font-black text-xs sm:text-[13px] text-[#F5F7FB] px-[0.5px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] group-hover:text-amber-100 transition-colors">
+        <span className="font-black text-xs sm:text-[13px] text-[#0F172A] dark:text-[#F5F7FB] px-[0.5px] transition-colors">
           swa
         </span>
 
         {/* Capital 'N' in Nubian Golden Amber */}
-        <span className="font-black text-xs sm:text-[13px] text-amber-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+        <span className="font-black text-xs sm:text-[13px] text-amber-500 dark:text-amber-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">
           N
         </span>
       </div>

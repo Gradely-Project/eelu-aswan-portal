@@ -13,8 +13,10 @@ const DEFAULT_CONFIG = {
     { name: "Prof. Dr. Ahmed El-Sayed", role: "Academic Branch Supervisor", order: 3, enabled: true },
   ],
   certificateSignatories: [
-    { name: "Eng. Abdelrahman Mahmoud", role: "Software Engineer & Branch Supervisor", order: 1, enabled: true },
-    { name: "EELU Aswan Branch Board", role: "Executive Branch Leadership", order: 2, enabled: true },
+    { name: "Mayar Ramadan", role: "Branch Chairwoman", order: 1, enabled: true },
+    { name: "Mohamed Mahmoud", role: "Vice Supervisor Branch", order: 2, enabled: true },
+    { name: "Eng. Abdelrahman Mahmoud", role: "Supervisor Branch", order: 3, enabled: true },
+    { name: "Prof. Mohamed Nagdy", role: "Center Manager", order: 4, enabled: true },
   ],
 };
 

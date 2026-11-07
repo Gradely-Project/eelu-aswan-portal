@@ -181,79 +181,79 @@ export default function Sidebar({
       name: isStudent ? "Student Portal" : "Dashboard Overview",
       href: "/dashboard",
       icon: LayoutDashboard,
-      activeColor: "bg-[#269CF0] text-white",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
     },
     {
       name: isStudent ? "My Lectures & Materials" : "Session Hubs",
       href: "/sessions",
       icon: Calendar,
-      activeColor: "bg-[#269CF0] text-white",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
     },
     {
       name: isStudent ? "Assignments & Submissions" : "Tasks & Assignments",
       href: "/tasks",
       icon: FileCheck2,
-      activeColor: "bg-[#269CF0] text-white",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
     },
     {
       name: isStudent ? "Attendance & Check-in" : "Classroom Attendance",
       href: "/attendance",
       icon: Users,
-      activeColor: "bg-[#269CF0] text-white",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
     },
     {
       name: "Campus Timetables & Hall Booking",
       href: "/halls",
       icon: Building2,
-      activeColor: "bg-[#48D5F5] text-[#07172A] font-black",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
       show: !isStudent, // Available to Admin, Chairperson, Head, Vice Head, Core
     },
     {
       name: isStudent ? "Track Leaderboard" : "Weighted Leaderboard",
       href: "/leaderboard",
       icon: Award,
-      activeColor: "bg-[#E5A93C] text-[#07172A] font-black",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
     },
     {
       name: isStudent ? "My Certificates" : "Certificates Hub",
       href: "/certificates",
       icon: GraduationCap,
-      activeColor: "bg-[#48D5F5] text-[#07172A] font-black",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
       badge: undefined, // Removed per user request
     },
     {
       name: isStudent ? "My Academic Transcript" : isInstructor ? "Track Performance Reports" : "Reports & Export Suite",
       href: "/report",
       icon: FileText,
-      activeColor: "bg-[#269CF0] text-white",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
       show: true,
     },
     {
       name: "Student Admissions & Suspension",
       href: "/admin/students",
       icon: UserCheck,
-      activeColor: "bg-[#269CF0] text-white",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
       show: isExec,
     },
     {
       name: "Tracks & Team Structure",
       href: "/admin/teams",
       icon: Layers,
-      activeColor: "bg-[#269CF0] text-white",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
       show: isAdmin,
     },
     {
       name: "Manage Tracks (Add/Delete)",
       href: "/admin/tracks",
       icon: Layers,
-      activeColor: "bg-[#269CF0] text-white",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
       show: isAdmin,
     },
     {
       name: "Leadership Board",
       href: "/admin/leadership",
       icon: Crown,
-      activeColor: "bg-[#E5A93C] text-[#07172A] font-black",
+      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
       show: isAdmin,
     },
   ];
@@ -307,7 +307,7 @@ export default function Sidebar({
                   onClick={handleClose}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all group ${
                     isActive
-                      ? `${item.activeColor} shadow-md glow-blue`
+                      ? `${item.activeColor} shadow-md glow-gold`
                       : "text-[#8FA4BD] hover:text-[#F5F7FB] hover:bg-[#10243C]"
                   }`}
                 >
