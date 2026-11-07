@@ -23,7 +23,22 @@ export async function GET() {
             name: true,
             email: true,
             trackTeamRole: true,
+            status: true,
           },
+        },
+        sessions: {
+          select: {
+            id: true,
+            title: true,
+            date: true,
+            time: true,
+            _count: {
+              select: {
+                attendance: true,
+              },
+            },
+          },
+          orderBy: { date: "desc" },
         },
       },
     });

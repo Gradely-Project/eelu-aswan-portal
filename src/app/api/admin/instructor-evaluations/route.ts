@@ -117,6 +117,16 @@ export async function GET(req: Request) {
         clarityTotal: number;
         materialTotal: number;
         overallTotal: number;
+        feedbacks: Array<{
+          studentName: string | null;
+          studentEmail?: string | null;
+          instructorName?: string | null;
+          comment: string;
+          overall: number;
+          clarity: number;
+          material: number;
+          date: string;
+        }>;
       };
     } = {};
 
@@ -137,6 +147,7 @@ export async function GET(req: Request) {
           clarityTotal: 0,
           materialTotal: 0,
           overallTotal: 0,
+          feedbacks: [],
         };
       }
 
@@ -144,6 +155,17 @@ export async function GET(req: Request) {
       sessionStats[sId].clarityTotal += ev.clarityRating;
       sessionStats[sId].materialTotal += ev.materialRating;
       sessionStats[sId].overallTotal += ev.overallRating;
+
+      sessionStats[sId].feedbacks.push({
+        studentName: ev.studentName,
+        studentEmail: ev.studentEmail,
+        instructorName: ev.instructorName,
+        comment: ev.feedbackText || "",
+        overall: ev.overallRating,
+        clarity: ev.clarityRating,
+        material: ev.materialRating,
+        date: ev.createdAt.toISOString().split("T")[0],
+      });
     }
 
     const sessionsReport = Object.values(sessionStats).map((s) => ({
@@ -155,6 +177,7 @@ export async function GET(req: Request) {
       avgClarity: Number((s.clarityTotal / s.totalReviews).toFixed(1)),
       avgMaterial: Number((s.materialTotal / s.totalReviews).toFixed(1)),
       avgOverall: Number((s.overallTotal / s.totalReviews).toFixed(1)),
+      feedbacks: s.feedbacks,
     }));
 
     sessionsReport.sort((a, b) => b.avgOverall - a.avgOverall);

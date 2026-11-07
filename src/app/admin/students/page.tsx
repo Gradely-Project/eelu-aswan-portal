@@ -427,18 +427,21 @@ export default function AdminStudentsDirectoryPage() {
 
                           <td className="py-3.5 px-4 text-center">
                             {isApproved && (
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                APPROVED
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                Active (نشط)
                               </span>
                             )}
                             {isPending && (
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30">
-                                PENDING
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                Pending (قيد الانتظار)
                               </span>
                             )}
                             {isSuspended && (
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">
-                                SUSPENDED
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                Suspended (معلّق)
                               </span>
                             )}
                           </td>

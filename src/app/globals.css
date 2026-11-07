@@ -16,7 +16,7 @@
 }
 
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
 }
 
@@ -53,16 +53,77 @@ body {
   box-shadow: 0 0 25px -5px rgba(217, 164, 65, 0.4);
 }
 
-/* Light Mode Global Stylesheet - Subtle Ice-Blue Inversion */
+/* Light Mode Global Stylesheet - Authentic Warm Ivory & Gold Palette (Matching Reference Images) */
 html.light-mode {
-  filter: invert(0.92) hue-rotate(180deg);
+  --background: #F8F6F0;
+  --foreground: #0F172A;
+  --surface-elevated: #FFFFFF;
+  --surface-card: #FFFFFF;
+  --surface-hover: #F1ECE1;
+  --primary-blue: #1D6FB8;
+  --cyan-accent: #0284C7;
+  --gold-accent: #C88A1A;
+  --border-subtle: #E2D7C3;
+  --text-muted: #64748B;
+  background-color: #F8F6F0 !important;
+  color: #0F172A !important;
 }
 
-html.light-mode img,
-html.light-mode video,
-html.light-mode canvas,
-html.light-mode .no-theme-invert {
-  filter: invert(1) hue-rotate(180deg);
+html.light-mode body {
+  background-color: #F8F6F0 !important;
+  color: #0F172A !important;
+}
+
+html.light-mode .bg-\[\#07172A\] {
+  background-color: #F8F6F0 !important;
+}
+
+html.light-mode .bg-\[\#0D1D32\] {
+  background-color: #FFFFFF !important;
+  border-color: #E2D7C3 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+html.light-mode .bg-\[\#10243C\] {
+  background-color: #F3EFE6 !important;
+  border-color: #E2D7C3 !important;
+}
+
+html.light-mode .bg-\[\#0A1628\],
+html.light-mode .bg-\[\#061220\],
+html.light-mode .bg-\[\#0b1728\] {
+  background-color: #F8F6F0 !important;
+}
+
+html.light-mode .text-\[\#F5F7FB\] {
+  color: #0F172A !important;
+}
+
+html.light-mode .text-\[\#8FA4BD\] {
+  color: #64748B !important;
+}
+
+html.light-mode .border-\[\#1E3A5F\] {
+  border-color: #E2D7C3 !important;
+}
+
+html.light-mode header {
+  background-color: #FFFFFF !important;
+  border-color: #E2D7C3 !important;
+}
+
+/* Retain dark navy navigation sidebar for elegant high contrast matching reference */
+html.light-mode aside {
+  background-color: #07172A !important;
+  border-color: #1E3A5F !important;
+}
+
+html.light-mode aside .text-\[\#8FA4BD\] {
+  color: #8FA4BD !important;
+}
+
+html.light-mode aside .text-\[\#F5F7FB\] {
+  color: #F5F7FB !important;
 }
 
 /* Print Stylesheet for Reports and Certificates */

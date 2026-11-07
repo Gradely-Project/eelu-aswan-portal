@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import TopNav from "@/components/TopNav";
 import Sidebar from "@/components/Sidebar";
-import { UserPlus, Trash2, Layers, AlertCircle, CheckCircle2 } from "lucide-react";
+import { UserPlus, Trash2, Layers, AlertCircle, CheckCircle2, Ban } from "lucide-react";
 
 interface Instructor {
   id: string;
@@ -11,6 +11,7 @@ interface Instructor {
   email: string;
   trackTeamRole: string | null;
   assignedTrackId: string | null;
+  status?: string;
 }
 
 interface Track {
@@ -125,6 +126,26 @@ export default function AdminTeamsPage() {
     }
   };
 
+  const handleSuspendToggle = async (instructorId: string, currentStatus?: string) => {
+    const action = currentStatus === "SUSPENDED" ? "REACTIVATE" : "SUSPEND";
+    try {
+      const res = await fetch("/api/admin/suspend-student", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId: instructorId, action }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess(data.message);
+        await fetchTracks();
+      } else {
+        setError(data.error);
+      }
+    } catch {
+      setError("Network error updating instructor account status.");
+    }
+  };
+
   const getTeamRoleBadge = (role: string | null) => {
     if (role === "HEAD") {
       return <span className="px-2.5 py-0.5 rounded text-[10px] font-black bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30">👑 Lead Instructor (Head)</span>;
@@ -212,44 +233,96 @@ export default function AdminTeamsPage() {
                       {/* Head */}
                       <div className="p-3 rounded-2xl border border-[#1E3A5F] bg-[#07172A] flex items-center justify-between">
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                             {getTeamRoleBadge("HEAD")}
                             <span className="font-bold text-xs text-[#F5F7FB]">
                               {head ? head.name : <span className="text-[#8FA4BD] italic">Unassigned Vacancy</span>}
                             </span>
+                            {head && (
+                              head.status === "SUSPENDED" ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                  Suspended
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                  Active
+                                </span>
+                              )
+                            )}
                           </div>
                           {head && <span className="text-[10px] text-[#8FA4BD] block font-mono">{head.email}</span>}
                         </div>
                         {head && (
-                          <button
-                            onClick={() => handleRemove(head.id, head.name)}
-                            className="p-1.5 text-[#8FA4BD] hover:text-rose-400 rounded-lg"
-                            title="Remove from track"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleSuspendToggle(head.id, head.status)}
+                              className={`p-1.5 rounded-lg border text-xs font-bold transition-all ${
+                                head.status === "SUSPENDED"
+                                  ? "text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10"
+                                  : "text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
+                              }`}
+                              title={head.status === "SUSPENDED" ? "Reactivate Lead Instructor Account" : "Suspend Lead Instructor Account"}
+                            >
+                              <Ban className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleRemove(head.id, head.name)}
+                              className="p-1.5 text-[#8FA4BD] hover:text-rose-400 rounded-lg"
+                              title="Remove from track"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         )}
                       </div>
 
                       {/* Vice Head */}
                       <div className="p-3 rounded-2xl border border-[#1E3A5F] bg-[#07172A] flex items-center justify-between">
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                             {getTeamRoleBadge("VICE_HEAD")}
                             <span className="font-bold text-xs text-[#F5F7FB]">
                               {vice ? vice.name : <span className="text-[#8FA4BD] italic">Unassigned Vacancy</span>}
                             </span>
+                            {vice && (
+                              vice.status === "SUSPENDED" ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                  Suspended
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                  Active
+                                </span>
+                              )
+                            )}
                           </div>
                           {vice && <span className="text-[10px] text-[#8FA4BD] block font-mono">{vice.email}</span>}
                         </div>
                         {vice && (
-                          <button
-                            onClick={() => handleRemove(vice.id, vice.name)}
-                            className="p-1.5 text-[#8FA4BD] hover:text-rose-400 rounded-lg"
-                            title="Remove from track"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleSuspendToggle(vice.id, vice.status)}
+                              className={`p-1.5 rounded-lg border text-xs font-bold transition-all ${
+                                vice.status === "SUSPENDED"
+                                  ? "text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10"
+                                  : "text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
+                              }`}
+                              title={vice.status === "SUSPENDED" ? "Reactivate Vice Head Account" : "Suspend Vice Head Account"}
+                            >
+                              <Ban className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleRemove(vice.id, vice.name)}
+                              className="p-1.5 text-[#8FA4BD] hover:text-rose-400 rounded-lg"
+                              title="Remove from track"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         )}
                       </div>
 
@@ -268,15 +341,39 @@ export default function AdminTeamsPage() {
                                 className="flex items-center justify-between bg-[#0D1D32] p-2 rounded-xl border border-[#1E3A5F]"
                               >
                                 <div>
-                                  <span className="font-bold text-xs text-[#F5F7FB] block">{c.name}</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-xs text-[#F5F7FB] block">{c.name}</span>
+                                    {c.status === "SUSPENDED" ? (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[8px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                        Suspended
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[8px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                        Active
+                                      </span>
+                                    )}
+                                  </div>
                                   <span className="text-[10px] text-[#8FA4BD] font-mono">{c.email}</span>
                                 </div>
-                                <button
-                                  onClick={() => handleRemove(c.id, c.name)}
-                                  className="p-1.5 text-[#8FA4BD] hover:text-rose-400 rounded-lg"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => handleSuspendToggle(c.id, c.status)}
+                                    className={`p-1.5 rounded-lg border text-xs font-bold transition-all ${
+                                      c.status === "SUSPENDED"
+                                        ? "text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10"
+                                        : "text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
+                                    }`}
+                                    title={c.status === "SUSPENDED" ? "Reactivate Core Account" : "Suspend Core Account"}
+                                  >
+                                    <Ban className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleRemove(c.id, c.name)}
+                                    className="p-1.5 text-[#8FA4BD] hover:text-rose-400 rounded-lg"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
                               </div>
                             ))}
                           </div>

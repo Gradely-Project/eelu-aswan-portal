@@ -6,13 +6,41 @@ export const dynamic = "force-dynamic";
 
 const SETTING_KEY = "hall_of_fame_items";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { error, user } = await requireAuth();
+
+    const { searchParams } = new URL(req.url);
+    const filterTrack = searchParams.get("trackName");
+
     const setting = await prisma.systemSetting.findUnique({
       where: { key: SETTING_KEY },
     });
 
-    const items = setting ? JSON.parse(setting.value) : [];
+    let items: any[] = setting ? JSON.parse(setting.value) : [];
+
+    if (user) {
+      if (user.role === "STUDENT") {
+        const studentTrackNames = user.enrollments?.map((e) => e.track.name.toLowerCase().trim()) || [];
+        items = items.filter((item) => {
+          const itemTrack = (item.trackName || "").toLowerCase().trim();
+          return (
+            itemTrack === "cross-track distinction" ||
+            studentTrackNames.includes(itemTrack)
+          );
+        });
+      } else if (user.role === "INSTRUCTOR" && user.assignedTrack?.name) {
+        const assignedName = user.assignedTrack.name.toLowerCase().trim();
+        items = items.filter(
+          (item) => (item.trackName || "").toLowerCase().trim() === assignedName
+        );
+      } else if (filterTrack && filterTrack !== "ALL") {
+        items = items.filter(
+          (item) => (item.trackName || "").toLowerCase().trim() === filterTrack.toLowerCase().trim()
+        );
+      }
+    }
+
     return NextResponse.json({ success: true, items });
   } catch (error) {
     console.error("GET /api/hall-of-fame error:", error);
@@ -27,14 +55,22 @@ export async function POST(req: Request) {
 
     const canNominate = ["ADMIN", "CHAIR_PERSON", "VICE_CHAIR", "INSTRUCTOR"].includes(user.role);
     if (!canNominate) {
-      return NextResponse.json({ error: "Unauthorized: Only leadership & instructors can induct students into the Hall of Fame." }, { status: 403 });
+      return NextResponse.json(
+        { error: "Unauthorized: Only leadership & instructors can induct students into the Hall of Fame." },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();
-    const { studentId, studentName, trackName, badgeType, title, note } = body;
+    let { studentId, studentName, trackName, badgeType, title, note } = body;
 
     if (!studentName || !title || !badgeType) {
       return NextResponse.json({ error: "Student name, award title, and badge type are required." }, { status: 400 });
+    }
+
+    // Instructors are strictly bound to their assigned track
+    if (user.role === "INSTRUCTOR") {
+      trackName = user.assignedTrack?.name || "Assigned Track";
     }
 
     const setting = await prisma.systemSetting.findUnique({
@@ -51,7 +87,7 @@ export async function POST(req: Request) {
       badgeType, // CHAMPION, FASTEST, STAR, DISTINCTION
       title,
       note: note || "",
-      inductedBy: `${user.name} (${user.role})`,
+      inductedBy: `${user.name} (${user.role === "INSTRUCTOR" ? user.trackTeamRole || "Lead" : user.role})`,
       date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
     };
 
@@ -63,7 +99,11 @@ export async function POST(req: Request) {
       create: { key: SETTING_KEY, value: JSON.stringify(items) },
     });
 
-    return NextResponse.json({ success: true, item: newItem, message: `Student ${studentName} inducted into Hall of Fame successfully!` });
+    return NextResponse.json({
+      success: true,
+      item: newItem,
+      message: `Student ${studentName} inducted into Hall of Fame successfully!`,
+    });
   } catch (error) {
     console.error("POST /api/hall-of-fame error:", error);
     return NextResponse.json({ error: "Failed to induct student into Hall of Fame." }, { status: 500 });
@@ -103,9 +143,9 @@ export async function DELETE(req: Request) {
       data: { value: JSON.stringify(items) },
     });
 
-    return NextResponse.json({ success: true, message: "Hall of Fame entry removed." });
+    return NextResponse.json({ success: true, message: "Honoree removed from Hall of Fame." });
   } catch (error) {
     console.error("DELETE /api/hall-of-fame error:", error);
-    return NextResponse.json({ error: "Failed to delete Hall of Fame entry." }, { status: 500 });
+    return NextResponse.json({ error: "Failed to remove Hall of Fame entry." }, { status: 500 });
   }
 }

@@ -1665,25 +1665,47 @@ export default function SessionsPage() {
               </button>
             </div>
 
-            {/* Quick Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-              <div className="p-4 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-center">
-                <span className="text-[10px] uppercase font-bold text-[#8FA4BD] block">Overall Academy Average</span>
-                <span className="text-2xl font-black text-[#E5A93C] mt-1 block">★ {overallAverage} / 5.0</span>
-              </div>
-              <div className="p-4 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-center">
-                <span className="text-[10px] uppercase font-bold text-[#8FA4BD] block">Total Evaluations Submitted</span>
-                <span className="text-2xl font-black text-[#48D5F5] mt-1 block">
-                  {instructorReports.reduce((s, i) => s + i.totalReviews, 0)} Feedback Records
-                </span>
-              </div>
-              <div className="p-4 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-center">
-                <span className="text-[10px] uppercase font-bold text-[#8FA4BD] block">Evaluated Staff Members</span>
-                <span className="text-2xl font-black text-emerald-400 mt-1 block">
-                  {instructorReports.length} Instructors
-                </span>
-              </div>
-            </div>
+            {/* Quick Metrics (Dynamically filtered by selected Track) */}
+            {(() => {
+              const activeInstructors = instructorReports.filter((inst) => {
+                if (auditTrackFilter === "ALL") return true;
+                const targetTrack = tracks.find((t) => t.id === auditTrackFilter);
+                return (
+                  targetTrack &&
+                  inst.trackName.toLowerCase().trim() === targetTrack.name.toLowerCase().trim()
+                );
+              });
+
+              const totalEvals = activeInstructors.reduce((s, i) => s + i.totalReviews, 0);
+              const computedAvg =
+                activeInstructors.length > 0
+                  ? (activeInstructors.reduce((s, i) => s + i.avgOverall, 0) / activeInstructors.length).toFixed(1)
+                  : "0.0";
+              const staffCount = activeInstructors.length;
+
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                  <div className="p-4 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-center">
+                    <span className="text-[10px] uppercase font-bold text-[#8FA4BD] block">
+                      {auditTrackFilter === "ALL" ? "Overall Academy Average" : "Track Average Rating"}
+                    </span>
+                    <span className="text-2xl font-black text-[#E5A93C] mt-1 block">★ {computedAvg} / 5.0</span>
+                  </div>
+                  <div className="p-4 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-center">
+                    <span className="text-[10px] uppercase font-bold text-[#8FA4BD] block">Total Evaluations Submitted</span>
+                    <span className="text-2xl font-black text-[#48D5F5] mt-1 block">
+                      {totalEvals} Feedback Records
+                    </span>
+                  </div>
+                  <div className="p-4 bg-[#07172A] border border-[#1E3A5F] rounded-2xl text-center">
+                    <span className="text-[10px] uppercase font-bold text-[#8FA4BD] block">Evaluated Staff Members</span>
+                    <span className="text-2xl font-black text-emerald-400 mt-1 block">
+                      {staffCount} Instructors
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Track Selector inside Audit Modal */}
             <div className="flex items-center gap-1.5 mb-4 bg-[#07172A] p-2 rounded-2xl border border-[#1E3A5F] overflow-x-auto">
@@ -1834,23 +1856,60 @@ export default function SessionsPage() {
                     );
                   }
 
-                  return filtered.map((sess, idx) => (
-                    <div key={idx} className="p-3.5 rounded-2xl bg-[#07172A] border border-[#1E3A5F] flex flex-wrap items-center justify-between gap-3 text-xs">
-                      <div>
-                        <h4 className="font-bold text-white text-sm">{sess.sessionTitle}</h4>
-                        <span className="text-[11px] text-[#8FA4BD]">{sess.trackName} • {sess.date}</span>
+                  return filtered.map((sess: any, idx: number) => (
+                    <div key={idx} className="p-4 rounded-2xl bg-[#07172A] border border-[#1E3A5F] space-y-3 text-xs">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <h4 className="font-bold text-white text-sm">{sess.sessionTitle}</h4>
+                          <span className="text-[11px] text-[#8FA4BD]">{sess.trackName} • {sess.date}</span>
+                        </div>
+                        <div className="flex items-center gap-2 font-mono">
+                          <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F] text-[11px]">
+                            Clarity: <strong className="text-[#E5A93C]">★ {sess.avgClarity}</strong>
+                          </span>
+                          <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F] text-[11px]">
+                            Material: <strong className="text-[#269CF0]">★ {sess.avgMaterial}</strong>
+                          </span>
+                          <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg font-black text-xs">
+                            Overall: ★ {sess.avgOverall} ({sess.totalReviews} reviews)
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 font-mono">
-                        <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F] text-[11px]">
-                          Clarity: <strong className="text-[#E5A93C]">★ {sess.avgClarity}</strong>
-                        </span>
-                        <span className="bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#1E3A5F] text-[11px]">
-                          Material: <strong className="text-[#269CF0]">★ {sess.avgMaterial}</strong>
-                        </span>
-                        <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg font-black text-xs">
-                          Overall: ★ {sess.avgOverall} ({sess.totalReviews})
-                        </span>
-                      </div>
+
+                      {sess.feedbacks && sess.feedbacks.length > 0 && (
+                        <div className="pt-2 border-t border-[#1E3A5F]/60 space-y-1.5">
+                          <span className="text-[10px] font-bold text-[#8FA4BD] uppercase block">
+                            Student Reviews for this Lecture ({sess.feedbacks.length}):
+                          </span>
+                          <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                            {sess.feedbacks.map((f: any, fIdx: number) => (
+                              <div key={fIdx} className="p-2.5 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] text-[11px]">
+                                <div className="flex justify-between items-center text-[10px] text-[#8FA4BD] mb-1">
+                                  <div className="flex items-center gap-1.5 truncate">
+                                    <strong className="text-white font-bold">{f.studentName || "Student"}</strong>
+                                    {f.studentEmail && (
+                                      <span className="text-[9px] text-[#48D5F5] font-mono">({f.studentEmail})</span>
+                                    )}
+                                    {f.instructorName && (
+                                      <span className="text-[9px] text-[#E5A93C] bg-[#E5A93C]/10 px-1.5 py-0.2 rounded border border-[#E5A93C]/20">
+                                        Rated: {f.instructorName}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                                    <span>Clarity: <strong className="text-[#E5A93C]">★{f.clarity}</strong></span>
+                                    <span>Mat: <strong className="text-[#269CF0]">★{f.material}</strong></span>
+                                    <span className="text-emerald-400 font-bold bg-emerald-500/10 px-1.5 rounded">★{f.overall}</span>
+                                  </div>
+                                </div>
+                                {f.comment && (
+                                  <p className="text-slate-200 italic mt-0.5">&ldquo;{f.comment}&rdquo;</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ));
                 })()}

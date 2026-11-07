@@ -92,12 +92,21 @@ export default function DashboardPage() {
   const [broadcastTitle, setBroadcastTitle] = useState("");
   const [broadcastContent, setBroadcastContent] = useState("");
   const [broadcastCategory, setBroadcastCategory] = useState("SCHEDULE");
+  const [broadcastTrackId, setBroadcastTrackId] = useState("ALL");
   const [broadcasting, setBroadcasting] = useState(false);
+  const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
 
   const handleSendBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!broadcastTitle.trim() || !broadcastContent.trim()) return;
     setBroadcasting(true);
+
+    const targetTrackId =
+      user?.role === "INSTRUCTOR"
+        ? user.assignedTrackId
+        : broadcastTrackId === "ALL"
+        ? null
+        : broadcastTrackId;
 
     try {
       const res = await fetch("/api/announcements", {
@@ -107,7 +116,7 @@ export default function DashboardPage() {
           title: broadcastTitle.trim(),
           content: broadcastContent.trim(),
           category: broadcastCategory,
-          trackId: user?.assignedTrackId || (selectedTrackId !== "ALL" ? selectedTrackId : null),
+          trackId: targetTrackId,
         }),
       });
 
@@ -117,6 +126,7 @@ export default function DashboardPage() {
         setShowBroadcastModal(false);
         setBroadcastTitle("");
         setBroadcastContent("");
+        setBroadcastTrackId("ALL");
       } else {
         alert(data.error || "Failed to broadcast.");
       }
@@ -186,6 +196,14 @@ export default function DashboardPage() {
       const sessRes = await fetch(sessUrl).then((r) => r.json()).catch(() => ({ sessions: [] }));
       setActiveSessionsCount(sessRes.sessions?.length || 0);
       setTotalSubmissionsCount(enrolled * 3);
+
+      // Fetch tracks list for broadcast dropdown
+      fetch("/api/tracks")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.tracks) setTracks(d.tracks);
+        })
+        .catch(() => {});
     } catch (e) {
       console.error(e);
     } finally {
@@ -603,57 +621,61 @@ export default function DashboardPage() {
 
                           <td className="py-3.5 px-4 text-center">
                             {isApproved && (
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                APPROVED
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                Active (نشط)
                               </span>
                             )}
                             {isPending && (
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-[#E5A93C]/20 text-[#E5A93C] border border-[#E5A93C]/30">
-                                PENDING
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                Pending Review
                               </span>
                             )}
                             {isSuspended && (
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">
-                                SUSPENDED
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                Suspended (معلّق)
                               </span>
                             )}
                           </td>
 
                           <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              {/* Approve / Reject (for pending - Executive only) */}
-                              {isPending && ["ADMIN", "CHAIR_PERSON", "VICE_CHAIR"].includes(user?.role || "") && (
+                            <div className="flex items-center justify-end gap-2">
+                              {/* Approve / Reject (for pending - Main Admin only) */}
+                              {isPending && user?.role === "ADMIN" && (
                                 <>
                                   <button
                                     onClick={() => handleApprove(st.id, "APPROVE")}
                                     disabled={isLoadingThis}
-                                    className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] shadow-sm transition-all"
+                                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm transition-all"
                                   >
-                                    Approve
+                                    قبول (Approve)
                                   </button>
                                   <button
                                     onClick={() => handleApprove(st.id, "REJECT")}
                                     disabled={isLoadingThis}
-                                    className="px-2 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold text-[11px] border border-rose-500/30"
+                                    className="px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold text-xs border border-rose-500/30"
                                   >
-                                    Reject
+                                    رفض
                                   </button>
                                 </>
                               )}
 
-                              {/* Suspend / Reactivate (Executive only) */}
-                              {!isPending && ["ADMIN", "CHAIR_PERSON", "VICE_CHAIR"].includes(user?.role || "") && (
+                              {/* Suspend / Reactivate (Main Admin only per strict permissions) */}
+                              {!isPending && user?.role === "ADMIN" && (
                                 <button
                                   onClick={() => handleSuspendToggle(st.id, st.status)}
                                   disabled={isLoadingThis}
-                                  className={`px-2.5 py-1 rounded-lg font-bold text-[11px] border transition-all flex items-center gap-1 ${
+                                  className={`px-3 py-1.5 rounded-xl font-bold text-xs border transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
                                     isSuspended
-                                      ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30"
-                                      : "bg-rose-500/10 text-rose-400 border-rose-500/30 hover:bg-rose-500/20"
+                                      ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25"
+                                      : "bg-[#07172A] hover:bg-rose-500/10 text-rose-400 border-rose-500/30 hover:border-rose-500/60"
                                   }`}
+                                  title={isSuspended ? "إلغاء التجميد وتفعيل الحساب فوراً" : "تجميد الحساب وحجب تسجيل الدخول"}
                                 >
-                                  <Ban className="w-3 h-3" />
-                                  {isSuspended ? "Reactivate" : "Suspend"}
+                                  <Ban className="w-3.5 h-3.5" />
+                                  <span>{isSuspended ? "تفعيل (Reactivate)" : "تجميد (Suspend)"}</span>
                                 </button>
                               )}
                             </div>
@@ -901,6 +923,26 @@ export default function DashboardPage() {
                   className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#269CF0]"
                 />
               </div>
+
+              {(user?.role === "ADMIN" || user?.role === "CHAIR_PERSON") && (
+                <div>
+                  <label className="block text-[#8FA4BD] font-bold mb-1">
+                    Target Track Audience (المستهدفون بالإشعار) *
+                  </label>
+                  <select
+                    value={broadcastTrackId}
+                    onChange={(e) => setBroadcastTrackId(e.target.value)}
+                    className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#269CF0]"
+                  >
+                    <option value="ALL">📢 All Tracks (إشعار عام لكافة طلبة الفرع والتراكات)</option>
+                    {tracks.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        🎯 {t.name} Track Only (طلبة هذا التراك فقط)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-[#8FA4BD] font-bold mb-1">

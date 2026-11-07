@@ -332,12 +332,6 @@ export default function TaskDetailPage() {
                       Instructor Feedback: &quot;{mySubmission.feedback}&quot;
                     </div>
                   )}
-                  {mySubmission.gradedBy && (
-                    <div className="mt-2 pt-2 border-t border-emerald-500/20 text-[11px] text-emerald-400 font-bold flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Graded by: <strong className="text-white">{mySubmission.gradedBy}</strong> {mySubmission.gradedByRole ? `(${mySubmission.gradedByRole})` : ""}</span>
-                    </div>
-                  )}
                 </div>
               )}
 

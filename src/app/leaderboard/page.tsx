@@ -19,6 +19,8 @@ import {
   Zap,
   Trash2,
   Plus,
+  EyeOff,
+  Eye,
 } from "lucide-react";
 
 interface RankedStudent {
@@ -34,6 +36,7 @@ interface RankedStudent {
   submittedTasksCount: number;
   tasksScore: number;
   bonusScore: number;
+  bonusList?: Array<{ id: string; points: number; reason: string; awardedBy?: string; createdAt: string }>;
   totalScore: number;
   rank: number;
 }
@@ -48,6 +51,7 @@ interface UserData {
   name: string;
   role: string;
   assignedTrackId?: string | null;
+  assignedTrack?: { id: string; name: string } | null;
 }
 
 export default function WeightedLeaderboardPage() {
@@ -58,15 +62,6 @@ export default function WeightedLeaderboardPage() {
   const [trackStats, setTrackStats] = useState<{ totalSessions: number; totalTasks: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Bonus Modal
-  const [showBonusModal, setShowBonusModal] = useState(false);
-  const [bonusStudentId, setBonusStudentId] = useState("");
-  const [bonusPoints, setBonusPoints] = useState(15);
-  const [bonusReason, setBonusReason] = useState("");
-  const [submittingBonus, setSubmittingBonus] = useState(false);
-  const [bonusSuccess, setBonusSuccess] = useState<string | null>(null);
-  const [bonusError, setBonusError] = useState<string | null>(null);
-
   // Bonus / Minus Adjustment Modal (Head, Core Team, Chair, Admin)
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [adjustStudent, setAdjustStudent] = useState<RankedStudent | null>(null);
@@ -75,6 +70,14 @@ export default function WeightedLeaderboardPage() {
   const [adjustReason, setAdjustReason] = useState<string>("");
   const [adjustError, setAdjustError] = useState<string | null>(null);
   const [submittingAdjust, setSubmittingAdjust] = useState(false);
+
+  // Bonus History Popover / Modal
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyStudent, setHistoryStudent] = useState<RankedStudent | null>(null);
+
+  // Anonymous Mode State (Admin Controlled)
+  const [isAnonymousMode, setIsAnonymousMode] = useState(false);
+  const [togglingAnon, setTogglingAnon] = useState(false);
 
   const canManageBonus =
     user?.role === "ADMIN" ||
@@ -135,19 +138,43 @@ export default function WeightedLeaderboardPage() {
       setLoading(true);
     }
     try {
-      const res = await fetch(`/api/leaderboard?trackId=${trackId}`);
+      const res = await fetch(`/api/leaderboard?trackId=${trackId}`, { cache: "no-store" });
       const data = await res.json();
       if (res.ok) {
         const rows = data.leaderboard || [];
         const st = data.stats || null;
         setLeaderboard(rows);
         if (st) setTrackStats(st);
+        if (data.isAnonymousMode !== undefined) setIsAnonymousMode(data.isAnonymousMode);
         setTrackCache((prev) => ({ ...prev, [trackId]: { leaderboard: rows, stats: st } }));
       }
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleAnonymousMode = async () => {
+    if (user?.role !== "ADMIN") return;
+    setTogglingAnon(true);
+    try {
+      const res = await fetch("/api/leaderboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ anonymousMode: !isAnonymousMode }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setIsAnonymousMode(data.anonymousMode);
+        // Invalidate cache and refetch
+        setTrackCache({});
+        if (selectedTrackId) fetchLeaderboard(selectedTrackId);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTogglingAnon(false);
     }
   };
 
@@ -219,45 +246,6 @@ export default function WeightedLeaderboardPage() {
   const canAddBonus =
     isLeadership ||
     (user?.role === "INSTRUCTOR" && user?.assignedTrackId === selectedTrackId);
-
-  const handleAwardBonus = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTrackId || !bonusStudentId) return;
-    setBonusError(null);
-    setBonusSuccess(null);
-    setSubmittingBonus(true);
-
-    try {
-      const res = await fetch("/api/bonus", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          trackId: selectedTrackId,
-          studentId: bonusStudentId,
-          points: bonusPoints,
-          reason: bonusReason,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setBonusError(data.error || "Failed to award bonus.");
-        setSubmittingBonus(false);
-        return;
-      }
-
-      setBonusSuccess(data.message);
-      setShowBonusModal(false);
-      setBonusReason("");
-      setBonusPoints(15);
-      await fetchLeaderboard(selectedTrackId);
-    } catch {
-      setBonusError("Network error.");
-    } finally {
-      setSubmittingBonus(false);
-    }
-  };
 
   const handleAdminAdjust = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -347,39 +335,25 @@ export default function WeightedLeaderboardPage() {
                 Hall of Fame (لوحة الشرف والأبطال)
               </button>
 
-              {activeTab === "STANDINGS" && canAddBonus && (
+              {user?.role === "ADMIN" && activeTab === "STANDINGS" && (
                 <button
-                  onClick={() => {
-                    setBonusError(null);
-                    setBonusSuccess(null);
-                    if (leaderboard.length > 0) setBonusStudentId(leaderboard[0].id);
-                    setShowBonusModal(true);
-                  }}
-                  className="px-4 py-2.5 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black text-xs shadow-md shadow-[#E5A93C]/20 transition-all flex items-center gap-2 cursor-pointer"
+                  onClick={handleToggleAnonymousMode}
+                  disabled={togglingAnon}
+                  className={`px-4 py-2.5 rounded-xl font-black text-xs transition-all flex items-center gap-2 cursor-pointer shadow-md ${
+                    isAnonymousMode
+                      ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/25"
+                      : "bg-[#0D1D32] hover:bg-[#1E3A5F] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white"
+                  }`}
+                  title="إخفاء أو إظهار أسماء باقي الطلاب عند عرض لوحة الشرف للطلبة"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  Award Bonus Points
-                </button>
-              )}
-
-              {activeTab === "HALL_OF_FAME" && canAddBonus && (
-                <button
-                  onClick={() => setShowNominateModal(true)}
-                  className="px-4 py-2.5 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black text-xs shadow-md shadow-[#E5A93C]/20 transition-all flex items-center gap-2 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  Induct Star into Hall of Fame
+                  <EyeOff className="w-4 h-4" />
+                  <span>
+                    {isAnonymousMode ? "Anonymous Mode: ON (حجب الأسماء)" : "Anonymous Mode: OFF (عرض الأسماء)"}
+                  </span>
                 </button>
               )}
             </div>
           </div>
-
-          {bonusSuccess && (
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{bonusSuccess}</span>
-            </div>
-          )}
 
           {activeTab === "HALL_OF_FAME" ? (
             <div className="space-y-6">
@@ -671,8 +645,32 @@ export default function WeightedLeaderboardPage() {
                         <td className="py-3 px-4 text-center font-bold text-emerald-400">
                           {st.tasksScore}
                         </td>
-                        <td className="py-3 px-4 text-center font-bold text-[#E5A93C]">
-                          +{st.bonusScore}
+                        <td className="py-3 px-4 text-center">
+                          <button
+                            onClick={() => {
+                              setHistoryStudent(st);
+                              setShowHistoryModal(true);
+                            }}
+                            className="font-bold text-xs hover:underline cursor-pointer inline-flex items-center gap-1 group/bonus"
+                            title="انقر لعرض سجل تفاصيل البونص والخصومات"
+                          >
+                            {st.bonusScore > 0 ? (
+                              <span className="text-emerald-400 font-bold group-hover/bonus:scale-105 transition-transform">
+                                +{st.bonusScore}
+                              </span>
+                            ) : st.bonusScore < 0 ? (
+                              <span className="text-rose-400 font-bold group-hover/bonus:scale-105 transition-transform">
+                                {st.bonusScore}
+                              </span>
+                            ) : (
+                              <span className="text-[#8FA4BD]">0</span>
+                            )}
+                            {st.bonusList && st.bonusList.length > 0 && (
+                              <span className="text-[9px] bg-[#07172A] px-1 py-0.5 rounded border border-[#1E3A5F] text-[#48D5F5]">
+                                🔍 {st.bonusList.length}
+                              </span>
+                            )}
+                          </button>
                         </td>
                         <td className="py-3 px-4 text-center font-black text-sm text-[#F5F7FB]">
                           <span className="bg-[#07172A] border border-[#1E3A5F] px-3 py-1 rounded-lg">
@@ -690,7 +688,7 @@ export default function WeightedLeaderboardPage() {
                                 setAdjustError(null);
                                 setShowAdjustModal(true);
                               }}
-                              className="px-2.5 py-1.5 rounded-xl bg-[#07172A] hover:bg-[#1E3A5F] text-[#48D5F5] hover:text-white border border-[#269CF0]/40 font-bold text-xs transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm group"
+                              className="px-2.5 py-1.5 rounded-xl bg-[#07172A] hover:bg-[#1E3A5F] text-[#48D5F5] hover:text-white border border-[#269CF0]/40 font-bold text-xs transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm group mx-auto"
                               title="إضافة بونص أو خصم درجات للطالب"
                             >
                               <span className="font-mono font-black text-emerald-400 group-hover:scale-110 transition-transform">+</span>
@@ -710,82 +708,91 @@ export default function WeightedLeaderboardPage() {
             </>
           )}
 
-          {/* Modal: Award Bonus */}
-          {showBonusModal && (
-            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
-                <h3 className="text-xl font-black text-[#F5F7FB] mb-2 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-[#E5A93C]" />
-                  Award Competition / Activity Bonus
-                </h3>
-                <p className="text-xs text-[#8FA4BD] mb-4">
-                  Points awarded here will be instantly added to the student&apos;s weighted total score.
-                </p>
-
-                {bonusError && (
-                  <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
-                    {bonusError}
+          {/* Modal: Bonus / Penalty History */}
+          {showHistoryModal && historyStudent && (
+            <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 max-w-lg w-full shadow-2xl relative">
+                <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#1E3A5F]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold">
+                      ★
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-[#F5F7FB]">سجل البونص والخصومات (Bonus & Penalty History)</h3>
+                      <span className="text-[10px] text-[#8FA4BD]">{historyStudent.name}</span>
+                    </div>
                   </div>
-                )}
+                  <button
+                    onClick={() => setShowHistoryModal(false)}
+                    className="p-1 rounded-lg text-[#8FA4BD] hover:text-white"
+                  >
+                    ✕
+                  </button>
+                </div>
 
-                <form onSubmit={handleAwardBonus} className="space-y-4 text-xs">
-                  <div>
-                    <label className="block font-bold text-[#8FA4BD] mb-1">Select Student *</label>
-                    <select
-                      value={bonusStudentId}
-                      onChange={(e) => setBonusStudentId(e.target.value)}
-                      required
-                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
-                    >
-                      {leaderboard.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name} ({s.college || "Student"})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="space-y-2 max-h-72 overflow-y-auto text-xs">
+                  {(!historyStudent.bonusList || historyStudent.bonusList.length === 0) ? (
+                    <p className="text-center text-[#8FA4BD] py-6">لا توجد سجلات بونص أو خصم سابقة لهذا الطالب.</p>
+                  ) : (
+                    historyStudent.bonusList.map((item: any) => (
+                      <div
+                        key={item.id}
+                        className="p-3 rounded-2xl bg-[#07172A] border border-[#1E3A5F] flex items-center justify-between gap-3"
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`font-black font-mono text-sm ${
+                                item.points >= 0 ? "text-emerald-400" : "text-rose-400"
+                              }`}
+                            >
+                              {item.points > 0 ? `+${item.points}` : item.points} PTS
+                            </span>
+                            <span className="text-[10px] text-[#8FA4BD] bg-[#10243C] px-2 py-0.5 rounded-full border border-[#1E3A5F]">
+                              {item.awardedBy || "الإدارة"}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-[#F5F7FB] mt-1 font-medium">{item.reason}</p>
+                          <span className="text-[9px] text-[#8FA4BD] font-mono mt-0.5 block">
+                            {new Date(item.createdAt).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </span>
+                        </div>
 
-                  <div>
-                    <label className="block font-bold text-[#8FA4BD] mb-1">Bonus Points *</label>
-                    <input
-                      type="number"
-                      min={1}
-                      required
-                      value={bonusPoints}
-                      onChange={(e) => setBonusPoints(Number(e.target.value))}
-                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
-                    />
-                  </div>
+                        {canManageBonus && (
+                          <button
+                            onClick={async () => {
+                              if (!confirm("حذف سجل البونص/الخصم هذا؟")) return;
+                              try {
+                                const res = await fetch(`/api/bonus?id=${item.id}`, { method: "DELETE" });
+                                if (res.ok) {
+                                  setShowHistoryModal(false);
+                                  await fetchLeaderboard(selectedTrackId);
+                                }
+                              } catch {}
+                            }}
+                            className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            title="حذف هذا السجل"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
 
-                  <div>
-                    <label className="block font-bold text-[#8FA4BD] mb-1">Reason / Tournament Title *</label>
-                    <input
-                      type="text"
-                      required
-                      value={bonusReason}
-                      onChange={(e) => setBonusReason(e.target.value)}
-                      placeholder="e.g. 1st Place in Algorithm Speed Challenge #2"
-                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
-                    />
-                  </div>
-
-                  <div className="pt-4 border-t border-[#1E3A5F] flex justify-end gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowBonusModal(false)}
-                      className="px-4 py-2 rounded-xl text-[#8FA4BD] hover:text-white font-bold"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submittingBonus}
-                      className="px-5 py-2.5 rounded-xl bg-[#E5A93C] hover:bg-[#C9912F] text-[#07172A] font-black"
-                    >
-                      {submittingBonus ? "Granting..." : "Confirm & Award Points"}
-                    </button>
-                  </div>
-                </form>
+                <div className="mt-4 pt-3 border-t border-[#1E3A5F] flex justify-end">
+                  <button
+                    onClick={() => setShowHistoryModal(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-[#1E3A5F] hover:bg-[#269CF0] text-white"
+                  >
+                    إغلاق
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -962,11 +969,21 @@ export default function WeightedLeaderboardPage() {
                     <label className="block font-bold text-[#8FA4BD] mb-1">Track / Domain *</label>
                     <input
                       type="text"
-                      value={nominateTrackName}
+                      disabled={user?.role === "INSTRUCTOR"}
+                      value={
+                        user?.role === "INSTRUCTOR"
+                          ? (user.assignedTrack?.name || "Assigned Track")
+                          : nominateTrackName || (tracks.find((t) => t.id === selectedTrackId)?.name || "")
+                      }
                       onChange={(e) => setNominateTrackName(e.target.value)}
                       placeholder={tracks.find((t) => t.id === selectedTrackId)?.name || "Web Development"}
-                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C]"
+                      className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#E5A93C] disabled:opacity-60"
                     />
+                    {user?.role === "INSTRUCTOR" && (
+                      <span className="text-[10px] text-[#8FA4BD] mt-1 block">
+                        * بصفتك مدرب، يتم إضافة بطل لوحة الشرف لتراكك المخصص حصراً.
+                      </span>
+                    )}
                   </div>
 
                   <div>

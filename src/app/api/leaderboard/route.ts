@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireTrackAccess } from "@/lib/permissions";
+import { requireTrackAccess, requireAuth } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +13,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Track ID is required." }, { status: 400 });
     }
 
-    const { error } = await requireTrackAccess(trackId);
-    if (error) return error;
+    const { error, user } = await requireTrackAccess(trackId);
+    if (error || !user) return error;
 
     const track = await prisma.track.findUnique({
       where: { id: trackId },
@@ -23,6 +23,12 @@ export async function GET(req: Request) {
     if (!track) {
       return NextResponse.json({ error: "Track not found." }, { status: 404 });
     }
+
+    // Check Anonymous Mode Setting
+    const anonSetting = await prisma.systemSetting.findUnique({
+      where: { key: "leaderboard_anonymous_mode" },
+    });
+    const isAnonymousMode = anonSetting?.value === "true";
 
     // Get score settings
     const settings = await prisma.scoreSetting.upsert({
@@ -86,8 +92,10 @@ export async function GET(req: Request) {
             id: true,
             points: true,
             reason: true,
+            awardedBy: true,
             createdAt: true,
           },
+          orderBy: { createdAt: "desc" },
         },
       },
     });
@@ -133,27 +141,97 @@ export async function GET(req: Request) {
       };
     });
 
-    // Sort descending by total score
-    leaderboard.sort((a, b) => b.totalScore - a.totalScore);
-
-    // Assign rank
-    const rankedLeaderboard = leaderboard.map((st, index) => ({
-      ...st,
-      rank: index + 1,
-    }));
-
-    return NextResponse.json({
-      track,
-      settings,
-      stats: {
-        totalStudents: students.length,
-        totalSessions,
-        totalTasks,
-      },
-      leaderboard: rankedLeaderboard,
+    // Sort descending by total score, then tiebreak by tasks, then attendance, then name
+    leaderboard.sort((a, b) => {
+      if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+      if (b.tasksScore !== a.tasksScore) return b.tasksScore - a.tasksScore;
+      if (b.attendanceScore !== a.attendanceScore) return b.attendanceScore - a.attendanceScore;
+      return a.name.localeCompare(b.name);
     });
+
+    // Assign Fair Competition Ranking (Students with identical scores share the exact same rank)
+    let currentRank = 1;
+    const rankedLeaderboard = leaderboard.map((st, index, arr) => {
+      if (index > 0 && st.totalScore === arr[index - 1].totalScore) {
+        // Shared rank with predecessor
+      } else {
+        currentRank = index + 1;
+      }
+      return {
+        ...st,
+        rank: currentRank,
+      };
+    });
+
+    // If Anonymous Mode is ON and the requester is a student, mask all OTHER students
+    const finalLeaderboard = rankedLeaderboard.map((st) => {
+      if (isAnonymousMode && user.role === "STUDENT" && st.id !== user.id) {
+        return {
+          ...st,
+          name: `Participant #${st.rank} (مشارك)`,
+          email: "masked@academy.internal",
+          phone: null,
+          college: "Confidential",
+          academicYear: "-",
+        };
+      }
+      return st;
+    });
+
+    return NextResponse.json(
+      {
+        track,
+        settings,
+        isAnonymousMode,
+        stats: {
+          totalStudents: students.length,
+          totalSessions,
+          totalTasks,
+        },
+        leaderboard: finalLeaderboard,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
   } catch (error) {
     console.error("GET /api/leaderboard error:", error);
     return NextResponse.json({ error: "Failed to load leaderboard." }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const { error, user } = await requireAuth();
+    if (error || !user) return error;
+
+    if (user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Unauthorized: Only Main Administrator can configure leaderboard anonymous mode." },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json();
+    const { anonymousMode } = body;
+
+    await prisma.systemSetting.upsert({
+      where: { key: "leaderboard_anonymous_mode" },
+      update: { value: anonymousMode ? "true" : "false" },
+      create: { key: "leaderboard_anonymous_mode", value: anonymousMode ? "true" : "false" },
+    });
+
+    return NextResponse.json({
+      success: true,
+      anonymousMode: !!anonymousMode,
+      message: anonymousMode
+        ? "Anonymous Leaderboard Mode enabled. Other students are now masked from student view."
+        : "Standard Leaderboard Mode restored. Student names are now visible to everyone.",
+    });
+  } catch (error) {
+    console.error("POST /api/leaderboard error:", error);
+    return NextResponse.json({ error: "Failed to update leaderboard settings." }, { status: 500 });
   }
 }

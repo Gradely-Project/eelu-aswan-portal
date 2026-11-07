@@ -32,6 +32,15 @@ interface Track {
     name: string;
     trackTeamRole: string | null;
   }>;
+  sessions?: Array<{
+    id: string;
+    title: string;
+    date: string;
+    time?: string | null;
+    _count?: {
+      attendance: number;
+    };
+  }>;
 }
 
 export default function AdminTracksPage() {
@@ -299,6 +308,32 @@ export default function AdminTracksPage() {
                         </span>
                       </div>
                     </div>
+
+                    {/* Recent Sessions & Attendance Breakdown */}
+                    {trk.sessions && trk.sessions.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-[#1E3A5F]/50">
+                        <span className="text-[10px] font-bold text-[#8FA4BD] uppercase block mb-1.5 flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-[#269CF0]" />
+                          Recent Lectures ({trk.sessions.length}):
+                        </span>
+                        <div className="space-y-1 max-h-24 overflow-y-auto">
+                          {trk.sessions.slice(0, 3).map((sess) => (
+                            <div
+                              key={sess.id}
+                              className="bg-[#07172A] px-2 py-1 rounded-lg border border-[#1E3A5F] flex items-center justify-between text-[10px]"
+                            >
+                              <span className="text-white font-medium truncate max-w-[130px]">{sess.title}</span>
+                              <div className="flex items-center gap-1.5 font-mono text-[9px] text-[#8FA4BD]">
+                                <span>{sess.date}</span>
+                                <span className="text-emerald-400 font-bold bg-emerald-500/10 px-1 py-0.2 rounded">
+                                  {sess._count?.attendance || 0} Attended
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-4 flex items-center justify-between text-[11px] text-[#8FA4BD]">

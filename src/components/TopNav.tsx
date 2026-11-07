@@ -268,7 +268,7 @@ export default function TopNav({
 
   return (
     <>
-      <header className="h-16 bg-[#07172A] border-b border-[#1E3A5F] px-3 sm:px-6 flex items-center justify-between sticky top-0 z-40 no-print select-none">
+      <header className="h-16 bg-[#07172A]/95 backdrop-blur-md border-b border-[#1E3A5F] px-3 sm:px-6 flex items-center justify-between sticky top-0 z-40 no-print select-none">
         {/* Left: Mobile Drawer Button + Brand */}
         <div className="flex items-center gap-2.5 sm:gap-3">
           {/* Mobile Hamburger Drawer Toggle */}
@@ -282,14 +282,14 @@ export default function TopNav({
 
           <Link href="/dashboard" className="flex items-center gap-2.5 sm:gap-3 group">
             <div
-              className="relative w-8 sm:w-9 h-8 sm:h-9 rounded-xl overflow-hidden border border-cyan-500/20 bg-[#0B1A2D] p-1 shadow-sm ring-1 ring-cyan-500/10 group-hover:scale-105 transition-transform flex-shrink-0"
-              style={{ width: "36px", height: "36px", minWidth: "36px", minHeight: "36px" }}
+              className="relative w-9 sm:w-10 h-9 sm:h-10 rounded-xl overflow-hidden border border-cyan-500/30 bg-[#0B1A2D] p-1 shadow-sm ring-1 ring-cyan-500/20 group-hover:scale-105 transition-transform flex-shrink-0"
+              style={{ width: "38px", height: "38px", minWidth: "38px", minHeight: "38px" }}
             >
               <Image
                 src="/logo.jpeg"
                 alt="EELU Branch Logo"
-                width={36}
-                height={36}
+                width={38}
+                height={38}
                 className="w-full h-full object-contain rounded-lg"
                 priority
               />
@@ -299,9 +299,8 @@ export default function TopNav({
                 <span className="sm:hidden">EELU Aswan</span>
                 <span className="hidden sm:inline">EELU Aswan Student Branch</span>
               </span>
-              <span className="text-[9px] sm:text-[10px] font-bold text-[#E5A93C] tracking-wider uppercase mt-1 truncate">
-                <span className="sm:hidden">PORTAL</span>
-                <span className="hidden sm:inline">STUDENT ACADEMY PORTAL</span>
+              <span className="text-[9px] sm:text-[10px] font-bold text-[#48D5F5] tracking-wider uppercase mt-1 truncate">
+                Branch Portal
               </span>
             </div>
           </Link>

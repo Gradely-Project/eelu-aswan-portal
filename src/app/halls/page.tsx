@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import TopNav from "@/components/TopNav";
 import Sidebar from "@/components/Sidebar";
 import {
@@ -15,10 +15,13 @@ import {
   Trash2,
   Check,
   X,
-  Megaphone,
   Sparkles,
-  ShieldCheck,
   RotateCcw,
+  Copy,
+  Layers,
+  Filter,
+  History,
+  TrendingUp,
 } from "lucide-react";
 
 interface HallSlot {
@@ -41,10 +44,39 @@ export default function HallsPage() {
   const [slots, setSlots] = useState<HallSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+
+  // View Tabs: UPCOMING vs PAST
+  const [activeTab, setActiveTab] = useState<"UPCOMING" | "PAST">("UPCOMING");
+
+  // Filter States
   const [selectedDay, setSelectedDay] = useState("ALL");
   const [selectedStatus, setSelectedStatus] = useState("ALL");
+  const [selectedHall, setSelectedHall] = useState("ALL");
+  const [selectedTrackFilter, setSelectedTrackFilter] = useState("ALL");
+  const [timeHorizon, setTimeHorizon] = useState<"ALL" | "THIS_WEEK" | "NEXT_WEEK" | "CUSTOM">("ALL");
+  const [filterStartDate, setFilterStartDate] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
 
-  const [filterDate, setFilterDate] = useState("");
+  // Add / Duplicate Modal State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [hallName, setHallName] = useState("Campus Computer Lab 204");
+  const [dayOfWeek, setDayOfWeek] = useState("Sunday");
+  const [date, setDate] = useState("");
+  const [timeSlot, setTimeSlot] = useState("10:00 AM - 12:00 PM");
+  const [capacity, setCapacity] = useState("50");
+  const [notes, setNotes] = useState("Projector, high-speed WiFi & AC available");
+  const [repeatWeeks, setRepeatWeeks] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Booking Modal State
+  const [bookingSlot, setBookingSlot] = useState<HallSlot | null>(null);
+  const [broadcastAnnouncement, setBroadcastAnnouncement] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(false);
+
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   const handleDateChange = (val: string) => {
     setDate(val);
@@ -59,29 +91,10 @@ export default function HallsPage() {
     }
   };
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [hallName, setHallName] = useState("Campus Computer Lab 204");
-  const [dayOfWeek, setDayOfWeek] = useState("Sunday");
-  const [date, setDate] = useState("");
-  const [timeSlot, setTimeSlot] = useState("10:00 AM - 12:00 PM");
-  const [capacity, setCapacity] = useState("50");
-  const [notes, setNotes] = useState("Projector, high-speed WiFi & AC available");
-  const [submitting, setSubmitting] = useState(false);
-
-  // Booking Modal
-  const [bookingSlot, setBookingSlot] = useState<HallSlot | null>(null);
-  const [broadcastAnnouncement, setBroadcastAnnouncement] = useState(true);
-  const [bookingLoading, setBookingLoading] = useState(false);
-
-  const [feedback, setFeedback] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
   const fetchSlots = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/halls?day=${selectedDay}&status=${selectedStatus}`);
+      const res = await fetch(`/api/halls?day=ALL&status=ALL`);
       const data = await res.json();
       setSlots(data.slots || []);
     } catch {
@@ -98,11 +111,138 @@ export default function HallsPage() {
         if (d.user) setUser(d.user);
       })
       .catch(() => {});
+    fetchSlots();
   }, []);
 
-  useEffect(() => {
-    fetchSlots();
-  }, [selectedDay, selectedStatus]);
+  // Helper: Estimate hours from a timeSlot string
+  const parseHours = (slotStr: string): number => {
+    try {
+      const parts = slotStr.split("-");
+      if (parts.length === 2) {
+        const parseTime = (tStr: string) => {
+          const match = tStr.trim().match(/(\d+):?(\d*)\s*(AM|PM)?/i);
+          if (!match) return 0;
+          let hour = parseInt(match[1], 10);
+          const mins = match[2] ? parseInt(match[2], 10) : 0;
+          const ampm = (match[3] || "").toUpperCase();
+          if (ampm === "PM" && hour < 12) hour += 12;
+          if (ampm === "AM" && hour === 12) hour = 0;
+          return hour + mins / 60;
+        };
+        const start = parseTime(parts[0]);
+        const end = parseTime(parts[1]);
+        const diff = end - start;
+        if (diff > 0 && diff <= 8) return Math.round(diff * 10) / 10;
+      }
+    } catch {}
+    return 2.0; // fallback standard 2 hours per lecture
+  };
+
+  // Track Booking Statistics
+  const stats = useMemo(() => {
+    const booked = slots.filter((s) => s.status === "BOOKED");
+    const totalBookings = booked.length;
+    let totalHours = 0;
+    const byTrack: Record<string, { count: number; hours: number }> = {};
+
+    booked.forEach((s) => {
+      const hrs = parseHours(s.timeSlot);
+      totalHours += hrs;
+      const tName = s.bookedTrackName || "General Track";
+      if (!byTrack[tName]) byTrack[tName] = { count: 0, hours: 0 };
+      byTrack[tName].count += 1;
+      byTrack[tName].hours += hrs;
+    });
+
+    return { totalBookings, totalHours: Math.round(totalHours * 10) / 10, byTrack };
+  }, [slots]);
+
+  // Unique Halls List for Filter
+  const uniqueHalls = useMemo(() => {
+    const set = new Set<string>();
+    slots.forEach((s) => {
+      if (s.hallName) set.add(s.hallName);
+    });
+    return Array.from(set);
+  }, [slots]);
+
+  // Unique Tracks List for Filter
+  const uniqueTracks = useMemo(() => {
+    const set = new Set<string>();
+    slots.forEach((s) => {
+      if (s.bookedTrackName) set.add(s.bookedTrackName);
+    });
+    return Array.from(set);
+  }, [slots]);
+
+  // Filtered Slots
+  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+
+  const filteredSlots = useMemo(() => {
+    // Current week boundary calculations
+    const now = new Date();
+    const dayOfWeekIdx = now.getDay();
+    const currentWeekStart = new Date(now);
+    currentWeekStart.setDate(now.getDate() - dayOfWeekIdx); // Sunday
+    currentWeekStart.setHours(0, 0, 0, 0);
+
+    const currentWeekEnd = new Date(currentWeekStart);
+    currentWeekEnd.setDate(currentWeekStart.getDate() + 6); // Saturday
+    currentWeekEnd.setHours(23, 59, 59, 999);
+
+    const nextWeekStart = new Date(currentWeekStart);
+    nextWeekStart.setDate(currentWeekStart.getDate() + 7);
+    const nextWeekEnd = new Date(currentWeekEnd);
+    nextWeekEnd.setDate(currentWeekEnd.getDate() + 7);
+
+    return slots.filter((slot) => {
+      const slotDateStr = slot.date || "";
+
+      // 1. Tab Check: UPCOMING vs PAST
+      if (activeTab === "PAST") {
+        if (!slotDateStr || slotDateStr >= todayStr) return false;
+      } else {
+        if (slotDateStr && slotDateStr < todayStr) return false;
+      }
+
+      // 2. Day of Week Filter
+      if (selectedDay !== "ALL" && slot.dayOfWeek !== selectedDay) return false;
+
+      // 3. Status Filter
+      if (selectedStatus !== "ALL" && slot.status !== selectedStatus) return false;
+
+      // 4. Hall Filter
+      if (selectedHall !== "ALL" && slot.hallName !== selectedHall) return false;
+
+      // 5. Track Filter
+      if (selectedTrackFilter !== "ALL" && slot.bookedTrackName !== selectedTrackFilter) return false;
+
+      // 6. Time Horizon
+      if (timeHorizon === "THIS_WEEK" && slotDateStr) {
+        const d = new Date(slotDateStr);
+        if (d < currentWeekStart || d > currentWeekEnd) return false;
+      } else if (timeHorizon === "NEXT_WEEK" && slotDateStr) {
+        const d = new Date(slotDateStr);
+        if (d < nextWeekStart || d > nextWeekEnd) return false;
+      } else if (timeHorizon === "CUSTOM") {
+        if (filterStartDate && slotDateStr < filterStartDate) return false;
+        if (filterEndDate && slotDateStr > filterEndDate) return false;
+      }
+
+      return true;
+    });
+  }, [
+    slots,
+    activeTab,
+    todayStr,
+    selectedDay,
+    selectedStatus,
+    selectedHall,
+    selectedTrackFilter,
+    timeHorizon,
+    filterStartDate,
+    filterEndDate,
+  ]);
 
   const handleCreateSlot = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,6 +261,7 @@ export default function HallsPage() {
           timeSlot,
           capacity: parseInt(capacity, 10) || 50,
           notes,
+          repeatWeeks: Number(repeatWeeks) || 1,
         }),
       });
 
@@ -133,12 +274,38 @@ export default function HallsPage() {
 
       setFeedback(data.message || "Hall slot created successfully!");
       setShowAddModal(false);
+      setRepeatWeeks(1);
       fetchSlots();
     } catch {
       setError("Network error while creating hall slot.");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleDuplicateSlot = (slot: HallSlot) => {
+    setHallName(slot.hallName);
+    setTimeSlot(slot.timeSlot);
+    setCapacity(slot.capacity?.toString() || "50");
+    setNotes(slot.notes || "");
+    if (slot.date) {
+      const parts = slot.date.split("-");
+      if (parts.length === 3) {
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        d.setDate(d.getDate() + 7);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        setDate(`${yyyy}-${mm}-${dd}`);
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        setDayOfWeek(dayNames[d.getDay()]);
+      }
+    } else {
+      setDate("");
+      setDayOfWeek(slot.dayOfWeek);
+    }
+    setRepeatWeeks(1);
+    setShowAddModal(true);
   };
 
   const handleBook = async () => {
@@ -235,19 +402,22 @@ export default function HallsPage() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#10243C] border border-[#1E3A5F] text-[#E5A93C] text-[11px] font-black uppercase tracking-wider mb-2">
                 <Building2 className="w-3.5 h-3.5 text-[#E5A93C]" />
-                Official Venue Allocation System
+                Official Venue Allocation & Timetable Hub
               </div>
               <h1 className="text-2xl font-black text-[#F5F7FB]">
-                Weekly Hall & Lab Booking Hub
+                Campus Timetables & Room Booking System
               </h1>
               <p className="text-xs text-[#8FA4BD] mt-1 max-w-2xl">
-                Browse available campus lecture halls, computer labs, and smart rooms for the upcoming week. Track Heads can reserve slots directly and instantly broadcast the location to enrolled students.
+                Browse available campus lecture halls, computer labs, and smart rooms. Reserve slots, repeat schedules across weeks, and track each bootcamp specialization&apos;s allocated hours throughout the semester.
               </p>
             </div>
 
             {canManageSlots && (
               <button
-                onClick={() => setShowAddModal(true)}
+                onClick={() => {
+                  setRepeatWeeks(1);
+                  setShowAddModal(true);
+                }}
                 className="px-5 py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white text-xs font-black shadow-md transition-all flex items-center gap-2 self-start md:self-auto cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
@@ -271,15 +441,120 @@ export default function HallsPage() {
             </div>
           )}
 
-          {/* Day Filters */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-2">
-            <div className="flex flex-wrap items-center gap-1.5 bg-[#0D1D32] p-1.5 rounded-2xl border border-[#1E3A5F]">
+          {/* Track Utilization Metrics Bar */}
+          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-5 shadow-lg space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#1E3A5F] gap-2">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-[#E5A93C]" />
+                <h3 className="text-xs font-black uppercase text-[#F5F7FB] tracking-wider">
+                  Semester Track Booking Statistics & Lab Utilization (إحصائيات استهلاك القاعات لكل تراك)
+                </h3>
+              </div>
+              <div className="flex items-center gap-4 text-xs font-mono">
+                <span className="text-[#8FA4BD]">
+                  Total Reservations: <strong className="text-[#48D5F5]">{stats.totalBookings} Slots</strong>
+                </span>
+                <span className="text-[#8FA4BD]">
+                  Total Lab Hours: <strong className="text-[#E5A93C]">{stats.totalHours} Hours</strong>
+                </span>
+              </div>
+            </div>
+
+            {Object.keys(stats.byTrack).length === 0 ? (
+              <p className="text-xs text-[#8FA4BD] py-2">No bookings recorded yet this semester.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                {Object.entries(stats.byTrack).map(([tName, data]) => (
+                  <div
+                    key={tName}
+                    className="p-3 rounded-2xl bg-[#07172A] border border-[#1E3A5F] flex flex-col justify-between"
+                  >
+                    <span className="text-xs font-bold text-[#F5F7FB] truncate block mb-1" title={tName}>
+                      {tName}
+                    </span>
+                    <div className="flex items-center justify-between text-[11px] font-mono mt-1 pt-1 border-t border-[#1E3A5F]/60">
+                      <span className="text-[#48D5F5] font-black">{data.count} Bookings</span>
+                      <span className="text-[#E5A93C] font-black">{data.hours} hrs</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* View Tabs: Upcoming vs Past Archive */}
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-2 bg-[#0D1D32] p-1.5 rounded-2xl border border-[#1E3A5F]">
+              <button
+                onClick={() => setActiveTab("UPCOMING")}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+                  activeTab === "UPCOMING"
+                    ? "bg-[#269CF0] text-white shadow-md shadow-[#269CF0]/25"
+                    : "text-[#8FA4BD] hover:text-white"
+                }`}
+              >
+                <Calendar className="w-4 h-4" />
+                Active & Upcoming Slots (المواعيد القادمة والنشطة)
+              </button>
+              <button
+                onClick={() => setActiveTab("PAST")}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+                  activeTab === "PAST"
+                    ? "bg-[#E5A93C] text-[#07172A] shadow-md shadow-[#E5A93C]/25"
+                    : "text-[#8FA4BD] hover:text-white"
+                }`}
+              >
+                <History className="w-4 h-4" />
+                Past Archive & History (أرشيف وسجل المواعيد السابقة)
+              </button>
+            </div>
+
+            {/* Quick Horizon Filter */}
+            <div className="flex items-center gap-1.5 bg-[#0D1D32] p-1.5 rounded-2xl border border-[#1E3A5F] text-xs">
+              <span className="text-[10px] font-bold text-[#8FA4BD] px-2 uppercase">Horizon:</span>
+              <button
+                onClick={() => setTimeHorizon("ALL")}
+                className={`px-2.5 py-1 rounded-xl font-bold transition-all ${
+                  timeHorizon === "ALL" ? "bg-[#1E3A5F] text-white" : "text-[#8FA4BD] hover:text-white"
+                }`}
+              >
+                All Dates
+              </button>
+              <button
+                onClick={() => setTimeHorizon("THIS_WEEK")}
+                className={`px-2.5 py-1 rounded-xl font-bold transition-all ${
+                  timeHorizon === "THIS_WEEK" ? "bg-[#1E3A5F] text-white" : "text-[#8FA4BD] hover:text-white"
+                }`}
+              >
+                This Week
+              </button>
+              <button
+                onClick={() => setTimeHorizon("NEXT_WEEK")}
+                className={`px-2.5 py-1 rounded-xl font-bold transition-all ${
+                  timeHorizon === "NEXT_WEEK" ? "bg-[#1E3A5F] text-white" : "text-[#8FA4BD] hover:text-white"
+                }`}
+              >
+                Next Week
+              </button>
+              <button
+                onClick={() => setTimeHorizon("CUSTOM")}
+                className={`px-2.5 py-1 rounded-xl font-bold transition-all ${
+                  timeHorizon === "CUSTOM" ? "bg-[#1E3A5F] text-white" : "text-[#8FA4BD] hover:text-white"
+                }`}
+              >
+                Date Range
+              </button>
+            </div>
+          </div>
+
+          {/* Sub Filters Row (Days, Status, Hall, Track, Date Range) */}
+          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+            {/* Day Filter Chips */}
+            <div className="flex flex-wrap items-center gap-1">
               <button
                 onClick={() => setSelectedDay("ALL")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  selectedDay === "ALL"
-                    ? "bg-[#269CF0] text-white shadow-sm"
-                    : "text-[#8FA4BD] hover:text-[#F5F7FB]"
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                  selectedDay === "ALL" ? "bg-[#269CF0] text-white" : "bg-[#07172A] text-[#8FA4BD] hover:text-white"
                 }`}
               >
                 All Days
@@ -288,49 +563,79 @@ export default function HallsPage() {
                 <button
                   key={day}
                   onClick={() => setSelectedDay(day)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    selectedDay === day
-                      ? "bg-[#269CF0] text-white shadow-sm"
-                      : "text-[#8FA4BD] hover:text-[#F5F7FB]"
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                    selectedDay === day ? "bg-[#269CF0] text-white" : "bg-[#07172A] text-[#8FA4BD] hover:text-white"
                   }`}
                 >
-                  {day}
+                  {day.slice(0, 3)}
                 </button>
               ))}
             </div>
 
-            <div className="flex items-center gap-3 text-xs flex-wrap">
-              <div className="flex items-center gap-1.5 bg-[#0D1D32] border border-[#1E3A5F] rounded-xl px-3 py-1.5">
-                <span className="text-[#8FA4BD] font-bold">Filter Date:</span>
-                <input
-                  type="date"
-                  value={filterDate}
-                  onChange={(e) => setFilterDate(e.target.value)}
-                  className="bg-transparent text-[#48D5F5] font-bold focus:outline-none text-xs"
-                />
-                {filterDate && (
-                  <button
-                    onClick={() => setFilterDate("")}
-                    className="text-[#8FA4BD] hover:text-white font-black text-xs ml-1"
-                    title="Clear date filter"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
+            {/* Dropdown Filters */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Status Filter */}
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="bg-[#07172A] border border-[#1E3A5F] rounded-xl px-2.5 py-1 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+              >
+                <option value="ALL">All Status</option>
+                <option value="AVAILABLE">Available Only</option>
+                <option value="BOOKED">Booked Only</option>
+              </select>
 
-              <div className="flex items-center gap-2">
-                <span className="text-[#8FA4BD] font-bold">Filter Status:</span>
+              {/* Hall Filter */}
+              {uniqueHalls.length > 0 && (
                 <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="bg-[#0D1D32] border border-[#1E3A5F] rounded-xl px-3 py-1.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                  value={selectedHall}
+                  onChange={(e) => setSelectedHall(e.target.value)}
+                  className="bg-[#07172A] border border-[#1E3A5F] rounded-xl px-2.5 py-1 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
                 >
-                  <option value="ALL">All Slots</option>
-                  <option value="AVAILABLE">Available Only</option>
-                  <option value="BOOKED">Booked Only</option>
+                  <option value="ALL">All Halls / Labs</option>
+                  {uniqueHalls.map((h) => (
+                    <option key={h} value={h}>
+                      {h}
+                    </option>
+                  ))}
                 </select>
-              </div>
+              )}
+
+              {/* Track Filter */}
+              {uniqueTracks.length > 0 && (
+                <select
+                  value={selectedTrackFilter}
+                  onChange={(e) => setSelectedTrackFilter(e.target.value)}
+                  className="bg-[#07172A] border border-[#1E3A5F] rounded-xl px-2.5 py-1 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                >
+                  <option value="ALL">All Tracks</option>
+                  {uniqueTracks.map((tr) => (
+                    <option key={tr} value={tr}>
+                      {tr}
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {/* Custom Date Range Picker */}
+              {timeHorizon === "CUSTOM" && (
+                <div className="flex items-center gap-1.5 bg-[#07172A] p-1 rounded-xl border border-[#1E3A5F]">
+                  <span className="text-[10px] text-[#8FA4BD]">From:</span>
+                  <input
+                    type="date"
+                    value={filterStartDate}
+                    onChange={(e) => setFilterStartDate(e.target.value)}
+                    className="bg-transparent text-white font-mono text-[11px] focus:outline-none"
+                  />
+                  <span className="text-[10px] text-[#8FA4BD]">To:</span>
+                  <input
+                    type="date"
+                    value={filterEndDate}
+                    onChange={(e) => setFilterEndDate(e.target.value)}
+                    className="bg-transparent text-white font-mono text-[11px] focus:outline-none"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -339,24 +644,29 @@ export default function HallsPage() {
             <div className="py-20 text-center text-xs text-[#8FA4BD]">
               Loading weekly venue schedules...
             </div>
-          ) : (filterDate ? slots.filter((s) => s.date === filterDate) : slots).length === 0 ? (
+          ) : filteredSlots.length === 0 ? (
             <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-12 text-center text-xs text-[#8FA4BD]">
               <Building2 className="w-10 h-10 text-[#8FA4BD] mx-auto mb-3 opacity-40" />
-              <p className="font-bold text-sm text-[#F5F7FB] mb-1">No hall slots registered for this selection.</p>
-              <p>Branch administration can add venue schedules for the upcoming academic week.</p>
+              <p className="font-bold text-sm text-[#F5F7FB] mb-1">
+                No slots found matching this criteria ({activeTab === "PAST" ? "Past Archive" : "Active & Upcoming"}).
+              </p>
+              <p>Branch administration can add or duplicate venue schedules for upcoming academic weeks.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {(filterDate ? slots.filter((s) => s.date === filterDate) : slots).map((slot) => {
+              {filteredSlots.map((slot) => {
                 const isBooked = slot.status === "BOOKED";
                 const isMyTrack =
                   user?.role === "INSTRUCTOR" && slot.bookedTrackId === user?.assignedTrackId;
+                const isPast = slot.date && slot.date < todayStr;
 
                 return (
                   <div
                     key={slot.id}
                     className={`rounded-3xl p-6 border transition-all flex flex-col justify-between shadow-lg relative ${
-                      isBooked
+                      isPast
+                        ? "bg-[#08121f] border-[#1E3A5F]/40 opacity-80"
+                        : isBooked
                         ? "bg-[#0b1728] border-purple-500/30"
                         : "bg-[#0D1D32] border-[#1E3A5F] hover:border-[#269CF0]/50 hover:-translate-y-0.5"
                     }`}
@@ -370,15 +680,22 @@ export default function HallsPage() {
                           {slot.date && <span className="text-[10px] text-[#8FA4BD]">({slot.date})</span>}
                         </span>
 
-                        <span
-                          className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${
-                            isBooked
-                              ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
-                              : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                          }`}
-                        >
-                          {isBooked ? "BOOKED" : "AVAILABLE"}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {isPast && (
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                              PAST
+                            </span>
+                          )}
+                          <span
+                            className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${
+                              isBooked
+                                ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
+                                : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                            }`}
+                          >
+                            {isBooked ? "BOOKED" : "AVAILABLE"}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Hall Name */}
@@ -387,13 +704,16 @@ export default function HallsPage() {
                         {slot.hallName}
                       </h3>
 
-                      {/* Time Slot */}
-                      <div className="flex items-center gap-1.5 text-xs text-[#8FA4BD] font-bold mb-3">
+                      {/* Time Slot & Hours */}
+                      <div className="flex items-center gap-1.5 text-xs text-[#8FA4BD] font-bold mb-3 flex-wrap">
                         <Clock className="w-3.5 h-3.5 text-[#48D5F5]" />
                         <span>{slot.timeSlot}</span>
+                        <span className="text-[10px] text-[#E5A93C] bg-[#07172A] px-2 py-0.5 rounded-md border border-[#1E3A5F]">
+                          {parseHours(slot.timeSlot)} hrs
+                        </span>
                         {slot.capacity && (
-                          <span className="text-[10px] ml-2 text-[#8FA4BD] bg-[#07172A] px-2 py-0.5 rounded-md border border-[#1E3A5F]">
-                            Capacity: {slot.capacity}
+                          <span className="text-[10px] text-[#8FA4BD] bg-[#07172A] px-2 py-0.5 rounded-md border border-[#1E3A5F]">
+                            Cap: {slot.capacity}
                           </span>
                         )}
                       </div>
@@ -420,28 +740,42 @@ export default function HallsPage() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="pt-4 border-t border-[#1E3A5F] flex items-center justify-between gap-2">
-                      {!isBooked && canBook ? (
-                        <button
-                          onClick={() => setBookingSlot(slot)}
-                          className="w-full py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white text-xs font-black shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                          Reserve This Hall
-                        </button>
-                      ) : isBooked && (isMyTrack || canManageSlots) ? (
-                        <button
-                          onClick={() => handleRelease(slot.id)}
-                          className="w-full py-2 rounded-xl bg-purple-900/30 hover:bg-purple-900/50 border border-purple-700/50 text-purple-300 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          Cancel / Release Booking
-                        </button>
-                      ) : (
-                        <span className="text-[11px] text-[#8FA4BD] italic">
-                          {isBooked ? "Reserved for track session" : "Open for booking"}
-                        </span>
-                      )}
+                    <div className="pt-4 border-t border-[#1E3A5F] flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-1">
+                        {!isBooked && canBook ? (
+                          <button
+                            onClick={() => setBookingSlot(slot)}
+                            className="flex-1 py-2 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white text-xs font-black shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            Reserve Hall
+                          </button>
+                        ) : isBooked && (isMyTrack || canManageSlots) ? (
+                          <button
+                            onClick={() => handleRelease(slot.id)}
+                            className="flex-1 py-2 rounded-xl bg-purple-900/30 hover:bg-purple-900/50 border border-purple-700/50 text-purple-300 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            Release Slot
+                          </button>
+                        ) : (
+                          <span className="text-[11px] text-[#8FA4BD] italic">
+                            {isBooked ? "Reserved for track session" : "Open for booking"}
+                          </span>
+                        )}
+
+                        {/* Duplicate Slot for Admin / Chair */}
+                        {canManageSlots && (
+                          <button
+                            onClick={() => handleDuplicateSlot(slot)}
+                            title="تكرار الميعاد للأسبوع القادم (+1 Week)"
+                            className="p-2 rounded-xl bg-[#07172A] hover:bg-[#10243C] text-[#48D5F5] border border-[#1E3A5F] hover:border-[#48D5F5]/40 transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Duplicate</span>
+                          </button>
+                        )}
+                      </div>
 
                       {canManageSlots && (
                         <button
@@ -491,6 +825,12 @@ export default function HallsPage() {
                     {bookingSlot.dayOfWeek} • {bookingSlot.timeSlot}
                   </span>
                 </div>
+                {bookingSlot.date && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#8FA4BD]">Specific Date:</span>
+                    <span className="font-bold text-[#E5A93C] font-mono">{bookingSlot.date}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-[#8FA4BD]">Allocated Track:</span>
                   <span className="font-black text-[#269CF0]">
@@ -511,7 +851,7 @@ export default function HallsPage() {
                     Broadcast venue notification to students
                   </span>
                   <span className="text-[10px] text-[#8FA4BD]">
-                    Automatically posts an announcement to enrolled track students so they see the lecture hall in their portal and top notification bell.
+                    Automatically posts an announcement to enrolled track students so they see the lecture hall in their portal and notification bell.
                   </span>
                 </div>
               </label>
@@ -538,7 +878,7 @@ export default function HallsPage() {
         </div>
       )}
 
-      {/* Add Slot Modal (Admin & Chair) */}
+      {/* Add / Recurring Slot Modal (Admin & Chair) */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl relative">
@@ -548,9 +888,9 @@ export default function HallsPage() {
                   <Plus className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-[#F5F7FB]">Add Available Hall / Slot</h3>
+                  <h3 className="text-base font-black text-[#F5F7FB]">Add Available Hall / Timetable Slot</h3>
                   <span className="text-[10px] text-[#8FA4BD]">
-                    Register campus rooms for upcoming track sessions
+                    Register campus rooms with optional weekly recurrence
                   </span>
                 </div>
               </div>
@@ -592,7 +932,7 @@ export default function HallsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#8FA4BD] font-bold mb-1">Specific Date *</label>
+                  <label className="block text-[#8FA4BD] font-bold mb-1">Specific Start Date *</label>
                   <input
                     type="date"
                     required
@@ -629,6 +969,26 @@ export default function HallsPage() {
                 </div>
               </div>
 
+              {/* Recurring Option */}
+              <div className="p-3 bg-[#07172A] rounded-xl border border-[#1E3A5F]">
+                <label className="block text-[#E5A93C] font-black uppercase text-[10px] mb-1">
+                  تكرار الميعاد أسبوعياً (Repeat Weekly Recurrence)
+                </label>
+                <select
+                  value={repeatWeeks}
+                  onChange={(e) => setRepeatWeeks(Number(e.target.value))}
+                  className="w-full bg-[#0D1D32] border border-[#1E3A5F] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#269CF0]"
+                >
+                  <option value={1}>مرة واحدة فقط (Single Week)</option>
+                  <option value={2}>لمدة أسبوعين متتاليين (Repeat 2 Weeks)</option>
+                  <option value={4}>لمدة شهر كامل (Repeat 4 Weeks)</option>
+                  <option value={8}>لمدة الترم كامل (Repeat 8 Weeks / Full Semester)</option>
+                </select>
+                <span className="text-[10px] text-[#8FA4BD] mt-1 block">
+                  سيتم إنشاء المواعيد للأيام والأسابيع التالية تلقائياً وبنفس التوقيت.
+                </span>
+              </div>
+
               <div>
                 <label className="block text-[#8FA4BD] font-bold mb-1">Venue Notes & Equipment</label>
                 <textarea
@@ -653,7 +1013,11 @@ export default function HallsPage() {
                   disabled={submitting}
                   className="px-5 py-2 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white text-xs font-black shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  {submitting ? "Saving..." : "Add Hall Slot"}
+                  {submitting
+                    ? "Saving..."
+                    : repeatWeeks > 1
+                    ? `Create ${repeatWeeks} Recurring Slots`
+                    : "Add Hall Slot"}
                 </button>
               </div>
             </form>

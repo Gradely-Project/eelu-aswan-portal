@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { hallName, dayOfWeek, date, timeSlot, capacity, notes } = body;
+    const { hallName, dayOfWeek, date, timeSlot, capacity, notes, repeatWeeks } = body;
 
     if (!hallName || !dayOfWeek || !timeSlot) {
       return NextResponse.json(
@@ -53,22 +53,49 @@ export async function POST(req: Request) {
       );
     }
 
-    const newSlot = await prisma.hallSlot.create({
-      data: {
-        hallName: hallName.trim(),
-        dayOfWeek: dayOfWeek.trim(),
-        date: date ? date.trim() : null,
-        timeSlot: timeSlot.trim(),
-        capacity: capacity ? parseInt(capacity, 10) : 50,
-        notes: notes ? notes.trim() : null,
-        status: "AVAILABLE",
-      },
-    });
+    const repeatCount = Math.max(1, Math.min(12, Number(repeatWeeks) || 1));
+    const createdSlots = [];
+
+    for (let i = 0; i < repeatCount; i++) {
+      let slotDate: string | null = date ? date.trim() : null;
+      let slotDay = dayOfWeek.trim();
+
+      if (date) {
+        const parts = date.split("-");
+        if (parts.length === 3) {
+          const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+          d.setDate(d.getDate() + i * 7);
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, "0");
+          const dd = String(d.getDate()).padStart(2, "0");
+          slotDate = `${yyyy}-${mm}-${dd}`;
+          const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+          slotDay = dayNames[d.getDay()] || slotDay;
+        }
+      }
+
+      const slot = await prisma.hallSlot.create({
+        data: {
+          hallName: hallName.trim(),
+          dayOfWeek: slotDay,
+          date: slotDate,
+          timeSlot: timeSlot.trim(),
+          capacity: capacity ? parseInt(capacity, 10) : 50,
+          notes: notes ? notes.trim() : null,
+          status: "AVAILABLE",
+        },
+      });
+      createdSlots.push(slot);
+    }
 
     return NextResponse.json({
       success: true,
-      message: "Available hall slot registered successfully.",
-      slot: newSlot,
+      message:
+        repeatCount > 1
+          ? `Successfully created ${repeatCount} recurring weekly hall slots!`
+          : "Available hall slot registered successfully.",
+      slot: createdSlots[0],
+      count: createdSlots.length,
     });
   } catch (error) {
     console.error("POST /api/halls error:", error);

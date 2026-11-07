@@ -120,7 +120,11 @@ export default function ReportExportSuitePage() {
           if (myTracks.length > 0) setSelectedTrackId(myTracks[0].id);
           else if (allTracks.length > 0) setSelectedTrackId(allTracks[0].id);
         } else {
-          setTracks(allTracks);
+          const trackOptions = [
+            { id: "ALL", name: "🌟 All Tracks Consolidated (تقرير مجمّع شامل لكافة التراكات)" },
+            ...allTracks,
+          ];
+          setTracks(trackOptions);
           if (allTracks.length > 0) setSelectedTrackId(allTracks[0].id);
         }
       })

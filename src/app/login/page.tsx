@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,14 +13,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
-      if (p.get("suspended") === "1") {
-        setError("⚠️ تم تجميد وتعليق حسابك بواسطة إدارة الفرع. برجاء مراجعة الإدارة.");
+      if (p.get("suspended") === "1" || p.get("suspended") === "true") {
+        setError("⚠️ تم تجميد وتعليق حسابك بواسطة إدارة الفرع. برجاء مراجعة الإدارة والمشرفين.");
       }
     }
-  });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

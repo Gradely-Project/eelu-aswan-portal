@@ -353,45 +353,41 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#061220] text-[#F5F7FB] flex flex-col font-sans selection:bg-[#269CF0] selection:text-white relative overflow-hidden">
-      {/* Subtle Background Mesh & Glow Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e3a5f15_1px,transparent_1px),linear-gradient(to_bottom,#1e3a5f15_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none -z-10" />
-      <div className="absolute top-[-8rem] left-1/2 -translate-x-1/2 w-[48rem] h-[24rem] bg-gradient-to-tr from-[#269CF0]/20 via-[#48D5F5]/10 to-[#E5A93C]/10 blur-[130px] rounded-full pointer-events-none -z-10" />
-      <div className="absolute top-1/4 -right-24 w-80 h-80 bg-[#269CF0]/10 blur-[100px] rounded-full pointer-events-none -z-10" />
-      <div className="absolute top-1/3 -left-24 w-80 h-80 bg-[#E5A93C]/10 blur-[100px] rounded-full pointer-events-none -z-10" />
+    <div className="min-h-screen bg-[#061220] text-[#F5F7FB] flex flex-col font-sans selection:bg-[#269CF0] selection:text-white relative">
+      {/* Subtle Background Mesh & Glow Grid (Clipped internally to prevent breaking sticky navbar) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e3a5f15_1px,transparent_1px),linear-gradient(to_bottom,#1e3a5f15_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+        <div className="absolute top-[-8rem] left-1/2 -translate-x-1/2 w-[48rem] h-[24rem] bg-gradient-to-tr from-[#269CF0]/20 via-[#48D5F5]/10 to-[#E5A93C]/10 blur-[130px] rounded-full" />
+        <div className="absolute top-1/4 -right-24 w-80 h-80 bg-[#269CF0]/10 blur-[100px] rounded-full" />
+        <div className="absolute top-1/3 -left-24 w-80 h-80 bg-[#E5A93C]/10 blur-[100px] rounded-full" />
+      </div>
 
-      {/* Top Header Navbar */}
-      <header className="h-20 bg-[#061220]/80 backdrop-blur-xl border-b border-[#1E3A5F]/60 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-50">
+      {/* Top Header Navbar - Permanently Sticky with Backdrop Blur */}
+      <header className="h-20 bg-[#061220]/90 backdrop-blur-xl border-b border-[#1E3A5F]/60 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3.5">
           {/* Glowing Animated Ambient Ring around Logo */}
           <div className="relative p-[2px] rounded-2xl bg-gradient-to-tr from-[#269CF0] via-[#E5A93C] to-[#48D5F5] shadow-lg shadow-[#269CF0]/20 group">
             <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-amber-300 to-blue-500 opacity-60 blur-[3px] group-hover:opacity-100 transition-opacity" />
             <div
-              className="relative w-11 h-11 rounded-2xl overflow-hidden bg-[#07172A] p-1 flex-shrink-0 flex items-center justify-center"
-              style={{ width: "44px", height: "44px", minWidth: "44px", minHeight: "44px" }}
+              className="relative w-12 h-12 rounded-2xl overflow-hidden bg-[#07172A] p-1 flex-shrink-0 flex items-center justify-center"
+              style={{ width: "48px", height: "48px", minWidth: "48px", minHeight: "48px" }}
             >
               <Image
                 src="/logo.jpeg"
                 alt="EELU Branch Logo"
-                width={44}
-                height={44}
+                width={48}
+                height={48}
                 className="w-full h-full object-contain rounded-xl"
                 priority
               />
             </div>
           </div>
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-none">
-                EELU Aswan Student Branch
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Live
-              </span>
-            </div>
-            <span className="text-[10px] font-bold text-[#E5A93C] tracking-wider uppercase mt-1">
-              STUDENT ACADEMY PORTAL
+            <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-tight">
+              EELU Aswan Student Branch
+            </span>
+            <span className="text-[10px] font-bold text-[#48D5F5] tracking-wider uppercase">
+              Official Branch Portal
             </span>
           </div>
         </div>
@@ -426,7 +422,9 @@ export default function LandingPage() {
               <Sparkles className="w-3.5 h-3.5 text-[#E5A93C]" />
               <span>Official Academic Season 2026</span>
               <span className="text-[#1E3A5F]">•</span>
-              <span className="text-[#8FA4BD]">9 Training Tracks</span>
+              <span className="text-[#8FA4BD]">
+                {tracks.length > 0 ? `${tracks.length} Training Tracks` : "Intensive Training Tracks"}
+              </span>
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.05] mb-5">

@@ -109,6 +109,17 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-[#07172A] text-[#F5F7FB] py-12 px-4 sm:px-6 lg:px-8 flex flex-col justify-center font-sans">
       <div className="max-w-3xl mx-auto w-full">
+        {/* Return to Homepage Button */}
+        <div className="mb-6 flex justify-start">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-xs font-bold text-[#8FA4BD] hover:text-white bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#269CF0] px-4 py-2 rounded-xl transition-all shadow-sm"
+          >
+            <span>←</span>
+            <span>Return to Homepage (العودة للرئيسية)</span>
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex flex-col items-center group">
