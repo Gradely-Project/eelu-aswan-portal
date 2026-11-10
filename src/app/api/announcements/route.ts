@@ -76,8 +76,8 @@ export async function POST(req: Request) {
 
     const announcement = await prisma.announcement.create({
       data: {
-        title: title.trim(),
-        content: content.trim(),
+        title: title.trim().substring(0, 200),
+        content: content.trim().substring(0, 5000),
         category: category || "GENERAL",
         targetAudience: targetAudience || "ALL",
         trackId: finalTrackId,

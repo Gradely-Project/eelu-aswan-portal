@@ -17,14 +17,14 @@ export async function POST(req: Request) {
 
     // Update phone if supplied
     if (phone !== undefined) {
-      updateData.phone = phone.trim();
+      updateData.phone = String(phone).trim().substring(0, 30);
     }
 
     // Update password if supplied
-    if (newPassword && newPassword.trim() !== "") {
-      if (newPassword.length < 6) {
+    if (newPassword && typeof newPassword === "string" && newPassword.trim() !== "") {
+      if (newPassword.length < 6 || newPassword.length > 128) {
         return NextResponse.json(
-          { error: "New password must be at least 6 characters." },
+          { error: "New password must be between 6 and 128 characters." },
           { status: 400 }
         );
       }

@@ -56,9 +56,9 @@ export async function POST(req: Request) {
 
     const newConfig = {
       showOfficialSeal: typeof showOfficialSeal === "boolean" ? showOfficialSeal : true,
-      sealText: (sealText || "Verified Branch Seal").trim(),
-      reportSignatories: Array.isArray(reportSignatories) ? reportSignatories : DEFAULT_CONFIG.reportSignatories,
-      certificateSignatories: Array.isArray(certificateSignatories) ? certificateSignatories : DEFAULT_CONFIG.certificateSignatories,
+      sealText: String(sealText || "Verified Branch Seal").trim().substring(0, 100),
+      reportSignatories: Array.isArray(reportSignatories) ? reportSignatories.slice(0, 10) : DEFAULT_CONFIG.reportSignatories,
+      certificateSignatories: Array.isArray(certificateSignatories) ? certificateSignatories.slice(0, 10) : DEFAULT_CONFIG.certificateSignatories,
     };
 
     const setting = await prisma.systemSetting.upsert({

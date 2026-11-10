@@ -49,6 +49,18 @@ export async function POST(req: Request) {
 
     // Handle removal of instructor
     if (removeUserId) {
+      const targetUser = await prisma.user.findUnique({
+        where: { id: removeUserId },
+        select: { role: true },
+      });
+
+      if (targetUser?.role === "ADMIN") {
+        return NextResponse.json(
+          { error: "Cannot demote or remove the Main Administrator account." },
+          { status: 400 }
+        );
+      }
+
       await prisma.user.update({
         where: { id: removeUserId },
         data: {
@@ -87,6 +99,12 @@ export async function POST(req: Request) {
     });
 
     if (existing) {
+      if (existing.role === "ADMIN") {
+        return NextResponse.json(
+          { error: "Cannot alter or convert the Main Administrator account into a track instructor." },
+          { status: 400 }
+        );
+      }
       // Update existing user into instructor and update password if provided
       const updateData: any = {
         name: name.trim(),

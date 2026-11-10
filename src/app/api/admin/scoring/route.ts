@@ -30,18 +30,22 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { attendancePoints, taskWeight, bonusWeight } = body;
 
+    const safeAttendance = Math.max(0, Math.min(1000, Number(attendancePoints) || 10));
+    const safeTask = Math.max(0, Math.min(100, Number(taskWeight) || 1.0));
+    const safeBonus = Math.max(0, Math.min(100, Number(bonusWeight) || 1.0));
+
     const updated = await prisma.scoreSetting.upsert({
       where: { id: "default" },
       update: {
-        attendancePoints: Number(attendancePoints) || 10,
-        taskWeight: Number(taskWeight) || 1.0,
-        bonusWeight: Number(bonusWeight) || 1.0,
+        attendancePoints: safeAttendance,
+        taskWeight: safeTask,
+        bonusWeight: safeBonus,
       },
       create: {
         id: "default",
-        attendancePoints: Number(attendancePoints) || 10,
-        taskWeight: Number(taskWeight) || 1.0,
-        bonusWeight: Number(bonusWeight) || 1.0,
+        attendancePoints: safeAttendance,
+        taskWeight: safeTask,
+        bonusWeight: safeBonus,
       },
     });
 

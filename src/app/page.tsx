@@ -551,27 +551,11 @@ export default function LandingPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setDemoCredentials("admin@branch.org", "admin123")}
-                    className="p-2.5 rounded-xl bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-rose-500/60 text-[11px] font-bold text-[#334155] dark:text-[#8FA4BD] hover:text-rose-600 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer group"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-rose-500 group-hover:animate-ping" />
-                    <span>👑 Main Admin</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDemoCredentials("chair@branch.org", "chair123")}
-                    className="p-2.5 rounded-xl bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-amber-500/60 text-[11px] font-bold text-[#334155] dark:text-[#8FA4BD] hover:text-amber-600 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer group"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-amber-500 group-hover:animate-ping" />
-                    <span>🎖️ Chairperson</span>
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => setDemoCredentials("web.head@branch.org", "head123")}
                     className="p-2.5 rounded-xl bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-cyan-500/60 text-[11px] font-bold text-[#334155] dark:text-[#8FA4BD] hover:text-cyan-600 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer group"
                   >
                     <span className="w-2 h-2 rounded-full bg-cyan-500 group-hover:animate-ping" />
-                    <span>💻 Web Head</span>
+                    <span>💻 Web Head (Demo)</span>
                   </button>
                   <button
                     type="button"
@@ -579,7 +563,7 @@ export default function LandingPage() {
                     className="p-2.5 rounded-xl bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-emerald-500/60 text-[11px] font-bold text-[#334155] dark:text-[#8FA4BD] hover:text-emerald-600 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer group"
                   >
                     <span className="w-2 h-2 rounded-full bg-emerald-500 group-hover:animate-ping" />
-                    <span>🎓 Student (Ahmed)</span>
+                    <span>🎓 Student (Demo)</span>
                   </button>
                 </div>
               </div>

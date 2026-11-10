@@ -17,6 +17,22 @@ export async function POST(req: Request) {
       );
     }
 
+    const targetUser = await prisma.user.findUnique({
+      where: { id: studentId },
+      select: { id: true, role: true },
+    });
+
+    if (!targetUser) {
+      return NextResponse.json({ error: "Student not found." }, { status: 404 });
+    }
+
+    if (targetUser.role === "ADMIN") {
+      return NextResponse.json(
+        { error: "Cannot alter status of the Main Administrator account." },
+        { status: 400 }
+      );
+    }
+
     const newStatus = action === "APPROVE" ? "APPROVED" : "REJECTED";
 
     const updatedUser = await prisma.user.update({

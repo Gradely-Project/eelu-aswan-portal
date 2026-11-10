@@ -118,6 +118,10 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Student not found." }, { status: 404 });
     }
 
+    if (targetStudent.role === "ADMIN") {
+      return NextResponse.json({ error: "Cannot delete an Administrator account." }, { status: 400 });
+    }
+
     // Permanently delete all cascading records
     await prisma.attendanceRecord.deleteMany({ where: { studentId } });
     await prisma.taskSubmission.deleteMany({ where: { studentId } });

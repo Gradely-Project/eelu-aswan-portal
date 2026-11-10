@@ -153,29 +153,15 @@ export default function LoginPage() {
             <div className="grid grid-cols-2 gap-1.5 text-[10px]">
               <button
                 type="button"
-                onClick={() => setDemoCredentials("admin@branch.org", "admin123")}
-                className="p-1.5 rounded-lg bg-[#07172A] hover:bg-[#10243C] text-[#E5A93C] font-bold border border-[#1E3A5F] text-left truncate"
-              >
-                👑 Main Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => setDemoCredentials("chair@branch.org", "chair123")}
-                className="p-1.5 rounded-lg bg-[#07172A] hover:bg-[#10243C] text-[#48D5F5] font-bold border border-[#1E3A5F] text-left truncate"
-              >
-                🏛️ Chairperson
-              </button>
-              <button
-                type="button"
                 onClick={() => setDemoCredentials("web.head@branch.org", "head123")}
-                className="p-1.5 rounded-lg bg-[#07172A] hover:bg-[#10243C] text-[#269CF0] font-bold border border-[#1E3A5F] text-left truncate"
+                className="p-1.5 rounded-lg bg-[#07172A] hover:bg-[#10243C] text-[#269CF0] font-bold border border-[#1E3A5F] text-center truncate"
               >
                 💻 Lead Instructor
               </button>
               <button
                 type="button"
                 onClick={() => setDemoCredentials("ahmed@student.com", "student123")}
-                className="p-1.5 rounded-lg bg-[#07172A] hover:bg-[#10243C] text-emerald-400 font-bold border border-[#1E3A5F] text-left truncate"
+                className="p-1.5 rounded-lg bg-[#07172A] hover:bg-[#10243C] text-emerald-400 font-bold border border-[#1E3A5F] text-center truncate"
               >
                 🎓 Active Student
               </button>

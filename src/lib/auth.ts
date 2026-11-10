@@ -15,12 +15,12 @@ export interface SessionPayload {
 }
 
 export function signJwtToken(payload: SessionPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, JWT_SECRET, { algorithm: "HS256", expiresIn: "7d" });
 }
 
 export function verifyJwtToken(token: string): SessionPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as SessionPayload;
+    return jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }) as SessionPayload;
   } catch {
     return null;
   }

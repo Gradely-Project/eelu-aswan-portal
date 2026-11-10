@@ -20,12 +20,26 @@ export async function POST(req: Request) {
       );
     }
 
+    if (newPassword.trim().length > 128) {
+      return NextResponse.json(
+        { error: "Password exceeds maximum allowable length (128 characters)." },
+        { status: 400 }
+      );
+    }
+
     const targetUser = await prisma.user.findUnique({
       where: { id: studentId },
     });
 
     if (!targetUser) {
       return NextResponse.json({ error: "Student not found." }, { status: 404 });
+    }
+
+    if (targetUser.role === "ADMIN") {
+      return NextResponse.json(
+        { error: "Cannot reset Main Administrator password via student reset endpoint. Please use Settings in the navigation bar." },
+        { status: 403 }
+      );
     }
 
     const hashedPassword = await bcrypt.hash(newPassword.trim(), 10);
