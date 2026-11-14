@@ -19,62 +19,61 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Unauthorized access to consolidated report." }, { status: 403 });
       }
 
-      const settings = await prisma.scoreSetting.upsert({
-        where: { id: "default" },
-        update: {},
-        create: {
-          id: "default",
-          attendancePoints: 10.0,
-          taskWeight: 1.0,
-          bonusWeight: 1.0,
-        },
-      });
-
-      const sessions = await prisma.session.findMany({
-        orderBy: { date: "asc" },
-        select: { id: true, title: true, date: true },
-      });
-
-      const tasks = await prisma.task.findMany({
-        orderBy: { deadline: "asc" },
-        select: { id: true, title: true, maxScore: true },
-      });
-
-      const students = await prisma.user.findMany({
-        where: {
-          role: "STUDENT",
-          status: "APPROVED",
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          college: true,
-          academicYear: true,
-          enrollments: {
-            include: { track: { select: { id: true, name: true } } },
+      const [settings, sessions, tasks, students] = await Promise.all([
+        prisma.scoreSetting.upsert({
+          where: { id: "default" },
+          update: {},
+          create: {
+            id: "default",
+            attendancePoints: 10.0,
+            taskWeight: 1.0,
+            bonusWeight: 1.0,
           },
-          attendances: {
-            select: {
-              sessionId: true,
-              status: true,
+        }),
+        prisma.session.findMany({
+          orderBy: { date: "asc" },
+          select: { id: true, title: true, date: true },
+        }),
+        prisma.task.findMany({
+          orderBy: { deadline: "asc" },
+          select: { id: true, title: true, maxScore: true },
+        }),
+        prisma.user.findMany({
+          where: {
+            role: "STUDENT",
+            status: "APPROVED",
+          },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            college: true,
+            academicYear: true,
+            enrollments: {
+              include: { track: { select: { id: true, name: true } } },
+            },
+            attendances: {
+              select: {
+                sessionId: true,
+                status: true,
+              },
+            },
+            taskSubmissions: {
+              select: {
+                taskId: true,
+                score: true,
+              },
+            },
+            bonusPoints: {
+              select: {
+                points: true,
+              },
             },
           },
-          taskSubmissions: {
-            select: {
-              taskId: true,
-              score: true,
-            },
-          },
-          bonusPoints: {
-            select: {
-              points: true,
-            },
-          },
-        },
-        orderBy: { name: "asc" },
-      });
+          orderBy: { name: "asc" },
+        }),
+      ]);
 
       const reportRows = students.map((st) => {
         const attendanceMap = new Map(st.attendances.map((a) => [a.sessionId, a.status]));
@@ -151,97 +150,92 @@ export async function GET(req: Request) {
       );
     }
 
-    // Track details & team
-    const track = await prisma.track.findUnique({
-      where: { id: trackId },
-      include: {
-        instructors: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            trackTeamRole: true,
+    // Parallel fetch for single-track report
+    const [track, settings, sessions, tasks, students] = await Promise.all([
+      prisma.track.findUnique({
+        where: { id: trackId },
+        include: {
+          instructors: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              trackTeamRole: true,
+            },
           },
         },
-      },
-    });
+      }),
+      prisma.scoreSetting.upsert({
+        where: { id: "default" },
+        update: {},
+        create: {
+          id: "default",
+          attendancePoints: 10.0,
+          taskWeight: 1.0,
+          bonusWeight: 1.0,
+        },
+      }),
+      prisma.session.findMany({
+        where: { trackId },
+        orderBy: { date: "asc" },
+        select: {
+          id: true,
+          title: true,
+          date: true,
+        },
+      }),
+      prisma.task.findMany({
+        where: { trackId },
+        orderBy: { deadline: "asc" },
+        select: {
+          id: true,
+          title: true,
+          maxScore: true,
+        },
+      }),
+      prisma.user.findMany({
+        where: {
+          role: "STUDENT",
+          status: "APPROVED",
+          enrollments: {
+            some: { trackId },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          college: true,
+          academicYear: true,
+          attendances: {
+            where: { session: { trackId } },
+            select: {
+              sessionId: true,
+              status: true,
+            },
+          },
+          taskSubmissions: {
+            where: { task: { trackId } },
+            select: {
+              taskId: true,
+              score: true,
+            },
+          },
+          bonusPoints: {
+            where: { trackId },
+            select: {
+              points: true,
+            },
+          },
+        },
+        orderBy: { name: "asc" },
+      }),
+    ]);
 
     if (!track) {
       return NextResponse.json({ error: "Track not found." }, { status: 404 });
     }
-
-    const settings = await prisma.scoreSetting.upsert({
-      where: { id: "default" },
-      update: {},
-      create: {
-        id: "default",
-        attendancePoints: 10.0,
-        taskWeight: 1.0,
-        bonusWeight: 1.0,
-      },
-    });
-
-    // All sessions in track
-    const sessions = await prisma.session.findMany({
-      where: { trackId },
-      orderBy: { date: "asc" },
-      select: {
-        id: true,
-        title: true,
-        date: true,
-      },
-    });
-
-    // All tasks in track
-    const tasks = await prisma.task.findMany({
-      where: { trackId },
-      orderBy: { deadline: "asc" },
-      select: {
-        id: true,
-        title: true,
-        maxScore: true,
-      },
-    });
-
-    // Enrolled approved students
-    const students = await prisma.user.findMany({
-      where: {
-        role: "STUDENT",
-        status: "APPROVED",
-        enrollments: {
-          some: { trackId },
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        college: true,
-        academicYear: true,
-        attendances: {
-          where: { session: { trackId } },
-          select: {
-            sessionId: true,
-            status: true,
-          },
-        },
-        taskSubmissions: {
-          where: { task: { trackId } },
-          select: {
-            taskId: true,
-            score: true,
-          },
-        },
-        bonusPoints: {
-          where: { trackId },
-          select: {
-            points: true,
-          },
-        },
-      },
-      orderBy: { name: "asc" },
-    });
 
     // Build comprehensive report rows
     const reportRows = students.map((st) => {

@@ -58,9 +58,11 @@ export default function LandingPage() {
       if (savedTheme === "light") {
         setIsDark(false);
         document.documentElement.classList.add("light-mode");
+        document.documentElement.classList.remove("dark");
       } else {
         setIsDark(true);
         document.documentElement.classList.remove("light-mode");
+        document.documentElement.classList.add("dark");
       }
     }
   }, []);
@@ -68,10 +70,12 @@ export default function LandingPage() {
   const toggleTheme = () => {
     if (isDark) {
       document.documentElement.classList.add("light-mode");
+      document.documentElement.classList.remove("dark");
       if (typeof window !== "undefined") localStorage.setItem("theme", "light");
       setIsDark(false);
     } else {
       document.documentElement.classList.remove("light-mode");
+      document.documentElement.classList.add("dark");
       if (typeof window !== "undefined") localStorage.setItem("theme", "dark");
       setIsDark(true);
     }
@@ -365,22 +369,19 @@ export default function LandingPage() {
       {/* Top Header Navbar - Permanently Sticky with Backdrop Blur */}
       <header className="h-20 bg-[#061220]/90 backdrop-blur-xl border-b border-[#1E3A5F]/60 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3.5">
-          {/* Glowing Animated Ambient Ring around Logo */}
-          <div className="relative p-[2px] rounded-2xl bg-gradient-to-tr from-[#269CF0] via-[#E5A93C] to-[#48D5F5] shadow-lg shadow-[#269CF0]/20 group">
-            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-amber-300 to-blue-500 opacity-60 blur-[3px] group-hover:opacity-100 transition-opacity" />
-            <div
-              className="relative w-12 h-12 rounded-2xl overflow-hidden bg-[#07172A] p-1 flex-shrink-0 flex items-center justify-center"
-              style={{ width: "48px", height: "48px", minWidth: "48px", minHeight: "48px" }}
-            >
-              <Image
-                src="/logo.jpeg"
-                alt="EELU Branch Logo"
-                width={48}
-                height={48}
-                className="w-full h-full object-contain rounded-xl"
-                priority
-              />
-            </div>
+          {/* Crisp, Professional Logo Container */}
+          <div
+            className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden bg-white p-1 shadow-md border border-slate-300/40 flex items-center justify-center flex-shrink-0 group hover:scale-105 transition-transform"
+            style={{ width: "46px", height: "46px", minWidth: "46px", minHeight: "46px" }}
+          >
+            <Image
+              src="/logo.jpeg"
+              alt="EELU Branch Logo"
+              width={46}
+              height={46}
+              className="w-full h-full object-contain rounded-xl"
+              priority
+            />
           </div>
           <div className="flex flex-col">
             <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-tight">
@@ -425,7 +426,7 @@ export default function LandingPage() {
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] mb-5">
               <span className="text-[#07172A] dark:text-white">Learn.</span><br />
-              <span className="text-[#C88A1A] dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:via-[#E8F0FA] dark:to-[#9AB3D1]">Build.</span><br />
+              <span className="text-[#C88A1A] dark:text-[#E5A93C]">Build.</span><br />
               <span className="bg-gradient-to-r from-[#269CF0] via-[#48D5F5] to-[#269CF0] bg-clip-text text-transparent">Compete.</span>
             </h1>
 
@@ -538,34 +539,6 @@ export default function LandingPage() {
                 >
                   Apply for admission
                 </Link>
-              </div>
-
-              {/* Fast 1-Click Fast Demo Login */}
-              <div className="mt-5 pt-4 border-t border-[#E2D7C3] dark:border-[#1E3A5F]/60">
-                <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-[10px] font-black text-[#64748B] dark:text-[#8FA4BD] uppercase tracking-wider">
-                    ⚡ 1-Click Fast Demo Login
-                  </span>
-                  <span className="text-[10px] text-[#1D6FB8] dark:text-[#48D5F5] font-mono font-bold">Instant Fill</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setDemoCredentials("web.head@branch.org", "head123")}
-                    className="p-2.5 rounded-xl bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-cyan-500/60 text-[11px] font-bold text-[#334155] dark:text-[#8FA4BD] hover:text-cyan-600 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer group"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-cyan-500 group-hover:animate-ping" />
-                    <span>💻 Web Head (Demo)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDemoCredentials("ahmed@student.com", "student123")}
-                    className="p-2.5 rounded-xl bg-[#F8F6F0] dark:bg-[#050d18] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-emerald-500/60 text-[11px] font-bold text-[#334155] dark:text-[#8FA4BD] hover:text-emerald-600 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer group"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 group-hover:animate-ping" />
-                    <span>🎓 Student (Demo)</span>
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -744,29 +717,65 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer with exact Abdelrahman Mahmoud LinkedIn credit */}
-      <footer className="mt-auto py-8 text-center text-xs text-[#8FA4BD] border-t border-[#1E3A5F]/50 px-4">
-        <p className="font-semibold text-[#F5F7FB]">
-          © {new Date().getFullYear()} EELU Aswan Student Branch Portal. All rights reserved.
-        </p>
+      {/* Footer with Branch Official Channels & Developer Credit */}
+      <footer className="mt-auto py-10 text-center text-xs text-[#8FA4BD] border-t border-[#1E3A5F]/50 px-4 bg-[#050e18]/80 backdrop-blur-md">
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* Branch Official Channels */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 pb-4 border-b border-[#1E3A5F]/40">
+            <span className="text-[11px] font-black uppercase tracking-wider text-[#E5A93C]">
+              EELU Aswan Branch Official Channels:
+            </span>
+            <div className="flex items-center gap-3">
+              <a
+                href="https://www.facebook.com/profile.php?id=61573031024342"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#1877F2] text-[#F5F7FB] hover:text-[#1877F2] font-bold text-xs transition-all shadow-sm group"
+                title="EELU Aswan Student Branch on Facebook"
+              >
+                <svg className="w-4 h-4 fill-[#1877F2] group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                <span>Official Facebook Page</span>
+              </a>
 
-        <div className="mt-3 flex items-center justify-center gap-2 text-xs">
-          <span className="text-[#8FA4BD]">Developed by</span>
-          <a
-            href="https://www.linkedin.com/in/abdelrahman-mahmoud-6912801a0"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#269CF0] text-[#F5F7FB] hover:text-[#48D5F5] font-bold transition-all shadow-sm group"
-          >
-            <svg
-              className="w-3.5 h-3.5 fill-[#269CF0] group-hover:scale-110 transition-transform"
-              viewBox="0 0 24 24"
+              <a
+                href="https://www.linkedin.com/company/eelu-aswan-student-branch"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#0A66C2] text-[#F5F7FB] hover:text-[#48D5F5] font-bold text-xs transition-all shadow-sm group"
+                title="EELU Aswan Student Branch on LinkedIn"
+              >
+                <svg className="w-4 h-4 fill-[#0A66C2] group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                  <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+                </svg>
+                <span>Branch LinkedIn</span>
+              </a>
+            </div>
+          </div>
+
+          <p className="font-semibold text-[#F5F7FB]">
+            © {new Date().getFullYear()} EELU Aswan Student Branch Portal. All rights reserved.
+          </p>
+
+          <div className="flex items-center justify-center gap-2 text-xs">
+            <span className="text-[#8FA4BD]">Developed by</span>
+            <a
+              href="https://www.linkedin.com/in/abdelrahman-mahmoud-6912801a0"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#269CF0] text-[#F5F7FB] hover:text-[#48D5F5] font-bold transition-all shadow-sm group"
             >
-              <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
-            </svg>
-            <span>Abdelrahman Mahmoud</span>
-            <span className="text-[10px] text-[#8FA4BD] font-normal">• Software Engineer</span>
-          </a>
+              <svg
+                className="w-3.5 h-3.5 fill-[#269CF0] group-hover:scale-110 transition-transform"
+                viewBox="0 0 24 24"
+              >
+                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+              </svg>
+              <span>Abdelrahman Mahmoud</span>
+              <span className="text-[10px] text-[#8FA4BD] font-normal">• Software Engineer</span>
+            </a>
+          </div>
         </div>
       </footer>
     </div>

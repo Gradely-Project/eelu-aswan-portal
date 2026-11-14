@@ -258,23 +258,23 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
   return (
     <div className="space-y-6">
       {/* Student Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#0D1D32] to-[#10243C] border border-[#1E3A5F] rounded-3xl p-6 sm:p-8 shadow-md relative overflow-hidden">
+      <div className="student-welcome-banner dark-preserve bg-gradient-to-r from-[#0D1D32] to-[#10243C] border border-[#1E3A5F] rounded-3xl p-6 sm:p-8 shadow-md relative overflow-hidden text-white">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] font-black text-[#E5A93C] uppercase tracking-wider bg-[#E5A93C]/10 px-2.5 py-0.5 rounded-full border border-[#E5A93C]/20">
+              <span className="text-[10px] font-black text-[#E5A93C] uppercase tracking-wider bg-[#E5A93C]/15 px-2.5 py-0.5 rounded-full border border-[#E5A93C]/30 shadow-sm">
                 Official Student Portal
               </span>
-              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
                 Active Enrolled
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-[#F5F7FB] mb-1">
+            <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 drop-shadow-sm">
               Welcome back, {user?.name}! 👋
             </h1>
 
-            <p className="text-xs text-[#8FA4BD] font-medium max-w-xl">
+            <p className="text-xs text-[#93C5FD] font-medium max-w-xl leading-relaxed">
               Track your lecture schedules, submit practical assignments, confirm live classroom attendance, and review certified materials.
             </p>
 
@@ -292,8 +292,8 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
           </div>
 
           {/* Academic Info Card */}
-          <div className="bg-[#07172A] border border-[#1E3A5F] rounded-2xl p-4 min-w-[220px] text-xs">
-            <span className="text-[10px] uppercase font-bold text-[#8FA4BD] block mb-2">Academic Profile</span>
+          <div className="bg-[#07172A] border border-[#1E3A5F] rounded-2xl p-4 min-w-[220px] text-xs shadow-inner">
+            <span className="text-[10px] uppercase font-black text-[#E5A93C] block mb-2">Academic Profile</span>
             <div className="space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-[#8FA4BD]">Faculty:</span>
@@ -398,29 +398,29 @@ export default function StudentPortalView({ user }: StudentPortalProps) {
                   key={badge.id}
                   className={`p-4 rounded-2xl border transition-all ${
                     badge.isUnlocked
-                      ? `${badge.bgColor} ${badge.color} shadow-sm shadow-blue-950`
-                      : "bg-[#07172A]/60 border-[#1E3A5F]/60 opacity-60 text-[#8FA4BD]"
+                      ? `${badge.bgColor} ${badge.color} shadow-sm shadow-blue-950/20 border-emerald-500/40`
+                      : "bg-slate-50 dark:bg-[#07172A] border-slate-300/80 dark:border-[#1E3A5F] text-slate-700 dark:text-[#8FA4BD] shadow-sm"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl">{badge.icon}</span>
+                    <span className="text-2xl drop-shadow-sm">{badge.icon}</span>
                     {badge.isUnlocked ? (
-                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-                        مكتمل
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40">
+                        مكتمل ✓
                       </span>
                     ) : (
-                      <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#10243C] text-[#8FA4BD] border border-[#1E3A5F]">
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-200 dark:bg-[#10243C] text-slate-700 dark:text-[#8FA4BD] border border-slate-300 dark:border-[#1E3A5F]">
                         قيد التقدم
                       </span>
                     )}
                   </div>
-                  <h4 className="font-black text-xs text-white mb-0.5">{badge.nameAr}</h4>
-                  <span className="text-[10px] text-[#8FA4BD] block font-mono mb-2">{badge.name}</span>
-                  <p className="text-[11px] text-[#8FA4BD] line-clamp-2 leading-relaxed">
+                  <h4 className="font-black text-xs text-slate-900 dark:text-white mb-0.5 leading-snug">{badge.nameAr}</h4>
+                  <span className="text-[10px] text-slate-500 dark:text-[#8FA4BD] block font-mono mb-2 font-semibold">{badge.name}</span>
+                  <p className="text-[11px] text-slate-600 dark:text-[#8FA4BD] line-clamp-2 leading-relaxed font-medium">
                     {badge.description}
                   </p>
                   {badge.progressText && (
-                    <div className="mt-3 pt-2 border-t border-[#1E3A5F]/40 text-[10px] font-bold text-[#48D5F5] flex items-center justify-between">
+                    <div className="mt-3 pt-2 border-t border-slate-200 dark:border-[#1E3A5F]/40 text-[10px] font-black text-[#1D6FB8] dark:text-[#48D5F5] flex items-center justify-between">
                       <span>الإحصائية:</span>
                       <span>{badge.progressText}</span>
                     </div>

@@ -665,32 +665,32 @@ export default function HallsPage() {
                     key={slot.id}
                     className={`rounded-3xl p-6 border transition-all flex flex-col justify-between shadow-lg relative ${
                       isPast
-                        ? "bg-[#08121f] border-[#1E3A5F]/40 opacity-80"
+                        ? "bg-[#F1ECE1] dark:bg-[#08121f] border-[#E2D7C3] dark:border-[#1E3A5F]/40 opacity-80"
                         : isBooked
-                        ? "bg-[#0b1728] border-purple-500/30"
-                        : "bg-[#0D1D32] border-[#1E3A5F] hover:border-[#269CF0]/50 hover:-translate-y-0.5"
+                        ? "bg-purple-50/90 dark:bg-[#0b1728] border-purple-200 dark:border-purple-500/30"
+                        : "bg-white dark:bg-[#0D1D32] border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-[#269CF0]/50 hover:-translate-y-0.5"
                     }`}
                   >
                     <div>
                       {/* Top Status & Day */}
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-black text-[#269CF0] flex items-center gap-1.5">
+                        <span className="text-xs font-black text-[#1D6FB8] dark:text-[#269CF0] flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5" />
                           {slot.dayOfWeek}
-                          {slot.date && <span className="text-[10px] text-[#8FA4BD]">({slot.date})</span>}
+                          {slot.date && <span className="text-[10px] text-[#64748B] dark:text-[#8FA4BD]">({slot.date})</span>}
                         </span>
 
                         <div className="flex items-center gap-1.5">
                           {isPast && (
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
                               PAST
                             </span>
                           )}
                           <span
                             className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${
                               isBooked
-                                ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
-                                : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                                ? "bg-purple-500/20 text-purple-800 dark:text-purple-300 border-purple-500/30"
+                                : "bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border-emerald-500/30"
                             }`}
                           >
                             {isBooked ? "BOOKED" : "AVAILABLE"}
@@ -699,20 +699,20 @@ export default function HallsPage() {
                       </div>
 
                       {/* Hall Name */}
-                      <h3 className="text-base font-black text-[#F5F7FB] mb-1 flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-[#E5A93C] flex-shrink-0" />
+                      <h3 className="text-base font-black text-[#0F172A] dark:text-[#F5F7FB] mb-1 flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-[#C88A1A] dark:text-[#E5A93C] flex-shrink-0" />
                         {slot.hallName}
                       </h3>
 
                       {/* Time Slot & Hours */}
-                      <div className="flex items-center gap-1.5 text-xs text-[#8FA4BD] font-bold mb-3 flex-wrap">
-                        <Clock className="w-3.5 h-3.5 text-[#48D5F5]" />
-                        <span>{slot.timeSlot}</span>
-                        <span className="text-[10px] text-[#E5A93C] bg-[#07172A] px-2 py-0.5 rounded-md border border-[#1E3A5F]">
+                      <div className="flex items-center gap-1.5 text-xs text-[#64748B] dark:text-[#8FA4BD] font-bold mb-3 flex-wrap">
+                        <Clock className="w-3.5 h-3.5 text-[#1D6FB8] dark:text-[#48D5F5]" />
+                        <span className="text-[#0F172A] dark:text-[#F5F7FB]">{slot.timeSlot}</span>
+                        <span className="text-[10px] text-[#C88A1A] dark:text-[#E5A93C] bg-[#F8F6F0] dark:bg-[#07172A] px-2 py-0.5 rounded-md border border-[#E2D7C3] dark:border-[#1E3A5F]">
                           {parseHours(slot.timeSlot)} hrs
                         </span>
                         {slot.capacity && (
-                          <span className="text-[10px] text-[#8FA4BD] bg-[#07172A] px-2 py-0.5 rounded-md border border-[#1E3A5F]">
+                          <span className="text-[10px] text-[#64748B] dark:text-[#8FA4BD] bg-[#F8F6F0] dark:bg-[#07172A] px-2 py-0.5 rounded-md border border-[#E2D7C3] dark:border-[#1E3A5F]">
                             Cap: {slot.capacity}
                           </span>
                         )}
@@ -720,19 +720,19 @@ export default function HallsPage() {
 
                       {/* Notes */}
                       {slot.notes && (
-                        <p className="text-[11px] text-[#8FA4BD] bg-[#07172A]/60 p-2.5 rounded-xl border border-[#1E3A5F]/60 mb-4">
+                        <p className="text-[11px] text-[#475569] dark:text-[#8FA4BD] bg-[#F8F6F0] dark:bg-[#07172A]/60 p-2.5 rounded-xl border border-[#E2D7C3] dark:border-[#1E3A5F]/60 mb-4">
                           {slot.notes}
                         </p>
                       )}
 
                       {/* Reservation Info if Booked */}
                       {isBooked && (
-                        <div className="p-3 rounded-2xl bg-purple-950/30 border border-purple-800/40 text-xs mb-4">
-                          <div className="flex items-center gap-1.5 text-purple-300 font-black mb-1">
-                            <Sparkles className="w-3.5 h-3.5 text-[#E5A93C]" />
+                        <div className="p-3 rounded-2xl bg-purple-100/80 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/40 text-xs mb-4">
+                          <div className="flex items-center gap-1.5 text-purple-950 dark:text-purple-300 font-black mb-1">
+                            <Sparkles className="w-3.5 h-3.5 text-[#C88A1A] dark:text-[#E5A93C]" />
                             <span>Reserved by: {slot.bookedTrackName || "Track"}</span>
                           </div>
-                          <span className="text-[10px] text-purple-300/70 block">
+                          <span className="text-[10px] text-purple-700 dark:text-purple-300/70 block">
                             Instructor: {slot.bookedByName || "Track Lead"}
                           </span>
                         </div>

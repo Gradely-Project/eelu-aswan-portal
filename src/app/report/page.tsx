@@ -432,7 +432,7 @@ export default function ReportExportSuitePage() {
                 </div>
 
                 {/* Instructors in Charge (Shown only for individual tracks, hidden in Consolidated All-Tracks report per user request) */}
-                {track.id !== "ALL" && (
+                {track.id !== "ALL" && selectedTrackId !== "ALL" && !track.name.toLowerCase().includes("all tracks") && (
                   <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6 text-xs grid grid-cols-3 gap-4">
                     <div>
                       <span className="font-bold text-slate-500 block text-[10px] uppercase">
@@ -470,7 +470,7 @@ export default function ReportExportSuitePage() {
                       <tr className="bg-slate-100 text-slate-900 font-black border-y-2 border-slate-300">
                         <th className="py-2.5 px-3 text-center">Rank</th>
                         <th className="py-2.5 px-3">Student Full Name</th>
-                        {track.id === "ALL" && (
+                        {(track.id === "ALL" || selectedTrackId === "ALL" || track.name.toLowerCase().includes("all tracks")) && (
                           <th className="py-2.5 px-3">Enrolled Track</th>
                         )}
                         <th className="py-2.5 px-3">Faculty & Year</th>
@@ -491,9 +491,9 @@ export default function ReportExportSuitePage() {
                             <span className="font-bold text-slate-950 block">{r.name}</span>
                             <span className="text-[10px] text-slate-500 font-mono">{r.email}</span>
                           </td>
-                          {track.id === "ALL" && (
+                          {(track.id === "ALL" || selectedTrackId === "ALL" || track.name.toLowerCase().includes("all tracks")) && (
                             <td className="py-2 px-3">
-                              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-200 uppercase tracking-wide">
+                              <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-50 text-blue-900 border border-blue-200">
                                 {r.trackName || "General Track"}
                               </span>
                             </td>

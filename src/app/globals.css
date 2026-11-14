@@ -74,106 +74,29 @@ html.light-mode body {
   color: #0F172A !important;
 }
 
-html.light-mode .bg-\[\#07172A\] {
-  background-color: #F8F6F0 !important;
-}
-
-html.light-mode .bg-\[\#0D1D32\] {
-  background-color: #FFFFFF !important;
-  border-color: #E2D7C3 !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-}
-
-html.light-mode .bg-\[\#10243C\] {
-  background-color: #F3EFE6 !important;
-  border-color: #E2D7C3 !important;
-  color: #0F172A !important;
-}
-
-html.light-mode .bg-\[\#0A1628\],
-html.light-mode .bg-\[\#061220\],
-html.light-mode .bg-\[\#0b1728\] {
-  background-color: #F8F6F0 !important;
-}
-
-html.light-mode .bg-\[\#050d18\] {
-  background-color: #FFFFFF !important;
-  border-color: #E2D7C3 !important;
-  color: #0F172A !important;
-}
-
-html.light-mode .text-\[\#F5F7FB\] {
-  color: #0F172A !important;
-}
-
-html.light-mode .text-\[\#8FA4BD\] {
-  color: #64748B !important;
-}
-
-html.light-mode .border-\[\#1E3A5F\] {
-  border-color: #E2D7C3 !important;
-}
-
+/* 1. Header (TopNav) & Sidebar (aside) ALWAYS stay signature Dark Navy #07172A in BOTH modes */
 html.light-mode header {
-  background-color: #FFFFFF !important;
-  border-color: #E2D7C3 !important;
+  background-color: #07172A !important;
+  border-color: #1E3A5F !important;
+  color: #F5F7FB !important;
 }
 
-/* In Light Mode, prevent invisible white text on cards and surfaces */
-html.light-mode main .text-white:not(button):not(button *):not(a.bg-blue-600):not(a.bg-blue-600 *):not([class*="bg-blue-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-indigo-"]):not([class*="bg-gradient"]):not([class*="badge"]),
-html.light-mode section .text-white:not(button):not(button *):not([class*="bg-blue-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-gradient"]),
-html.light-mode .bg-\[\#07172A\] .text-white:not(button):not(button *):not([class*="bg-"]),
-html.light-mode .bg-\[\#0D1D32\] .text-white:not(button):not(button *):not([class*="bg-"]),
-html.light-mode .bg-\[\#10243C\] .text-white:not(button):not(button *):not([class*="bg-"]) {
-  color: #0F172A !important;
+html.light-mode header * {
+  border-color: #1E3A5F;
 }
 
-html.light-mode .text-slate-200,
-html.light-mode .text-slate-300,
-html.light-mode .text-slate-100 {
-  color: #334155 !important;
-}
-
-/* Modals and dialogs in light mode */
-html.light-mode .fixed .bg-\[\#0B1728\],
-html.light-mode .fixed .bg-\[\#0D1D32\],
-html.light-mode .fixed .bg-\[\#07172A\] {
-  background-color: #FFFFFF !important;
-  border-color: #E2D7C3 !important;
-  color: #0F172A !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
-}
-
-html.light-mode .fixed .bg-\[\#0B1728\] h1,
-html.light-mode .fixed .bg-\[\#0B1728\] h2,
-html.light-mode .fixed .bg-\[\#0B1728\] h3,
-html.light-mode .fixed .bg-\[\#0B1728\] h4,
-html.light-mode .fixed .bg-\[\#0B1728\] h5,
-html.light-mode .fixed .bg-\[\#0D1D32\] h1,
-html.light-mode .fixed .bg-\[\#0D1D32\] h2,
-html.light-mode .fixed .bg-\[\#0D1D32\] h3,
-html.light-mode .fixed .bg-\[\#0D1D32\] h4,
-html.light-mode .fixed .bg-\[\#0D1D32\] h5 {
-  color: #0F172A !important;
-}
-
-/* Form inputs in light mode */
-html.light-mode input:not([type="checkbox"]):not([type="radio"]),
-html.light-mode select,
-html.light-mode textarea {
-  background-color: #FFFFFF !important;
-  color: #0F172A !important;
-  border-color: #D6C8AF !important;
-}
-
-html.light-mode input::placeholder,
-html.light-mode textarea::placeholder {
-  color: #94A3B8 !important;
-}
-
-/* Retain dark navy navigation sidebar for elegant high contrast matching reference */
 html.light-mode aside {
   background-color: #07172A !important;
+  border-color: #1E3A5F !important;
+  color: #F5F7FB !important;
+}
+
+html.light-mode aside .bg-\[\#07172A\] {
+  background-color: #07172A !important;
+}
+
+html.light-mode aside .bg-\[\#0D1D32\] {
+  background-color: #0D1D32 !important;
   border-color: #1E3A5F !important;
 }
 
@@ -183,6 +106,123 @@ html.light-mode aside .text-\[\#8FA4BD\] {
 
 html.light-mode aside .text-\[\#F5F7FB\] {
   color: #F5F7FB !important;
+}
+
+/* 2. Main content area in Light Mode */
+html.light-mode main {
+  background-color: #F8F6F0;
+  color: #0F172A;
+}
+
+html.light-mode main .bg-\[\#07172A\]:not(.dark-preserve):not(.dark-preserve *) {
+  background-color: #F8F6F0 !important;
+}
+
+html.light-mode main .bg-\[\#0D1D32\]:not(.dark-preserve):not(.dark-preserve *) {
+  background-color: #FFFFFF !important;
+  border-color: #E2D7C3 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+html.light-mode main .bg-\[\#10243C\]:not(.dark-preserve):not(.dark-preserve *) {
+  background-color: #F3EFE6 !important;
+  border-color: #E2D7C3 !important;
+  color: #0F172A !important;
+}
+
+html.light-mode main .bg-\[\#0b1728\]:not(.dark-preserve),
+html.light-mode main .bg-\[\#08121f\]:not(.dark-preserve) {
+  background-color: #FFFFFF !important;
+  border-color: #E2D7C3 !important;
+}
+
+html.light-mode main .border-\[\#1E3A5F\]:not(.dark-preserve):not(.dark-preserve *) {
+  border-color: #E2D7C3 !important;
+}
+
+/* Preserve deliberate dark elements (such as student welcome banner or dark chips) */
+html.light-mode .dark-preserve,
+html.light-mode .student-welcome-banner {
+  background-color: #0D1D32 !important;
+  border-color: #1E3A5F !important;
+  color: #F5F7FB !important;
+}
+
+html.light-mode .dark-preserve *,
+html.light-mode .student-welcome-banner * {
+  color: inherit;
+}
+
+html.light-mode .dark-preserve h1,
+html.light-mode .student-welcome-banner h1,
+html.light-mode .dark-preserve h2,
+html.light-mode .student-welcome-banner h2 {
+  color: #F5F7FB !important;
+}
+
+/* General text readability in light mode */
+html.light-mode main h1:not(.dark-preserve):not(.dark-preserve *),
+html.light-mode main h2:not(.dark-preserve):not(.dark-preserve *),
+html.light-mode main h3:not(.dark-preserve):not(.dark-preserve *),
+html.light-mode main h4:not(.dark-preserve):not(.dark-preserve *),
+html.light-mode main h5:not(.dark-preserve):not(.dark-preserve *) {
+  color: #0F172A !important;
+}
+
+html.light-mode main table thead:not(.dark-preserve) {
+  background-color: #EFE9DC !important;
+  color: #0F172A !important;
+}
+
+html.light-mode main table thead th:not(.dark-preserve) {
+  color: #0F172A !important;
+}
+
+html.light-mode main .text-\[\#F5F7FB\]:not(.dark-preserve):not(.dark-preserve *) {
+  color: #0F172A !important;
+}
+
+html.light-mode main .text-\[\#8FA4BD\]:not(.dark-preserve):not(.dark-preserve *) {
+  color: #475569 !important;
+}
+
+/* Form inputs in light mode */
+html.light-mode main input:not([type="checkbox"]):not([type="radio"]):not(.dark-input),
+html.light-mode main select:not(.dark-input),
+html.light-mode main textarea:not(.dark-input) {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #D6C8AF !important;
+}
+
+html.light-mode main input::placeholder,
+html.light-mode main textarea::placeholder {
+  color: #94A3B8 !important;
+}
+
+/* Modals and popups in light mode */
+html.light-mode .fixed .bg-\[\#0B1728\],
+html.light-mode .fixed .bg-\[\#0D1D32\],
+html.light-mode .fixed .bg-\[\#07172A\] {
+  background-color: #FFFFFF !important;
+  border-color: #E2D7C3 !important;
+  color: #0F172A !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
+html.light-mode .fixed h1,
+html.light-mode .fixed h2,
+html.light-mode .fixed h3,
+html.light-mode .fixed h4 {
+  color: #0F172A !important;
+}
+
+html.light-mode .fixed .text-\[\#F5F7FB\] {
+  color: #0F172A !important;
+}
+
+html.light-mode .fixed .text-\[\#8FA4BD\] {
+  color: #64748B !important;
 }
 
 /* Print Stylesheet for Reports and Certificates */

@@ -68,7 +68,7 @@ export async function GET(req: Request) {
       const rec = attendanceMap.get(st.id);
       return {
         student: st,
-        status: rec ? rec.status : "ABSENT",
+        status: rec ? rec.status : "NOT_RECORDED",
         isMarked: !!rec,
         notes: rec?.notes || "",
         markedAt: rec?.markedAt || null,
@@ -86,6 +86,7 @@ export async function GET(req: Request) {
         late: list.filter((s) => s.status === "LATE").length,
         excused: list.filter((s) => s.status === "EXCUSED").length,
         absent: list.filter((s) => s.status === "ABSENT").length,
+        notRecorded: list.filter((s) => s.status === "NOT_RECORDED").length,
       },
     });
   } catch (error) {

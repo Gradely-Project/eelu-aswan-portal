@@ -493,16 +493,16 @@ export default function WeightedLeaderboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end max-w-4xl mx-auto py-6">
               {/* Silver #2 */}
               {top2 ? (
-                <div className="bg-[#0D1D32] border-2 border-slate-400/40 rounded-3xl p-6 text-center shadow-lg order-2 md:order-1">
+                <div className="bg-white dark:bg-[#0D1D32] border-2 border-slate-300 dark:border-slate-400/40 rounded-3xl p-6 text-center shadow-lg order-2 md:order-1">
                   <span className="text-3xl block mb-2">🥈</span>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
+                  <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block">
                     Rank #2
                   </span>
-                  <h3 className="text-lg font-black text-[#F5F7FB] mt-1">{top2.name}</h3>
-                  <span className="text-xs text-[#8FA4BD] block mb-3">{top2.college || "Academy Scholar"}</span>
-                  <div className="bg-[#07172A] border border-[#1E3A5F] py-2 px-4 rounded-xl inline-block">
-                    <span className="text-2xl font-black text-[#F5F7FB]">{top2.totalScore}</span>
-                    <span className="text-[10px] text-[#8FA4BD] ml-1">PTS</span>
+                  <h3 className="text-lg font-black text-[#0F172A] dark:text-[#F5F7FB] mt-1">{top2.name}</h3>
+                  <span className="text-xs text-[#64748B] dark:text-[#8FA4BD] block mb-3">{top2.college || "Academy Scholar"}</span>
+                  <div className="bg-[#F8F6F0] dark:bg-[#07172A] border border-[#E2D7C3] dark:border-[#1E3A5F] py-2 px-4 rounded-xl inline-block">
+                    <span className="text-2xl font-black text-[#0F172A] dark:text-[#F5F7FB]">{top2.totalScore}</span>
+                    <span className="text-[10px] text-[#64748B] dark:text-[#8FA4BD] ml-1">PTS</span>
                   </div>
                 </div>
               ) : (
@@ -511,33 +511,33 @@ export default function WeightedLeaderboardPage() {
 
               {/* Gold #1 */}
               {top1 && (
-                <div className="bg-gradient-to-b from-[#10243C] to-[#0D1D32] border-2 border-[#E5A93C] rounded-3xl p-8 text-center shadow-2xl glow-gold order-1 md:order-2 transform -translate-y-2">
+                <div className="bg-gradient-to-b from-[#FFFDF8] via-white to-[#FDF8EE] dark:from-[#10243C] dark:to-[#0D1D32] border-2 border-[#E5A93C] rounded-3xl p-8 text-center shadow-2xl glow-gold order-1 md:order-2 transform -translate-y-2">
                   <span className="text-4xl block mb-2">🥇</span>
-                  <div className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#E5A93C]/20 border border-[#E5A93C]/40 text-[#E5A93C] text-[10px] font-black uppercase mb-1">
+                  <div className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#E5A93C]/20 border border-[#E5A93C]/40 text-[#C88A1A] dark:text-[#E5A93C] text-[10px] font-black uppercase mb-1">
                     <Flame className="w-3 h-3" />
                     Grand Champion
                   </div>
-                  <h3 className="text-xl font-black text-[#F5F7FB] mt-1">{top1.name}</h3>
-                  <span className="text-xs text-[#8FA4BD] block mb-4">{top1.college || "Track Leader"}</span>
-                  <div className="bg-[#07172A] border border-[#E5A93C]/50 py-3 px-6 rounded-2xl inline-block">
-                    <span className="text-3xl font-black text-[#E5A93C]">{top1.totalScore}</span>
-                    <span className="text-xs font-bold text-[#8FA4BD] ml-1.5">TOTAL PTS</span>
+                  <h3 className="text-xl font-black text-[#0F172A] dark:text-[#F5F7FB] mt-1">{top1.name}</h3>
+                  <span className="text-xs text-[#64748B] dark:text-[#8FA4BD] block mb-4">{top1.college || "Track Leader"}</span>
+                  <div className="bg-[#F8F6F0] dark:bg-[#07172A] border border-[#E5A93C]/50 py-3 px-6 rounded-2xl inline-block">
+                    <span className="text-3xl font-black text-[#C88A1A] dark:text-[#E5A93C]">{top1.totalScore}</span>
+                    <span className="text-xs font-bold text-[#64748B] dark:text-[#8FA4BD] ml-1.5">TOTAL PTS</span>
                   </div>
                 </div>
               )}
 
               {/* Bronze #3 */}
               {top3 ? (
-                <div className="bg-[#0D1D32] border-2 border-amber-600/30 rounded-3xl p-6 text-center shadow-lg order-3">
+                <div className="bg-white dark:bg-[#0D1D32] border-2 border-amber-300 dark:border-amber-600/30 rounded-3xl p-6 text-center shadow-lg order-3">
                   <span className="text-3xl block mb-2">🥉</span>
-                  <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block">
+                  <span className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest block">
                     Rank #3
                   </span>
-                  <h3 className="text-lg font-black text-[#F5F7FB] mt-1">{top3.name}</h3>
-                  <span className="text-xs text-[#8FA4BD] block mb-3">{top3.college || "Academy Scholar"}</span>
-                  <div className="bg-[#07172A] border border-[#1E3A5F] py-2 px-4 rounded-xl inline-block">
-                    <span className="text-2xl font-black text-[#F5F7FB]">{top3.totalScore}</span>
-                    <span className="text-[10px] text-[#8FA4BD] ml-1">PTS</span>
+                  <h3 className="text-lg font-black text-[#0F172A] dark:text-[#F5F7FB] mt-1">{top3.name}</h3>
+                  <span className="text-xs text-[#64748B] dark:text-[#8FA4BD] block mb-3">{top3.college || "Academy Scholar"}</span>
+                  <div className="bg-[#F8F6F0] dark:bg-[#07172A] border border-[#E2D7C3] dark:border-[#1E3A5F] py-2 px-4 rounded-xl inline-block">
+                    <span className="text-2xl font-black text-[#0F172A] dark:text-[#F5F7FB]">{top3.totalScore}</span>
+                    <span className="text-[10px] text-[#64748B] dark:text-[#8FA4BD] ml-1">PTS</span>
                   </div>
                 </div>
               ) : (
@@ -607,34 +607,33 @@ export default function WeightedLeaderboardPage() {
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-bold text-[#F5F7FB]">{st.name}</span>
+                            <span className="text-sm font-black text-[#0F172A] dark:text-[#F5F7FB]">{st.name}</span>
                             {st.rank === 1 && (
-                              <span title="المتصدر الأول (Track Champion)" className="inline-flex items-center text-[10px] font-black bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full text-amber-400">
+                              <span title="المتصدر الأول (Track Champion)" className="inline-flex items-center text-[10px] font-black bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full text-amber-500 dark:text-amber-400">
                                 👑 بطل التراك
                               </span>
                             )}
                             {st.rank > 1 && st.rank <= 3 && (
-                              <span title="Top 3 Podium Elite" className="inline-flex items-center text-[10px] font-black bg-blue-500/15 border border-blue-500/30 px-2 py-0.5 rounded-full text-blue-400">
+                              <span title="Top 3 Podium Elite" className="inline-flex items-center text-[10px] font-black bg-blue-500/15 border border-blue-500/30 px-2 py-0.5 rounded-full text-blue-600 dark:text-blue-400">
                                 🏆 Top 3
                               </span>
                             )}
                             {st.attendanceRate >= 100 && (
-                              <span title="حضور كامل لكافة الجلسات 100%" className="inline-flex items-center text-[10px] font-black bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full text-emerald-400">
+                              <span title="حضور كامل لكافة الجلسات 100%" className="inline-flex items-center text-[10px] font-black bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full text-emerald-600 dark:text-emerald-400">
                                 🎯 100% حضور
                               </span>
                             )}
                             {trackStats && trackStats.totalTasks > 0 && st.submittedTasksCount >= trackStats.totalTasks && (
-                              <span title="تسليم وإنجاز كافة المهام والتاسكات المطلوبة" className="inline-flex items-center text-[10px] font-black bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-full text-cyan-300">
-                                ⚡ إنجاز كافة المهام
+                              <span title="تسليم وإنجاز كافة المهام والتاسكات المطلوبة" className="inline-flex items-center text-[10px] font-black bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-full text-cyan-600 dark:text-cyan-300">
+                                ⚡ إنجاز المهام
                               </span>
                             )}
                             {st.bonusScore > 0 && (
-                              <span title="وسام تميز وبونص تفوق إداري" className="inline-flex items-center text-[10px] font-black bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-full text-purple-300">
-                                🌟 وسام التميز (+{st.bonusScore})
+                              <span title="وسام تميز وبونص تفوق إداري" className="inline-flex items-center text-[10px] font-black bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-full text-purple-600 dark:text-purple-300">
+                                🌟 تميز (+{st.bonusScore})
                               </span>
                             )}
                           </div>
-                          <span className="text-[10px] text-[#8FA4BD] font-mono block mt-0.5">{st.email}</span>
                         </td>
                         <td className="py-3 px-4 text-[#8FA4BD]">
                           {st.college || "-"} {st.academicYear && `(${st.academicYear})`}

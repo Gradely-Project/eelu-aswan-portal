@@ -60,6 +60,7 @@ interface UserData {
   id: string;
   name: string;
   role: string;
+  trackTeamRole?: string | null;
   assignedTrackId?: string | null;
 }
 
@@ -194,8 +195,28 @@ export default function TaskDetailPage() {
       const data = await res.json();
 
       if (res.ok) {
+        setTask((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            submissions: prev.submissions.map((s) => {
+              if (s.id === submissionId) {
+                return {
+                  ...s,
+                  score: Number(scoreVal),
+                  feedback: gradingFeedbacks[submissionId] || "",
+                  status: "GRADED",
+                  gradedBy: user?.name || "Instructor",
+                  gradedByRole: user?.trackTeamRole || user?.role || "STAFF",
+                  gradedAt: new Date().toISOString(),
+                };
+              }
+              return s;
+            }),
+          };
+        });
         setGradingSuccess(data.message || "Grade recorded successfully.");
-        await fetchTask();
+        fetchTask();
       } else {
         alert(data.error);
       }

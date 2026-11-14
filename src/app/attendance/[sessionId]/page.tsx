@@ -24,6 +24,9 @@ import {
   ShieldCheck,
   Timer,
   FileSpreadsheet,
+  X,
+  Check,
+  AlertTriangle,
 } from "lucide-react";
 
 interface StudentAttendance {
@@ -35,7 +38,7 @@ interface StudentAttendance {
     college: string | null;
     academicYear: string | null;
   };
-  status: "PRESENT" | "LATE" | "EXCUSED" | "ABSENT";
+  status: "PRESENT" | "LATE" | "EXCUSED" | "ABSENT" | "NOT_RECORDED";
   isMarked: boolean;
   notes: string;
   verificationMethod?: string | null;
@@ -187,9 +190,26 @@ export default function ClassroomAttendanceSessionPage() {
     return () => clearInterval(timer);
   }, [showQrModal, isAutoRotating, sessionId]);
 
-  const setStatusForStudent = (studentId: string, status: "PRESENT" | "LATE" | "EXCUSED" | "ABSENT") => {
+  // Polling for live pulse during broadcast modal
+  useEffect(() => {
+    if (!showQrModal) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/attendance?sessionId=${sessionId}`);
+        const data = await res.json();
+        if (res.ok && data.students) {
+          setStudents(data.students);
+        }
+      } catch {}
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [showQrModal, sessionId]);
+
+  const [showLockConfirmModal, setShowLockConfirmModal] = useState(false);
+
+  const setStatusForStudent = (studentId: string, status: "PRESENT" | "LATE" | "EXCUSED" | "ABSENT" | "NOT_RECORDED") => {
     setStudents((prev) =>
-      prev.map((s) => (s.student.id === studentId ? { ...s, status } : s))
+      prev.map((s) => (s.student.id === studentId ? { ...s, status, isMarked: status !== "NOT_RECORDED" } : s))
     );
   };
 
@@ -200,22 +220,23 @@ export default function ClassroomAttendanceSessionPage() {
   };
 
   const markAllPresent = () => {
-    setStudents((prev) => prev.map((s) => ({ ...s, status: "PRESENT" })));
+    setStudents((prev) => prev.map((s) => ({ ...s, status: "PRESENT", isMarked: true })));
   };
 
   const markAllAbsent = () => {
-    setStudents((prev) => prev.map((s) => ({ ...s, status: "ABSENT" })));
+    setStudents((prev) => prev.map((s) => ({ ...s, status: "ABSENT", isMarked: true })));
   };
 
-  const handleSave = async () => {
+  const handleSave = async (overrideStudents?: StudentAttendance[]) => {
     setSaving(true);
     setSuccess(null);
     setError(null);
 
+    const source = overrideStudents || students;
     try {
-      const records = students.map((s) => ({
+      const records = source.map((s) => ({
         studentId: s.student.id,
-        status: s.status,
+        status: s.status === "NOT_RECORDED" ? "ABSENT" : s.status,
         notes: s.notes,
       }));
 
@@ -229,6 +250,7 @@ export default function ClassroomAttendanceSessionPage() {
 
       if (res.ok) {
         setSuccess(data.message || "Attendance saved and points updated in leaderboard.");
+        await fetchAttendance();
       } else {
         setError(data.error || "Failed to save attendance.");
       }
@@ -237,6 +259,31 @@ export default function ClassroomAttendanceSessionPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCloseBroadcast = () => {
+    const pending = students.filter(
+      (s) => s.status === "NOT_RECORDED" || (!s.isMarked && s.status !== "PRESENT" && s.status !== "LATE" && s.status !== "EXCUSED")
+    );
+    if (pending.length > 0) {
+      setShowLockConfirmModal(true);
+    } else {
+      setShowQrModal(false);
+      handleSave();
+    }
+  };
+
+  const handleConfirmLockSession = async () => {
+    const updated: StudentAttendance[] = students.map((s) => {
+      if (s.status === "NOT_RECORDED" || (!s.isMarked && s.status !== "PRESENT" && s.status !== "LATE" && s.status !== "EXCUSED")) {
+        return { ...s, status: "ABSENT" as const, isMarked: true };
+      }
+      return s;
+    });
+    setStudents(updated);
+    setShowLockConfirmModal(false);
+    setShowQrModal(false);
+    await handleSave(updated);
   };
 
   const handleGenerateCode = async (silent = false) => {
@@ -334,9 +381,18 @@ export default function ClassroomAttendanceSessionPage() {
   const lateCount = students.filter((s) => s.status === "LATE").length;
   const excusedCount = students.filter((s) => s.status === "EXCUSED").length;
   const absentCount = students.filter((s) => s.status === "ABSENT").length;
+  const notRecordedCount = students.filter((s) => s.status === "NOT_RECORDED" || !s.status).length;
+
+  const checkedInStudents = students.filter((s) => s.status === "PRESENT" || s.status === "LATE");
+  const pendingStudents = students.filter(
+    (s) => s.status === "NOT_RECORDED" || (!s.isMarked && s.status !== "PRESENT" && s.status !== "LATE" && s.status !== "EXCUSED")
+  );
+
+  const [broadcastActiveTab, setBroadcastActiveTab] = useState<"checked" | "pending">("checked");
 
   const filteredStudents = students.filter((s) => {
     if (statusFilter === "ALL") return true;
+    if (statusFilter === "NOT_RECORDED") return s.status === "NOT_RECORDED" || !s.status;
     return s.status === statusFilter;
   });
 
@@ -545,6 +601,14 @@ export default function ClassroomAttendanceSessionPage() {
                 >
                   Absent ({absentCount})
                 </button>
+                <button
+                  onClick={() => setStatusFilter("NOT_RECORDED")}
+                  className={`px-3 py-1 rounded-lg transition-all flex-shrink-0 ${
+                    statusFilter === "NOT_RECORDED" ? "bg-slate-600 text-white" : "text-[#8FA4BD] hover:text-white"
+                  }`}
+                >
+                  لم يُرصد ({notRecordedCount})
+                </button>
               </div>
 
               {/* Quick Actions & Save (Staff only) */}
@@ -571,7 +635,7 @@ export default function ClassroomAttendanceSessionPage() {
                   Export Excel (.csv)
                 </button>
                 <button
-                  onClick={handleSave}
+                  onClick={() => handleSave()}
                   disabled={saving}
                   className="flex-1 sm:flex-none justify-center px-5 py-2 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
@@ -682,6 +746,11 @@ export default function ClassroomAttendanceSessionPage() {
                                 ABSENT
                               </span>
                             )}
+                            {(item.status === "NOT_RECORDED" || (!item.status && !item.isMarked)) && (
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-500/20 text-slate-300 border border-slate-500/30">
+                                لم يُرصد (Pending)
+                              </span>
+                            )}
                           </div>
                         )}
                       </td>
@@ -750,7 +819,7 @@ export default function ClassroomAttendanceSessionPage() {
                   Points will automatically re-calculate for the weighted leaderboard upon clicking Save.
                 </span>
                 <button
-                  onClick={handleSave}
+                  onClick={() => handleSave()}
                   disabled={saving}
                   className="px-6 py-2 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-black text-xs shadow-md transition-all flex items-center gap-1.5"
                 >
@@ -763,86 +832,256 @@ export default function ClassroomAttendanceSessionPage() {
         </main>
       </div>
 
-      {/* Dynamic QR Code & Check-in Code Modal */}
+      {/* Dynamic QR Code & Check-in Code 2-Column Live Pulse Command Center */}
       {showQrModal && activeCode && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl relative">
-            <span className="text-[10px] font-black text-[#E5A93C] uppercase tracking-widest block mb-1">
-              ANTI-CHEATING ACTIVE CHECK-IN
-            </span>
-            <h3 className="text-xl font-black text-[#F5F7FB] mb-3">
-              Classroom Attendance QR
-            </h3>
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+          <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-3xl p-5 sm:p-7 max-w-4xl w-full shadow-2xl relative my-auto">
+            {/* Modal Header */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-[#1E3A5F]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-[#E5A93C]/15 border border-[#E5A93C]/30 flex items-center justify-center text-[#E5A93C] shadow-sm">
+                  <QrCode className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-[#F5F7FB] flex items-center gap-2">
+                    <span>Classroom Live Pulse Check-In</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  </h3>
+                  <span className="text-[11px] text-[#8FA4BD] font-medium">
+                    {session?.title} • {session?.track.name}
+                  </span>
+                </div>
+              </div>
 
-            {/* 15-second rotation countdown bar */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between text-xs mb-1.5 px-0.5">
-                <span className="flex items-center gap-1.5 font-bold text-[#48D5F5] text-[11px]">
-                  <RefreshCw className={`w-3.5 h-3.5 ${generatingCode ? "animate-spin text-[#E5A93C]" : ""}`} />
-                  Auto-rotates in: <span className="font-mono text-xs font-black text-white bg-[#10243C] px-1.5 py-0.5 rounded border border-[#1E3A5F]">{timeLeft}s</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase text-[#48D5F5] bg-[#269CF0]/10 border border-[#269CF0]/25 px-2.5 py-1 rounded-full">
+                  Live Anti-Proxy Rotation
                 </span>
                 <button
-                  onClick={() => handleGenerateCode(false)}
-                  disabled={generatingCode}
-                  className="text-[10px] font-bold text-[#8FA4BD] hover:text-[#48D5F5] transition-colors"
+                  type="button"
+                  onClick={handleCloseBroadcast}
+                  className="p-1.5 rounded-xl bg-[#07172A] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white transition-colors"
+                  title="Close modal"
                 >
-                  Rotate Now
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-              <div className="w-full bg-[#07172A] rounded-full h-2 overflow-hidden border border-[#1E3A5F]">
-                <div
-                  className={`h-full transition-all duration-1000 ease-linear ${
-                    timeLeft <= 4 ? "bg-rose-500" : timeLeft <= 8 ? "bg-[#E5A93C]" : "bg-[#48D5F5]"
-                  }`}
-                  style={{ width: `${(timeLeft / 15) * 100}%` }}
-                />
+            </div>
+
+            {/* 2-Column Command Center Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+              {/* Left Column (Projection Code & QR Code) - 7 cols */}
+              <div className="lg:col-span-7 flex flex-col justify-between space-y-3.5 bg-[#07172A] p-4 sm:p-5 rounded-2xl border border-[#1E3A5F]">
+                {/* 15-second rotation countdown bar */}
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-1.5 px-0.5">
+                    <span className="flex items-center gap-1.5 font-bold text-[#48D5F5] text-[11px]">
+                      <RefreshCw className={`w-3.5 h-3.5 ${generatingCode ? "animate-spin text-[#E5A93C]" : ""}`} />
+                      Auto-rotates in: <span className="font-mono text-xs font-black text-white bg-[#10243C] px-1.5 py-0.5 rounded border border-[#1E3A5F]">{timeLeft}s</span>
+                    </span>
+                    <button
+                      onClick={() => handleGenerateCode(false)}
+                      disabled={generatingCode}
+                      className="text-[10px] font-bold text-[#8FA4BD] hover:text-[#48D5F5] transition-colors cursor-pointer"
+                    >
+                      Rotate Now
+                    </button>
+                  </div>
+                  <div className="w-full bg-[#0D1D32] rounded-full h-2 overflow-hidden border border-[#1E3A5F]">
+                    <div
+                      className={`h-full transition-all duration-1000 ease-linear ${
+                        timeLeft <= 4 ? "bg-rose-500" : timeLeft <= 8 ? "bg-[#E5A93C]" : "bg-[#48D5F5]"
+                      }`}
+                      style={{ width: `${(timeLeft / 15) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Big Projection 6-Digit Code */}
+                <div className="bg-[#0B1A2D] border-2 border-[#E5A93C] rounded-2xl p-4 text-center shadow-xl relative overflow-hidden">
+                  <span className="text-[10px] text-[#8FA4BD] uppercase font-mono font-bold tracking-wider block mb-1">
+                    PROJECTOR ATTENDANCE CODE (رمز القاعة)
+                  </span>
+                  <span className="font-mono text-4xl sm:text-5xl font-black text-[#E5A93C] tracking-[0.3em] block drop-shadow-md">
+                    {activeCode}
+                  </span>
+                </div>
+
+                {/* QR Code */}
+                <div className="flex flex-col items-center justify-center p-3 bg-white rounded-2xl border-2 border-[#269CF0] shadow-md">
+                  {qrDataUrl ? (
+                    <img
+                      key={activeCode}
+                      src={qrDataUrl}
+                      alt={`Attendance Check-in QR Code ${activeCode}`}
+                      className="w-40 h-40 object-contain transition-all duration-300 no-theme-invert"
+                    />
+                  ) : (
+                    <div className="w-40 h-40 flex items-center justify-center text-xs text-slate-600 font-bold">
+                      Generating secure QR...
+                    </div>
+                  )}
+                  <span className="text-[10px] font-bold text-slate-800 mt-1">
+                    وجه كاميرا الهاتف نحو الكود للتسجيل المباشر
+                  </span>
+                </div>
+
+                {/* Security Note */}
+                <div className="bg-[#10243C] border border-emerald-500/30 rounded-xl p-2.5 flex items-start gap-2 text-left">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-[#8FA4BD] leading-snug">
+                    <strong className="text-emerald-400 font-bold block">Anti-Proxy Active Guard:</strong>
+                    الرمز وكود الـ QR يتغيران تلقائياً كل 15 ثانية لمنع مشاركة الرمز خارج القاعة الدراسية.
+                  </p>
+                </div>
+              </div>
+
+              {/* Right Column (Live Presence Pulse & Roster) - 5 cols */}
+              <div className="lg:col-span-5 bg-[#07172A] p-4 sm:p-5 rounded-2xl border border-[#1E3A5F] flex flex-col justify-between space-y-4">
+                <div>
+                  {/* Pulse Stats Card */}
+                  <div className="bg-[#0D1D32] border border-[#1E3A5F] rounded-xl p-3 mb-3">
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="font-bold text-[#8FA4BD] flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-[#269CF0]" />
+                        حضور القاعة المباشر
+                      </span>
+                      <span className="font-mono font-black text-white text-xs">
+                        {checkedInStudents.length} / {students.length} ({Math.round((checkedInStudents.length / Math.max(1, students.length)) * 100)}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-[#07172A] rounded-full h-2 overflow-hidden border border-[#1E3A5F]/70">
+                      <div
+                        className="bg-emerald-400 h-full transition-all duration-500 ease-out rounded-full"
+                        style={{ width: `${(checkedInStudents.length / Math.max(1, students.length)) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tabs: Checked In vs Remaining */}
+                  <div className="flex items-center gap-1 p-1 bg-[#0D1D32] rounded-xl border border-[#1E3A5F] text-xs mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setBroadcastActiveTab("checked")}
+                      className={`flex-1 py-1 rounded-lg font-bold transition-all ${
+                        broadcastActiveTab === "checked"
+                          ? "bg-emerald-600 text-white shadow-sm font-black"
+                          : "text-[#8FA4BD] hover:text-white"
+                      }`}
+                    >
+                      حضروا ({checkedInStudents.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBroadcastActiveTab("pending")}
+                      className={`flex-1 py-1 rounded-lg font-bold transition-all ${
+                        broadcastActiveTab === "pending"
+                          ? "bg-rose-600 text-white shadow-sm font-black"
+                          : "text-[#8FA4BD] hover:text-white"
+                      }`}
+                    >
+                      لم يسجلوا ({pendingStudents.length})
+                    </button>
+                  </div>
+
+                  {/* Scrollable Live List */}
+                  <div className="space-y-1.5 max-h-64 sm:max-h-72 overflow-y-auto pr-1">
+                    {broadcastActiveTab === "checked" ? (
+                      checkedInStudents.length === 0 ? (
+                        <div className="py-12 text-center text-xs text-[#8FA4BD]">
+                          في انتظار تسجيل أول طالب بالقاعة...
+                        </div>
+                      ) : (
+                        checkedInStudents.map((st) => (
+                          <div
+                            key={st.student.id}
+                            className="p-2.5 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] flex items-center justify-between text-xs transition-all animate-fadeIn"
+                          >
+                            <div className="min-w-0 pr-2">
+                              <span className="font-bold text-white block truncate">{st.student.name}</span>
+                              <span className="text-[10px] text-[#8FA4BD] font-mono block truncate">{st.student.email}</span>
+                            </div>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex-shrink-0">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              حاضر
+                            </span>
+                          </div>
+                        ))
+                      )
+                    ) : (
+                      pendingStudents.length === 0 ? (
+                        <div className="py-12 text-center text-xs text-emerald-400 font-bold">
+                          🎉 تم تسجيل حضور جميع الطلاب بنجاح!
+                        </div>
+                      ) : (
+                        pendingStudents.map((st) => (
+                          <div
+                            key={st.student.id}
+                            className="p-2.5 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] flex items-center justify-between text-xs"
+                          >
+                            <div className="min-w-0 pr-2">
+                              <span className="font-bold text-slate-300 block truncate">{st.student.name}</span>
+                              <span className="text-[10px] text-[#8FA4BD] font-mono block truncate">{st.student.email}</span>
+                            </div>
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-500/20 text-slate-400 border border-slate-500/30 flex-shrink-0">
+                              لم يسجل
+                            </span>
+                          </div>
+                        ))
+                      )
+                    )}
+                  </div>
+                </div>
+
+                {/* Bottom Control Actions */}
+                <div className="pt-3 border-t border-[#1E3A5F]">
+                  <button
+                    type="button"
+                    onClick={handleCloseBroadcast}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#269CF0] to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-black text-xs shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>إنهاء وحفظ التحضير (Done & Lock)</span>
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* Generated Dynamic Local QR Code for phone scanning */}
-            <div className="flex flex-col items-center justify-center p-3 bg-white rounded-2xl border-2 border-[#269CF0] mb-3 shadow-xl">
-              {qrDataUrl ? (
-                <img
-                  key={activeCode}
-                  src={qrDataUrl}
-                  alt={`Attendance Check-in QR Code ${activeCode}`}
-                  className="w-48 h-48 object-contain transition-all duration-300 no-theme-invert"
-                />
-              ) : (
-                <div className="w-48 h-48 flex items-center justify-center text-xs text-slate-600 font-bold">
-                  Generating secure dynamic QR...
-                </div>
-              )}
-              <span className="text-[10px] font-bold text-gray-800 mt-1">
-                Scan with mobile camera to check in
-              </span>
+      {/* Lock Confirmation Warning Modal */}
+      {showLockConfirmModal && (
+        <div className="fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0D1D32] border border-[#E5A93C]/50 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#E5A93C]/10 border border-[#E5A93C]/30 flex items-center justify-center text-[#E5A93C] mx-auto">
+              <AlertTriangle className="w-6 h-6" />
             </div>
-
-            {/* Big Code Display */}
-            <div className="bg-[#07172A] border-2 border-[#269CF0] rounded-2xl p-3.5 mb-3 shadow-lg glow-blue">
-              <span className="text-[10px] text-[#8FA4BD] uppercase font-bold block mb-1">
-                or enter 6-digit code manually:
-              </span>
-              <span className="font-mono text-3xl font-black text-[#48D5F5] tracking-[0.25em] block">
-                {activeCode}
-              </span>
-            </div>
-
-            {/* Anti-Cheating Note */}
-            <div className="bg-[#10243C] border border-emerald-500/30 rounded-xl p-2.5 mb-4 flex items-start gap-2 text-left">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-              <p className="text-[10px] text-[#8FA4BD] leading-snug">
-                <strong className="text-emerald-400 font-bold block">Anti-Proxy Security:</strong>
-                QR code and digit token automatically rotate every 15 seconds. Screenshots sent outside the lecture hall expire instantly.
+            <div>
+              <h4 className="text-base font-black text-white mb-1">
+                تأكيد إغلاق جلسة التحضير
+              </h4>
+              <p className="text-xs text-[#8FA4BD] leading-relaxed">
+                يوجد <strong className="text-rose-400 font-bold">{pendingStudents.length} طالب</strong> لم يقوموا بتسجيل حضورهم حتى الآن.
+                عند تأكيد الإغلاق، سيتم تسجيلهم كـ غائب (<span className="text-rose-400 font-bold">ABSENT</span>) تلقائياً وحفظ التحضير.
               </p>
             </div>
-
-            <button
-              onClick={() => setShowQrModal(false)}
-              className="w-full py-2.5 rounded-xl bg-[#269CF0] hover:bg-[#1E82CB] text-white font-bold text-xs cursor-pointer shadow-md"
-            >
-              Done / Close
-            </button>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowLockConfirmModal(false)}
+                className="flex-1 py-2.5 rounded-xl bg-[#07172A] border border-[#1E3A5F] text-[#8FA4BD] hover:text-white font-bold text-xs cursor-pointer"
+              >
+                إلغاء والمتابعة
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmLockSession}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md cursor-pointer"
+              >
+                تأكيد الغياب والحفظ
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -901,20 +901,20 @@ export default function CertificatesPage() {
               }}
               className="bg-white border-[6px] border-[#C88A1A] rounded-3xl text-slate-800 relative shadow-2xl overflow-hidden print-cert max-w-5xl w-full flex flex-col md:flex-row min-h-[560px]"
             >
-              {/* Left Column: Dark Navy Arch Pillar */}
-              <div className="w-full md:w-64 bg-[#07172A] rounded-b-[2.5rem] md:rounded-b-none md:rounded-r-[3.5rem] p-6 flex flex-col items-center justify-between text-center border-b-4 md:border-b-0 md:border-r-4 border-[#C88A1A] text-white relative shadow-inner">
+              {/* Left Column: Dark Navy Arch Pillar - Slimmed & Balanced */}
+              <div className="w-full md:w-40 bg-[#07172A] rounded-b-[2rem] md:rounded-b-none md:rounded-r-[2.5rem] p-4 flex flex-col items-center justify-between text-center border-b-4 md:border-b-0 md:border-r-4 border-[#C88A1A] text-white relative shadow-inner flex-shrink-0">
                 {/* Top Logo & Title */}
                 <div className="flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-[#E5A93C] p-1 bg-[#0B1A2D] shadow-md mb-2">
-                    <Image src="/logo.jpeg" alt="EELU Logo" width={64} height={64} className="object-contain w-full h-full rounded-xl" />
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-[#E5A93C] p-1 bg-[#0B1A2D] shadow-md mb-2">
+                    <Image src="/logo.jpeg" alt="EELU Logo" width={56} height={56} className="object-contain w-full h-full rounded-xl" />
                   </div>
-                  <span className="font-serif font-black text-sm text-[#F5F7FB] leading-tight">EELU Aswan</span>
-                  <span className="text-[10px] text-[#E5A93C] font-bold tracking-wider uppercase">Student Branch</span>
+                  <span className="font-serif font-black text-xs text-[#F5F7FB] leading-tight">EELU Aswan</span>
+                  <span className="text-[9px] text-[#E5A93C] font-bold tracking-wider uppercase">Student Branch</span>
                 </div>
 
                 {/* Center Track High-Tech Brain & Circuit Icon matching Image 1 */}
-                <div className="my-6 p-4 rounded-3xl bg-[#0D1D32] border-2 border-[#E5A93C]/60 text-[#E5A93C] shadow-xl flex items-center justify-center relative">
-                  <svg className="w-16 h-16 text-[#E5A93C]" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <div className="my-4 p-3 rounded-2xl bg-[#0D1D32] border-2 border-[#E5A93C]/60 text-[#E5A93C] shadow-lg flex items-center justify-center relative">
+                  <svg className="w-12 h-12 text-[#E5A93C]" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                     {/* Brain Outline with Circuit Paths */}
                     <path d="M26 12C20 12 16 16 16 22C16 25 18 28 18 32C18 36 15 40 15 44C15 50 20 54 26 54C28 54 30 52 32 50C34 52 36 54 38 54C44 54 49 50 49 44C49 40 46 36 46 32C46 28 48 25 48 22C48 16 44 12 38 12C36 12 34 13 32 15C30 13 28 12 26 12Z" stroke="#E5A93C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                     <line x1="32" y1="15" x2="32" y2="49" stroke="#E5A93C" strokeWidth="2" strokeDasharray="3 3" />
@@ -934,10 +934,10 @@ export default function CertificatesPage() {
 
                 {/* Bottom Track Name */}
                 <div className="mt-auto">
-                  <span className="font-serif font-bold text-sm text-[#E5A93C] block leading-tight">
+                  <span className="font-serif font-bold text-xs text-[#E5A93C] block leading-tight">
                     {previewCert.trackName}
                   </span>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Specialization Track</span>
+                  <span className="text-[9px] text-slate-400 uppercase tracking-widest font-mono">Specialization</span>
                 </div>
               </div>
 
@@ -989,7 +989,10 @@ export default function CertificatesPage() {
                     { name: "Prof. Mohamed Nagdy", role: "Center Manager" },
                   ]).map((sig, sIdx) => (
                     <div key={sIdx} className="text-center min-w-[130px]">
-                      <span className="font-serif italic font-bold text-slate-800 text-sm block mb-1 font-mono underline decoration-slate-300">
+                      <span
+                        className="font-serif italic font-bold text-slate-800 text-base block mb-0.5 tracking-wide drop-shadow-sm"
+                        style={{ fontFamily: "'Dancing Script', 'Brush Script MT', 'Great Vibes', 'Caveat', cursive, serif" }}
+                      >
                         {sig.name}
                       </span>
                       <span className="text-[10px] text-slate-500 font-bold uppercase block">{sig.role}</span>
@@ -1004,27 +1007,27 @@ export default function CertificatesPage() {
                 </div>
               </div>
 
-              {/* Right Column: Dark Navy Tech Pillar with Cyber Circuit Graphics matching Image 1 */}
-              <div className="w-32 bg-[#07172A] rounded-l-[3.5rem] p-4 hidden lg:flex flex-col items-center justify-between border-l-4 border-[#C88A1A] text-[#E5A93C] relative shadow-inner overflow-hidden py-8">
+              {/* Right Column: Dark Navy Tech Pillar with Cyber Circuit Graphics matching Image 1 - Slimmed */}
+              <div className="w-24 bg-[#07172A] rounded-l-[2.5rem] p-3 hidden lg:flex flex-col items-center justify-between border-l-4 border-[#C88A1A] text-[#E5A93C] relative shadow-inner overflow-hidden py-6 flex-shrink-0">
                 {/* Tech chip top icon */}
-                <div className="w-8 h-8 rounded-lg border border-[#E5A93C]/40 flex items-center justify-center text-[10px] font-mono text-[#E5A93C] mb-2 opacity-80">
+                <div className="w-7 h-7 rounded-lg border border-[#E5A93C]/40 flex items-center justify-center text-[10px] font-mono text-[#E5A93C] mb-2 opacity-80">
                   ⚡
                 </div>
 
                 {/* Central Cyber Chip with Glowing Track Code */}
                 <div className="relative my-auto flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-2xl border-2 border-[#E5A93C] bg-[#0B1A2D] flex items-center justify-center font-black font-mono text-base shadow-xl text-[#E5A93C] z-10">
+                  <div className="w-13 h-13 rounded-xl border-2 border-[#E5A93C] bg-[#0B1A2D] flex items-center justify-center font-black font-mono text-sm shadow-xl text-[#E5A93C] z-10 px-1">
                     {previewCert.trackName.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "ENG"}
                   </div>
                   {/* Decorative Circuit Traces radiating */}
-                  <div className="w-1 h-6 bg-gradient-to-b from-[#E5A93C] to-transparent my-1" />
-                  <span className="text-[9px] font-black tracking-widest text-[#E5A93C] uppercase font-mono">
+                  <div className="w-0.5 h-5 bg-gradient-to-b from-[#E5A93C] to-transparent my-1" />
+                  <span className="text-[8px] font-black tracking-widest text-[#E5A93C] uppercase font-mono">
                     VERIFIED
                   </span>
                 </div>
 
                 {/* Cyber network nodes at bottom */}
-                <div className="text-[10px] text-slate-500 font-mono tracking-tighter opacity-70">
+                <div className="text-[9px] text-slate-500 font-mono tracking-tighter opacity-70">
                   &lt;/&gt; 2026
                 </div>
               </div>

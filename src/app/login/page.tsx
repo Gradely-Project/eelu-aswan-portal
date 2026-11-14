@@ -144,36 +144,6 @@ export default function LoginPage() {
               Apply Here
             </Link>
           </div>
-
-          {/* Quick Demo Switcher */}
-          <div className="mt-6 pt-4 border-t border-[#1E3A5F]/70">
-            <span className="block text-[10px] font-black text-[#8FA4BD] mb-2 text-center uppercase tracking-wider">
-              Instant One-Click Demo Accounts
-            </span>
-            <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-              <button
-                type="button"
-                onClick={() => setDemoCredentials("web.head@branch.org", "head123")}
-                className="p-1.5 rounded-lg bg-[#07172A] hover:bg-[#10243C] text-[#269CF0] font-bold border border-[#1E3A5F] text-center truncate"
-              >
-                💻 Lead Instructor
-              </button>
-              <button
-                type="button"
-                onClick={() => setDemoCredentials("ahmed@student.com", "student123")}
-                className="p-1.5 rounded-lg bg-[#07172A] hover:bg-[#10243C] text-emerald-400 font-bold border border-[#1E3A5F] text-center truncate"
-              >
-                🎓 Active Student
-              </button>
-              <button
-                type="button"
-                onClick={() => setDemoCredentials("omar.pending@student.com", "student123")}
-                className="col-span-2 p-1.5 rounded-lg bg-[#07172A] hover:bg-[#10243C] text-amber-400 font-bold border border-[#1E3A5F] text-center"
-              >
-                ⏳ Pending Student (Test Rejection Barrier)
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

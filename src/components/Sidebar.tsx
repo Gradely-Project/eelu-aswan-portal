@@ -181,79 +181,79 @@ export default function Sidebar({
       name: isStudent ? "Student Portal" : "Dashboard Overview",
       href: "/dashboard",
       icon: LayoutDashboard,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
     },
     {
       name: isStudent ? "My Lectures & Materials" : "Session Hubs",
       href: "/sessions",
       icon: Calendar,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
     },
     {
       name: isStudent ? "Assignments & Submissions" : "Tasks & Assignments",
       href: "/tasks",
       icon: FileCheck2,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
     },
     {
       name: isStudent ? "Attendance & Check-in" : "Classroom Attendance",
       href: "/attendance",
       icon: Users,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
     },
     {
       name: "Campus Timetables & Hall Booking",
       href: "/halls",
       icon: Building2,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
       show: !isStudent, // Available to Admin, Chairperson, Head, Vice Head, Core
     },
     {
       name: isStudent ? "Track Leaderboard" : "Weighted Leaderboard",
       href: "/leaderboard",
       icon: Award,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
     },
     {
       name: isStudent ? "My Certificates" : "Certificates Hub",
       href: "/certificates",
       icon: GraduationCap,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
       badge: undefined, // Removed per user request
     },
     {
       name: isStudent ? "My Academic Transcript" : isInstructor ? "Track Performance Reports" : "Reports & Export Suite",
       href: "/report",
       icon: FileText,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
       show: true,
     },
     {
       name: "Student Admissions & Suspension",
       href: "/admin/students",
       icon: UserCheck,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
       show: isExec,
     },
     {
       name: "Tracks & Team Structure",
       href: "/admin/teams",
       icon: Layers,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
       show: isAdmin,
     },
     {
       name: "Manage Tracks (Add/Delete)",
       href: "/admin/tracks",
       icon: Layers,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
       show: isAdmin,
     },
     {
       name: "Leadership Board",
       href: "/admin/leadership",
       icon: Crown,
-      activeColor: "bg-[#C88A1A] text-white font-black shadow-md shadow-[#C88A1A]/30",
+      activeColor: "bg-[#E5A93C] text-[#07172A] font-black shadow-lg shadow-[#E5A93C]/25",
       show: isAdmin,
     },
   ];
@@ -340,10 +340,10 @@ export default function Sidebar({
 
         {/* Bottom Branch Supervisor Card (Dynamic & Editable by Main Admin) */}
         <div className="pt-3 mt-3 border-t border-[#1E3A5F]">
-          <div className="bg-[#0D1D32] p-3 rounded-2xl border border-[#1E3A5F] hover:border-[#269CF0] transition-all relative group">
-            <div className="flex items-center justify-between mb-1">
+          <div className="bg-[#0B1A2D] p-3.5 rounded-2xl border border-[#1E3A5F] hover:border-[#269CF0] transition-all relative group shadow-md">
+            <div className="flex items-center justify-between mb-1.5">
               <span className="text-[10px] font-black uppercase tracking-wider text-[#E5A93C] flex items-center gap-1.5">
-                <ShieldCheck className="w-3 h-3 text-[#E5A93C]" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#E5A93C]" />
                 Branch Supervisor
               </span>
               <div className="flex items-center gap-1.5">
@@ -360,27 +360,27 @@ export default function Sidebar({
               </div>
             </div>
 
-            <h4 className="text-xs font-black text-[#F5F7FB] leading-snug">{supervisor.name}</h4>
-            <p className="text-[10px] text-[#8FA4BD] mb-1.5 font-medium leading-tight">{supervisor.title}</p>
+            <h4 className="text-sm font-black text-white leading-snug tracking-tight mb-0.5">{supervisor.name}</h4>
+            <p className="text-[10px] text-[#93C5FD] mb-2 font-medium leading-tight">{supervisor.title}</p>
 
-            <div className="space-y-1 mb-2">
+            <div className="space-y-1 mb-2.5">
               <a
                 href="https://wa.me/201126575146"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-[9px] text-[#8FA4BD] hover:text-emerald-400 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
                 title="Chat on WhatsApp"
               >
-                <Phone className="w-2.5 h-2.5 text-emerald-400" />
-                <span>+20 112 657 5146 (WhatsApp)</span>
+                <Phone className="w-3 h-3 text-emerald-400" />
+                <span className="font-mono">+20 112 657 5146 (WhatsApp)</span>
               </a>
 
               <a
                 href={`mailto:${supervisor.email || "amhmooudsaber@eelu.edu.eg"}`}
-                className="flex items-center gap-1.5 text-[9px] text-[#8FA4BD] hover:text-[#48D5F5] transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 text-[10px] font-medium text-[#48D5F5] hover:text-cyan-300 transition-colors cursor-pointer"
                 title="Official Email"
               >
-                <Mail className="w-2.5 h-2.5 text-[#48D5F5]" />
+                <Mail className="w-3 h-3 text-[#48D5F5]" />
                 <span className="truncate">{supervisor.email || "amhmooudsaber@eelu.edu.eg"}</span>
               </a>
             </div>
@@ -389,7 +389,7 @@ export default function Sidebar({
               href={supervisor.linkedin || "https://www.linkedin.com/in/abdelrahman-mahmoud-6912801a0"}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[10px] font-bold text-[#48D5F5] hover:text-[#269CF0] transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#269CF0]/20 hover:bg-[#269CF0] text-[#48D5F5] hover:text-white border border-[#269CF0]/40 font-bold text-[10px] transition-all shadow-sm"
             >
               <span>LinkedIn Profile</span>
               <ExternalLink className="w-2.5 h-2.5" />

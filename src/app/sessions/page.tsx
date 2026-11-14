@@ -1064,13 +1064,13 @@ export default function SessionsPage() {
                             {relevantReports.map((inst, idx) => (
                               <div
                                 key={idx}
-                                className="bg-[#07172A] border border-[#1E3A5F] rounded-2xl p-4 space-y-3"
+                                className="bg-[#F8F6F0] dark:bg-[#07172A] border border-[#E2D7C3] dark:border-[#1E3A5F] rounded-2xl p-4 space-y-3"
                               >
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                   <div>
                                     <h5 className="font-bold text-sm text-[#0F172A] dark:text-white flex items-center gap-2">
                                       <span>{inst.instructorName}</span>
-                                      <span className="text-[10px] font-black uppercase text-[#E5A93C] bg-[#E5A93C]/10 px-2 py-0.5 rounded border border-[#E5A93C]/20">
+                                      <span className="text-[10px] font-black uppercase text-[#C88A1A] dark:text-[#E5A93C] bg-[#E5A93C]/10 px-2 py-0.5 rounded border border-[#E5A93C]/20">
                                         {inst.instructorRole}
                                       </span>
                                     </h5>
@@ -1078,31 +1078,31 @@ export default function SessionsPage() {
                                   </div>
 
                                   <div className="flex items-center gap-3 font-mono text-xs text-[#0F172A] dark:text-[#F5F7FB]">
-                                    <span className="bg-[#F8F6F0] dark:bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#E2D7C3] dark:border-[#1E3A5F]">
-                                      Clarity: <strong className="text-[#E5A93C]">★ {inst.avgClarity}</strong>
+                                    <span className="bg-white dark:bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#E2D7C3] dark:border-[#1E3A5F]">
+                                      Clarity: <strong className="text-[#C88A1A] dark:text-[#E5A93C]">★ {inst.avgClarity}</strong>
                                     </span>
-                                    <span className="bg-[#F8F6F0] dark:bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#E2D7C3] dark:border-[#1E3A5F]">
-                                      Materials: <strong className="text-[#269CF0]">★ {inst.avgMaterial}</strong>
+                                    <span className="bg-white dark:bg-[#10243C] px-2.5 py-1 rounded-lg border border-[#E2D7C3] dark:border-[#1E3A5F]">
+                                      Materials: <strong className="text-[#1D6FB8] dark:text-[#269CF0]">★ {inst.avgMaterial}</strong>
                                     </span>
-                                    <span className="bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold">
+                                    <span className="bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-bold">
                                       Overall: ★ {inst.avgOverall} ({inst.totalReviews} reviews)
                                     </span>
                                   </div>
                                 </div>
 
                                 {inst.feedbacks && inst.feedbacks.length > 0 && (
-                                  <div className="space-y-1.5 pt-2 border-t border-[#1E3A5F]/50">
-                                    <span className="text-[10px] font-bold text-[#8FA4BD] uppercase block">
+                                  <div className="space-y-1.5 pt-2 border-t border-[#E2D7C3] dark:border-[#1E3A5F]/50">
+                                    <span className="text-[10px] font-bold text-[#64748B] dark:text-[#8FA4BD] uppercase block">
                                       Student Comments ({inst.feedbacks.length})
                                     </span>
                                     <div className="space-y-1 max-h-32 overflow-y-auto">
                                       {inst.feedbacks.map((fb: any, fIdx: number) => (
                                         <div
                                           key={fIdx}
-                                          className="p-2 rounded-lg bg-[#0D1D32] border border-[#1E3A5F]/60 text-[11px] text-[#CBD5E1]"
+                                          className="p-2 rounded-lg bg-white dark:bg-[#0D1D32] border border-[#E2D7C3] dark:border-[#1E3A5F]/60 text-[11px] text-slate-700 dark:text-[#CBD5E1]"
                                         >
                                           <p>"{fb.comment}"</p>
-                                          <span className="text-[9px] text-[#8FA4BD] mt-0.5 block">
+                                          <span className="text-[9px] text-[#64748B] dark:text-[#8FA4BD] mt-0.5 block">
                                             {fb.studentName || "Student"} • {fb.sessionTitle} • {fb.date}
                                           </span>
                                         </div>

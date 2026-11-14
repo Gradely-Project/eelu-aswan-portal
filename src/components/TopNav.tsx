@@ -282,7 +282,7 @@ export default function TopNav({
 
           <Link href="/dashboard" className="flex items-center gap-2.5 sm:gap-3 group">
             <div
-              className="relative w-9 sm:w-10 h-9 sm:h-10 rounded-xl overflow-hidden border border-cyan-500/30 bg-[#0B1A2D] p-1 shadow-sm ring-1 ring-cyan-500/20 group-hover:scale-105 transition-transform flex-shrink-0"
+              className="relative w-9 sm:w-10 h-9 sm:h-10 rounded-xl overflow-hidden bg-white p-1 shadow-sm border border-[#1E3A5F]/40 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform"
               style={{ width: "38px", height: "38px", minWidth: "38px", minHeight: "38px" }}
             >
               <Image
@@ -306,22 +306,8 @@ export default function TopNav({
           </Link>
         </div>
 
-        {/* Global Search Input (Desktop) */}
-        <div className="hidden lg:flex items-center flex-1 max-w-xs mx-6">
-          <div
-            onClick={() => setSearchOpen(true)}
-            className="relative w-full bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#269CF0] rounded-xl pl-9 pr-3 py-1.5 text-xs text-[#8FA4BD] cursor-pointer transition-colors flex items-center justify-between select-none"
-          >
-            <Search className="w-4 h-4 text-[#8FA4BD] absolute left-3 top-2" />
-            <span>Search portal (tasks, sessions)...</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-[#07172A] border border-[#1E3A5F] text-[9px] font-mono text-[#8FA4BD]">
-              /
-            </kbd>
-          </div>
-        </div>
-
         {/* Actions & Profile */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 ml-auto">
           {/* Track Selector Pill: Strictly Role Scoped! */}
           {isInstructor ? (
             <div className="hidden sm:flex bg-[#0D1D32] border border-[#269CF0]/50 text-[#48D5F5] font-black text-xs py-1.5 sm:py-2 px-3 sm:px-4 rounded-full shadow-sm uppercase items-center gap-2">
@@ -372,16 +358,6 @@ export default function TopNav({
               <ChevronDown className="w-3.5 h-3.5 text-[#48D5F5] absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
           ) : null}
-
-          {/* Sync Button */}
-          <button
-            onClick={handleSync}
-            className="hidden sm:flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] text-[#8FA4BD] hover:text-[#F5F7FB] hover:border-[#269CF0] text-xs font-bold transition-all cursor-pointer h-9 flex-shrink-0"
-            title="Synchronize state with database"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-[#269CF0] ${syncing ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Sync</span>
-          </button>
 
           {/* AswaN Signature Brand & Working Theme Toggle Pill */}
           <AswanBrand isDark={isDark} onToggleTheme={toggleTheme} />
@@ -465,20 +441,20 @@ export default function TopNav({
 
               {/* Profile Dropdown Menu */}
               {profileOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-[#0D1D32] border border-[#1E3A5F] rounded-2xl shadow-2xl p-4 z-50 animate-fade-in text-xs">
+                <div className="absolute right-0 mt-2 w-64 bg-[#0B1A2D] border border-[#1E3A5F] rounded-2xl shadow-2xl p-4 z-50 animate-fade-in text-xs dark-preserve">
                   <div className="pb-3 mb-3 border-b border-[#1E3A5F]">
                     <span className="font-black text-white text-sm block truncate">{user.name}</span>
-                    <span className="text-[11px] text-[#8FA4BD] block truncate">{user.email}</span>
+                    <span className="text-[11px] text-[#93C5FD] block truncate font-medium">{user.email}</span>
                     {user.phone && (
-                      <span className="text-[10px] text-[#48D5F5] block font-mono mt-0.5">
+                      <span className="text-[10px] text-emerald-400 block font-mono font-bold mt-0.5">
                         📞 {user.phone}
                       </span>
                     )}
-                    <span className="mt-1.5 inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black bg-[#269CF0]/20 text-[#48D5F5] border border-[#269CF0]/30 uppercase">
+                    <span className="mt-1.5 inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black bg-[#269CF0]/25 text-[#48D5F5] border border-[#269CF0]/40 uppercase">
                       {getRoleBadge(user.role, user.trackTeamRole)}
                     </span>
                     {user.college && (
-                      <span className="mt-1 text-[10px] text-[#8FA4BD] block">
+                      <span className="mt-1 text-[10px] text-[#94A3B8] block font-medium">
                         {user.college} {user.academicYear ? `• Year ${user.academicYear}` : ""}
                       </span>
                     )}
@@ -491,7 +467,7 @@ export default function TopNav({
                         setProfileOpen(false);
                         setSettingsModalOpen(true);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[#CBD5E1] hover:text-white hover:bg-[#10243C] font-semibold transition-colors cursor-pointer text-left"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-100 hover:text-white hover:bg-[#10243C] font-bold transition-colors cursor-pointer text-left"
                     >
                       <Settings className="w-4 h-4 text-[#E5A93C]" />
                       <span>Account Settings & Profile</span>
@@ -500,7 +476,7 @@ export default function TopNav({
                     <div className="pt-2 border-t border-[#1E3A5F]">
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-500/10 font-bold transition-colors cursor-pointer"
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-500/15 font-bold transition-colors cursor-pointer"
                       >
                         <span>Sign Out (Logout)</span>
                         <LogOut className="w-3.5 h-3.5" />

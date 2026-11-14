@@ -187,13 +187,13 @@ export default function LeadershipManagementPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left: Form (Add / Edit) */}
-            <div className="lg:col-span-5 bg-[#0D1D32] rounded-3xl p-6 border border-[#1E3A5F] shadow-xl">
-              <h2 className="text-base font-black text-[#F5F7FB] mb-4 pb-2 border-b border-[#1E3A5F] flex items-center justify-between">
+            <div className="lg:col-span-5 bg-white dark:bg-[#0D1D32] rounded-3xl p-6 border border-[#E2D7C3] dark:border-[#1E3A5F] shadow-xl">
+              <h2 className="text-base font-black text-[#0F172A] dark:text-[#F5F7FB] mb-4 pb-2 border-b border-[#E2D7C3] dark:border-[#1E3A5F] flex items-center justify-between">
                 <span>{editingId ? "Edit Leader" : "Add Leadership Member"}</span>
                 {editingId && (
                   <button
                     onClick={handleCancel}
-                    className="text-xs text-[#8FA4BD] hover:text-white"
+                    className="text-xs text-[#64748B] dark:text-[#8FA4BD] hover:text-[#0F172A] dark:hover:text-white"
                   >
                     Cancel
                   </button>
@@ -202,37 +202,37 @@ export default function LeadershipManagementPage() {
 
               <form onSubmit={handleSubmit} className="space-y-4 text-xs">
                 <div>
-                  <label className="block font-bold text-[#8FA4BD] mb-1">Full Name & Title *</label>
+                  <label className="block font-bold text-[#64748B] dark:text-[#8FA4BD] mb-1">Full Name & Title *</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Prof. Dr. Ahmed El-Sayed"
-                    className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                    className="w-full bg-[#F8F6F0] dark:bg-[#07172A] border border-[#E2D7C3] dark:border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#0F172A] dark:text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-[#8FA4BD] mb-1">Role Title / Designation *</label>
+                  <label className="block font-bold text-[#64748B] dark:text-[#8FA4BD] mb-1">Role Title / Designation *</label>
                   <input
                     type="text"
                     required
                     value={roleTitle}
                     onChange={(e) => setRoleTitle(e.target.value)}
                     placeholder="e.g. Academic Branch Supervisor / Branch Chairperson"
-                    className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                    className="w-full bg-[#F8F6F0] dark:bg-[#07172A] border border-[#E2D7C3] dark:border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#0F172A] dark:text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-[#8FA4BD] mb-1">Affiliation / Faculty</label>
+                  <label className="block font-bold text-[#64748B] dark:text-[#8FA4BD] mb-1">Affiliation / Faculty</label>
                   <input
                     type="text"
                     value={affiliation}
                     onChange={(e) => setAffiliation(e.target.value)}
                     placeholder="e.g. Faculty of Information Technology, EELU"
-                    className="w-full bg-[#07172A] border border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
+                    className="w-full bg-[#F8F6F0] dark:bg-[#07172A] border border-[#E2D7C3] dark:border-[#1E3A5F] rounded-xl px-4 py-2.5 text-xs text-[#0F172A] dark:text-[#F5F7FB] focus:outline-none focus:border-[#269CF0]"
                   />
                 </div>
 
@@ -285,21 +285,21 @@ export default function LeadershipManagementPage() {
             </div>
 
             {/* Right: Existing Leaders List */}
-            <div className="lg:col-span-7 bg-[#0D1D32] rounded-3xl p-6 border border-[#1E3A5F] shadow-xl">
-              <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#1E3A5F]">
-                <h2 className="text-base font-black text-[#F5F7FB] flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-[#48D5F5]" />
+            <div className="lg:col-span-7 bg-white dark:bg-[#0D1D32] rounded-3xl p-6 border border-[#E2D7C3] dark:border-[#1E3A5F] shadow-xl">
+              <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#E2D7C3] dark:border-[#1E3A5F]">
+                <h2 className="text-base font-black text-[#0F172A] dark:text-[#F5F7FB] flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-[#1D6FB8] dark:text-[#48D5F5]" />
                   Active Leadership Board ({leaders.length})
                 </h2>
-                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-bold">
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-bold">
                   Live on Landing Page
                 </span>
               </div>
 
               {loading ? (
-                <div className="py-12 text-center text-xs text-[#8FA4BD]">Loading board members...</div>
+                <div className="py-12 text-center text-xs text-[#64748B] dark:text-[#8FA4BD]">Loading board members...</div>
               ) : leaders.length === 0 ? (
-                <div className="py-12 text-center text-xs text-[#8FA4BD]">
+                <div className="py-12 text-center text-xs text-[#64748B] dark:text-[#8FA4BD]">
                   No leadership members configured yet. Add the first one using the form.
                 </div>
               ) : (
@@ -307,21 +307,21 @@ export default function LeadershipManagementPage() {
                   {leaders.map((leader, index) => (
                     <div
                       key={leader.id}
-                      className="p-4 rounded-2xl bg-[#07172A] border border-[#1E3A5F] hover:border-[#269CF0]/40 transition-all flex items-center justify-between gap-4"
+                      className="p-4 rounded-2xl bg-[#F8F6F0] dark:bg-[#07172A] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-[#269CF0]/40 transition-all flex items-center justify-between gap-4"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-xl bg-[#10243C] border border-[#1E3A5F] text-[#E5A93C] font-black text-xs flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-xl bg-white dark:bg-[#10243C] border border-[#E2D7C3] dark:border-[#1E3A5F] text-[#C88A1A] dark:text-[#E5A93C] font-black text-xs flex items-center justify-center flex-shrink-0">
                           #{leader.displayOrder || index + 1}
                         </div>
                         <div className="min-w-0">
-                          <h4 className="text-xs font-bold text-[#F5F7FB] truncate">
+                          <h4 className="text-xs font-bold text-[#0F172A] dark:text-[#F5F7FB] truncate">
                             {leader.name}
                           </h4>
-                          <span className="text-[11px] font-black text-[#48D5F5] block truncate">
+                          <span className="text-[11px] font-black text-[#1D6FB8] dark:text-[#48D5F5] block truncate">
                             {leader.roleTitle}
                           </span>
                           {leader.affiliation && (
-                            <span className="text-[10px] text-[#8FA4BD] block truncate mt-0.5">
+                            <span className="text-[10px] text-[#64748B] dark:text-[#8FA4BD] block truncate mt-0.5">
                               {leader.affiliation}
                             </span>
                           )}
