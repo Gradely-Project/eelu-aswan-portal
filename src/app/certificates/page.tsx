@@ -268,7 +268,7 @@ export default function CertificatesPage() {
     ctx.textAlign = "right";
     ctx.fillStyle = "#C88A1A";
     ctx.font = "bold 20px monospace";
-    ctx.fillText("2025 - 2026", 1370, 110);
+    ctx.fillText("2026 - 2027", 1370, 110);
 
     // Header Title
     ctx.textAlign = "center";
@@ -945,7 +945,7 @@ export default function CertificatesPage() {
               <div className="flex-1 p-6 sm:p-10 flex flex-col justify-between text-center relative bg-gradient-to-b from-white via-[#FCFAF5] to-white">
                 {/* Academic Year */}
                 <div className="flex justify-end text-[11px] font-black text-[#C88A1A] tracking-[0.25em] uppercase font-mono">
-                  2025 - 2026
+                  2026 - 2027
                 </div>
 
                 {/* Main Heading */}

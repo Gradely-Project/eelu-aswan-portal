@@ -435,7 +435,7 @@ export default function LandingPage() {
           <div className="lg:col-span-7 flex flex-col justify-center text-left">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 dark:bg-[#0D1D32]/90 border border-[#E2D7C3] dark:border-[#269CF0]/30 text-[#1D6FB8] dark:text-[#48D5F5] text-xs font-bold mb-6 w-fit shadow-sm backdrop-blur-md">
               <Sparkles className="w-3.5 h-3.5 text-[#C88A1A] dark:text-[#E5A93C]" />
-              <span>Official Academic Season 2025 – 2026</span>
+              <span>Official Academic Season 2026 – 2027</span>
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] mb-5">
@@ -635,12 +635,9 @@ export default function LandingPage() {
 
                 <div className="pt-4 border-t border-[#E2D7C3] dark:border-[#1E3A5F]/70 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1D6FB8] dark:text-[#48D5F5] bg-[#1D6FB8]/10 dark:bg-[#269CF0]/10 px-2.5 py-1 rounded-lg border border-[#1D6FB8]/20 dark:border-[#269CF0]/20">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#1D6FB8] dark:text-[#48D5F5] bg-[#1D6FB8]/10 dark:bg-[#269CF0]/10 px-3 py-1.5 rounded-xl border border-[#1D6FB8]/20 dark:border-[#269CF0]/20">
                       <Clock className="w-3.5 h-3.5" />
                       {duration}
-                    </span>
-                    <span className="text-[11px] font-medium text-[#475569] dark:text-[#8FA4BD] bg-slate-100 dark:bg-[#07172A] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-[#1E3A5F] truncate max-w-[120px]">
-                      {level}
                     </span>
                   </div>
                   <Link

@@ -27,8 +27,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // If already authenticated and visiting /login or /register, redirect to /dashboard
-  if (sessionToken && (pathname === "/login" || pathname === "/register")) {
+  // If already authenticated and visiting /login, redirect to /dashboard
+  // Note: /register must ALWAYS be accessible so students/applicants can submit registration without accidental auto-login
+  if (sessionToken && pathname === "/login") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
