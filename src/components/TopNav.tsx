@@ -268,7 +268,7 @@ export default function TopNav({
 
   return (
     <>
-      <header className="h-16 bg-[#07172A]/95 backdrop-blur-md border-b border-[#1E3A5F] px-3 sm:px-6 flex items-center justify-between sticky top-0 z-40 no-print select-none">
+      <header className="portal-header h-16 bg-[#07172A]/95 backdrop-blur-md border-b border-[#1E3A5F] px-3 sm:px-6 flex items-center justify-between sticky top-0 z-40 no-print select-none">
         {/* Left: Mobile Drawer Button + Brand */}
         <div className="flex items-center gap-2.5 sm:gap-3">
           {/* Mobile Hamburger Drawer Toggle */}
@@ -282,15 +282,15 @@ export default function TopNav({
 
           <Link href="/dashboard" className="flex items-center gap-2.5 sm:gap-3 group">
             <div
-              className="relative w-9 sm:w-10 h-9 sm:h-10 rounded-xl overflow-hidden bg-white p-1 shadow-sm border border-[#1E3A5F]/40 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform"
+              className="relative w-9 sm:w-10 h-9 sm:h-10 rounded-xl overflow-hidden bg-white p-1 shadow-sm border border-white/20 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform"
               style={{ width: "38px", height: "38px", minWidth: "38px", minHeight: "38px" }}
             >
               <Image
-                src="/logo.jpeg"
+                src="/logo_icon.png"
                 alt="EELU Branch Logo"
                 width={38}
                 height={38}
-                className="w-full h-full object-contain rounded-lg"
+                className="w-full h-full object-contain"
                 priority
               />
             </div>

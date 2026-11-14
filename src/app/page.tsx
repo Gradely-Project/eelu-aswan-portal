@@ -357,37 +357,37 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#061220] text-[#F5F7FB] flex flex-col font-sans selection:bg-[#269CF0] selection:text-white relative">
-      {/* Subtle Background Mesh & Glow Grid (Clipped internally to prevent breaking sticky navbar) */}
+    <div className="min-h-screen landing-root bg-[#F8F6F0] dark:bg-[#061220] text-[#0F172A] dark:text-[#F5F7FB] flex flex-col font-sans selection:bg-[#269CF0] selection:text-white relative transition-colors duration-300">
+      {/* Subtle Background Mesh & Glow Grid */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e3a5f15_1px,transparent_1px),linear-gradient(to_bottom,#1e3a5f15_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-        <div className="absolute top-[-8rem] left-1/2 -translate-x-1/2 w-[48rem] h-[24rem] bg-gradient-to-tr from-[#269CF0]/20 via-[#48D5F5]/10 to-[#E5A93C]/10 blur-[130px] rounded-full" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1e3a5f15_1px,transparent_1px),linear-gradient(to_bottom,#1e3a5f15_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+        <div className="absolute top-[-8rem] left-1/2 -translate-x-1/2 w-[48rem] h-[24rem] bg-gradient-to-tr from-[#269CF0]/15 via-[#48D5F5]/10 to-[#E5A93C]/10 blur-[130px] rounded-full" />
         <div className="absolute top-1/4 -right-24 w-80 h-80 bg-[#269CF0]/10 blur-[100px] rounded-full" />
         <div className="absolute top-1/3 -left-24 w-80 h-80 bg-[#E5A93C]/10 blur-[100px] rounded-full" />
       </div>
 
-      {/* Top Header Navbar - Permanently Sticky with Backdrop Blur */}
-      <header className="h-20 bg-[#061220]/90 backdrop-blur-xl border-b border-[#1E3A5F]/60 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-50">
+      {/* Top Header Navbar */}
+      <header className="h-20 landing-header bg-white/90 dark:bg-[#061220]/90 backdrop-blur-xl border-b border-[#E2D7C3] dark:border-[#1E3A5F]/60 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-50 transition-colors">
         <div className="flex items-center gap-3.5">
           {/* Crisp, Professional Logo Container */}
           <div
-            className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden bg-white p-1 shadow-md border border-slate-300/40 flex items-center justify-center flex-shrink-0 group hover:scale-105 transition-transform"
+            className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden bg-white p-1.5 shadow-sm border border-[#E2D7C3] dark:border-white/10 flex items-center justify-center flex-shrink-0 group hover:scale-105 transition-transform"
             style={{ width: "46px", height: "46px", minWidth: "46px", minHeight: "46px" }}
           >
             <Image
-              src="/logo.jpeg"
+              src="/logo_icon.png"
               alt="EELU Branch Logo"
               width={46}
               height={46}
-              className="w-full h-full object-contain rounded-xl"
+              className="w-full h-full object-contain"
               priority
             />
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-base sm:text-lg text-[#F5F7FB] tracking-tight leading-tight">
+            <span className="font-black text-base sm:text-lg text-[#0F172A] dark:text-[#F5F7FB] tracking-tight leading-tight">
               EELU Aswan Student Branch
             </span>
-            <span className="text-[10px] font-bold text-[#48D5F5] tracking-wider uppercase">
+            <span className="text-[10px] font-bold text-[#1D6FB8] dark:text-[#48D5F5] tracking-wider uppercase">
               Official Branch Portal
             </span>
           </div>
@@ -397,13 +397,13 @@ export default function LandingPage() {
         <div className="flex items-center gap-3 sm:gap-5">
           <button
             onClick={() => scrollToSection("tracks-section")}
-            className="hidden md:inline-block text-xs font-bold text-[#8FA4BD] hover:text-[#48D5F5] transition-colors cursor-pointer"
+            className="hidden md:inline-block text-xs font-bold text-[#64748B] hover:text-[#1D6FB8] dark:text-[#8FA4BD] dark:hover:text-[#48D5F5] transition-colors cursor-pointer"
           >
             Tracks
           </button>
           <button
             onClick={() => scrollToSection("governance-section")}
-            className="hidden md:inline-block text-xs font-bold text-[#8FA4BD] hover:text-[#E5A93C] transition-colors cursor-pointer"
+            className="hidden md:inline-block text-xs font-bold text-[#64748B] hover:text-[#C88A1A] dark:text-[#8FA4BD] dark:hover:text-[#E5A93C] transition-colors cursor-pointer"
           >
             Governance
           </button>
@@ -419,15 +419,15 @@ export default function LandingPage() {
           
           {/* Left Column: Slogans & Mission (lg:col-span-7) */}
           <div className="lg:col-span-7 flex flex-col justify-center text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0D1D32]/90 border border-[#269CF0]/30 text-[#48D5F5] text-xs font-bold mb-6 w-fit shadow-lg shadow-[#269CF0]/5 backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5 text-[#E5A93C]" />
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 dark:bg-[#0D1D32]/90 border border-[#E2D7C3] dark:border-[#269CF0]/30 text-[#1D6FB8] dark:text-[#48D5F5] text-xs font-bold mb-6 w-fit shadow-sm backdrop-blur-md">
+              <Sparkles className="w-3.5 h-3.5 text-[#C88A1A] dark:text-[#E5A93C]" />
               <span>Official Academic Season 2025 – 2026</span>
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] mb-5">
-              <span className="text-[#07172A] dark:text-white">Learn.</span><br />
+              <span className="text-[#0F172A] dark:text-white">Learn.</span><br />
               <span className="text-[#C88A1A] dark:text-[#E5A93C]">Build.</span><br />
-              <span className="bg-gradient-to-r from-[#269CF0] via-[#48D5F5] to-[#269CF0] bg-clip-text text-transparent">Compete.</span>
+              <span className="bg-gradient-to-r from-[#1D6FB8] via-[#0284C7] to-[#1D6FB8] dark:from-[#269CF0] dark:via-[#48D5F5] dark:to-[#269CF0] bg-clip-text text-transparent">Compete.</span>
             </h1>
 
             <p className="text-sm sm:text-base text-[#475569] dark:text-[#8FA4BD] leading-relaxed font-medium mb-8 max-w-xl">
@@ -437,14 +437,14 @@ export default function LandingPage() {
             <div className="flex flex-wrap items-center gap-4 mb-10">
               <button
                 onClick={() => scrollToSection("tracks-section")}
-                className="px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#269CF0] to-[#1E82CB] hover:from-[#35A5F5] hover:to-[#269CF0] text-xs font-black text-white shadow-xl shadow-[#269CF0]/25 transition-all flex items-center gap-2.5 cursor-pointer hover:scale-105"
+                className="px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#1D6FB8] to-[#155b96] dark:from-[#269CF0] dark:to-[#1E82CB] hover:brightness-110 text-xs font-black text-white shadow-xl shadow-[#1D6FB8]/25 transition-all flex items-center gap-2.5 cursor-pointer hover:scale-105"
               >
                 <Layers className="w-4 h-4" />
                 Explore Tracks
               </button>
               <button
                 onClick={() => scrollToSection("governance-section")}
-                className="px-6 py-3.5 rounded-xl bg-[#0D1D32]/80 hover:bg-[#10243C] border border-[#1E3A5F] hover:border-[#E5A93C] text-xs font-black text-[#E5A93C] transition-all flex items-center gap-2 cursor-pointer backdrop-blur-md"
+                className="px-6 py-3.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#0D1D32]/80 dark:hover:bg-[#10243C] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-[#C88A1A] text-xs font-black text-[#C88A1A] dark:text-[#E5A93C] transition-all flex items-center gap-2 cursor-pointer shadow-sm backdrop-blur-md"
               >
                 <Crown className="w-4 h-4" />
                 Branch Governance
@@ -718,11 +718,11 @@ export default function LandingPage() {
       </section>
 
       {/* Footer with Branch Official Channels & Developer Credit */}
-      <footer className="mt-auto py-10 text-center text-xs text-[#8FA4BD] border-t border-[#1E3A5F]/50 px-4 bg-[#050e18]/80 backdrop-blur-md">
+      <footer className="mt-auto py-10 text-center text-xs text-[#64748B] dark:text-[#8FA4BD] border-t border-[#E2D7C3] dark:border-[#1E3A5F]/50 px-4 bg-[#F1ECE1] dark:bg-[#050e18]/80 backdrop-blur-md transition-colors">
         <div className="max-w-5xl mx-auto space-y-6">
           {/* Branch Official Channels */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 pb-4 border-b border-[#1E3A5F]/40">
-            <span className="text-[11px] font-black uppercase tracking-wider text-[#E5A93C]">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 pb-4 border-b border-[#E2D7C3] dark:border-[#1E3A5F]/40">
+            <span className="text-[11px] font-black uppercase tracking-wider text-[#C88A1A] dark:text-[#E5A93C]">
               EELU Aswan Branch Official Channels:
             </span>
             <div className="flex items-center gap-3">
@@ -730,7 +730,7 @@ export default function LandingPage() {
                 href="https://www.facebook.com/profile.php?id=61573031024342"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#1877F2] text-[#F5F7FB] hover:text-[#1877F2] font-bold text-xs transition-all shadow-sm group"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-[#0D1D32] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-[#1877F2] text-[#0F172A] dark:text-[#F5F7FB] hover:text-[#1877F2] font-bold text-xs transition-all shadow-sm group"
                 title="EELU Aswan Student Branch on Facebook"
               >
                 <svg className="w-4 h-4 fill-[#1877F2] group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
@@ -743,7 +743,7 @@ export default function LandingPage() {
                 href="https://www.linkedin.com/company/eelu-aswan-student-branch"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#0A66C2] text-[#F5F7FB] hover:text-[#48D5F5] font-bold text-xs transition-all shadow-sm group"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-[#0D1D32] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-[#0A66C2] text-[#0F172A] dark:text-[#F5F7FB] hover:text-[#0A66C2] font-bold text-xs transition-all shadow-sm group"
                 title="EELU Aswan Student Branch on LinkedIn"
               >
                 <svg className="w-4 h-4 fill-[#0A66C2] group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
@@ -754,26 +754,26 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <p className="font-semibold text-[#F5F7FB]">
+          <p className="font-semibold text-[#0F172A] dark:text-[#F5F7FB]">
             © {new Date().getFullYear()} EELU Aswan Student Branch Portal. All rights reserved.
           </p>
 
           <div className="flex items-center justify-center gap-2 text-xs">
-            <span className="text-[#8FA4BD]">Developed by</span>
+            <span className="text-[#64748B] dark:text-[#8FA4BD]">Developed by</span>
             <a
               href="https://www.linkedin.com/in/abdelrahman-mahmoud-6912801a0"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0D1D32] border border-[#1E3A5F] hover:border-[#269CF0] text-[#F5F7FB] hover:text-[#48D5F5] font-bold transition-all shadow-sm group"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#0D1D32] border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-[#1D6FB8] dark:hover:border-[#269CF0] text-[#0F172A] dark:text-[#F5F7FB] hover:text-[#1D6FB8] dark:hover:text-[#48D5F5] font-bold transition-all shadow-sm group"
             >
               <svg
-                className="w-3.5 h-3.5 fill-[#269CF0] group-hover:scale-110 transition-transform"
+                className="w-3.5 h-3.5 fill-[#1D6FB8] dark:fill-[#269CF0] group-hover:scale-110 transition-transform"
                 viewBox="0 0 24 24"
               >
                 <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
               </svg>
               <span>Abdelrahman Mahmoud</span>
-              <span className="text-[10px] text-[#8FA4BD] font-normal">• Software Engineer</span>
+              <span className="text-[10px] text-[#64748B] dark:text-[#8FA4BD] font-normal">• Software Engineer</span>
             </a>
           </div>
         </div>
