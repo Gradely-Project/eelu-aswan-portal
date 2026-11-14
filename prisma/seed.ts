@@ -63,6 +63,24 @@ async function main() {
     },
   });
 
+  const eduAdminPassword = await bcrypt.hash("Admin@123456", 10);
+  await prisma.user.upsert({
+    where: { email: "admin@branch.eelu.edu.eg" },
+    update: {
+      role: "ADMIN",
+      status: "APPROVED",
+      password: eduAdminPassword,
+    },
+    create: {
+      name: "Main Administrator",
+      email: "admin@branch.eelu.edu.eg",
+      password: eduAdminPassword,
+      role: "ADMIN",
+      status: "APPROVED",
+      phone: "01000000000",
+    },
+  });
+
   // 4. Create Chair Person & Vice Chair (Assistant) Accounts
   const chairPassword = await bcrypt.hash("chair123", 10);
   await prisma.user.upsert({
