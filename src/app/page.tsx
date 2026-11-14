@@ -242,46 +242,58 @@ export default function LandingPage() {
   const getTrackGradientTheme = (index: number) => {
     const themes = [
       {
-        cardBorder: "border-amber-500/30 hover:border-amber-400/80 shadow-amber-500/5",
-        iconBg: "bg-amber-500/10 text-amber-400 border-amber-500/30",
-        titleGradient: "from-amber-300 via-amber-200 to-yellow-400",
-        badge: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+        cardBorder: "border-amber-500/30 hover:border-amber-500 dark:border-amber-500/30 dark:hover:border-amber-400/80",
+        iconBg: "bg-amber-500/15 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400 border-amber-500/30",
+        titleGradient: "from-[#92400E] via-[#78350F] to-[#451A03] dark:from-amber-300 dark:via-amber-200 dark:to-yellow-400",
+        badge: "bg-amber-500/15 text-amber-900 dark:text-amber-300 border-amber-500/30",
         tag: "FEATURED",
+        topLine: "from-transparent via-amber-500 to-transparent",
+        btnGradient: "from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 dark:from-amber-500 dark:to-amber-600",
       },
       {
-        cardBorder: "border-cyan-500/30 hover:border-cyan-400/80 shadow-cyan-500/5",
-        iconBg: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
-        titleGradient: "from-cyan-300 via-sky-200 to-blue-400",
-        badge: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
+        cardBorder: "border-sky-500/30 hover:border-sky-500 dark:border-cyan-500/30 dark:hover:border-cyan-400/80",
+        iconBg: "bg-sky-500/15 text-sky-800 dark:bg-cyan-500/10 dark:text-cyan-400 border-sky-500/30 dark:border-cyan-500/30",
+        titleGradient: "from-[#0369A1] via-[#075985] to-[#0C4A6E] dark:from-cyan-300 dark:via-sky-200 dark:to-blue-400",
+        badge: "bg-sky-500/15 text-sky-900 dark:text-cyan-300 border-sky-500/30 dark:border-cyan-500/30",
         tag: "POPULAR",
+        topLine: "from-transparent via-sky-500 to-transparent",
+        btnGradient: "from-[#0284C7] to-[#0369A1] hover:from-[#0369A1] hover:to-[#075985] dark:from-[#269CF0] dark:to-[#1E82CB]",
       },
       {
-        cardBorder: "border-emerald-500/30 hover:border-emerald-400/80 shadow-emerald-500/5",
-        iconBg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
-        titleGradient: "from-emerald-300 via-teal-200 to-green-400",
-        badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+        cardBorder: "border-emerald-500/30 hover:border-emerald-500 dark:border-emerald-500/30 dark:hover:border-emerald-400/80",
+        iconBg: "bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-500/30",
+        titleGradient: "from-[#047857] via-[#065F46] to-[#064E3B] dark:from-emerald-300 dark:via-teal-200 dark:to-green-400",
+        badge: "bg-emerald-500/15 text-emerald-900 dark:text-emerald-300 border-emerald-500/30",
         tag: "OPEN NOW",
+        topLine: "from-transparent via-emerald-500 to-transparent",
+        btnGradient: "from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 dark:from-emerald-500 dark:to-emerald-600",
       },
       {
-        cardBorder: "border-rose-500/30 hover:border-rose-400/80 shadow-rose-500/5",
-        iconBg: "bg-rose-500/10 text-rose-400 border-rose-500/30",
-        titleGradient: "from-rose-300 via-pink-200 to-rose-400",
-        badge: "bg-rose-500/15 text-rose-300 border-rose-500/30",
-        tag: "CREATIVE",
+        cardBorder: "border-rose-500/30 hover:border-rose-500 dark:border-rose-500/30 dark:hover:border-rose-400/80",
+        iconBg: "bg-rose-500/15 text-rose-800 dark:bg-rose-500/10 dark:text-rose-400 border-rose-500/30",
+        titleGradient: "from-[#BE123C] via-[#9F1239] to-[#881337] dark:from-rose-300 dark:via-pink-200 dark:to-rose-400",
+        badge: "bg-rose-500/15 text-rose-900 dark:text-rose-300 border-rose-500/30",
+        tag: "CORE TRACK",
+        topLine: "from-transparent via-rose-500 to-transparent",
+        btnGradient: "from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 dark:from-rose-500 dark:to-rose-600",
       },
       {
-        cardBorder: "border-indigo-500/30 hover:border-indigo-400/80 shadow-indigo-500/5",
-        iconBg: "bg-indigo-500/10 text-indigo-400 border-indigo-500/30",
-        titleGradient: "from-indigo-300 via-violet-200 to-purple-400",
-        badge: "bg-indigo-500/15 text-indigo-300 border-indigo-500/30",
+        cardBorder: "border-indigo-500/30 hover:border-indigo-500 dark:border-indigo-500/30 dark:hover:border-indigo-400/80",
+        iconBg: "bg-indigo-500/15 text-indigo-800 dark:bg-indigo-500/10 dark:text-indigo-400 border-indigo-500/30",
+        titleGradient: "from-[#4338CA] via-[#3730A3] to-[#312E81] dark:from-indigo-300 dark:via-violet-200 dark:to-purple-400",
+        badge: "bg-indigo-500/15 text-indigo-900 dark:text-indigo-300 border-indigo-500/30",
         tag: "EXECUTIVE",
+        topLine: "from-transparent via-indigo-500 to-transparent",
+        btnGradient: "from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 dark:from-indigo-500 dark:to-indigo-600",
       },
       {
-        cardBorder: "border-sky-500/30 hover:border-sky-400/80 shadow-sky-500/5",
-        iconBg: "bg-sky-500/10 text-sky-400 border-sky-500/30",
-        titleGradient: "from-sky-300 via-blue-200 to-indigo-400",
-        badge: "bg-sky-500/15 text-sky-300 border-sky-500/30",
+        cardBorder: "border-blue-500/30 hover:border-blue-500 dark:border-sky-500/30 dark:hover:border-sky-400/80",
+        iconBg: "bg-blue-500/15 text-blue-800 dark:bg-sky-500/10 dark:text-sky-400 border-blue-500/30 dark:border-sky-500/30",
+        titleGradient: "from-[#1D4ED8] via-[#1E40AF] to-[#1E3A8A] dark:from-sky-300 dark:via-blue-200 dark:to-indigo-400",
+        badge: "bg-blue-500/15 text-blue-900 dark:text-sky-300 border-blue-500/30 dark:border-sky-500/30",
         tag: "ACTIVE",
+        topLine: "from-transparent via-blue-500 to-transparent",
+        btnGradient: "from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-[#269CF0] dark:to-[#1E82CB]",
       },
     ];
     return themes[index % themes.length];
@@ -397,15 +409,17 @@ export default function LandingPage() {
         <div className="flex items-center gap-3 sm:gap-5">
           <button
             onClick={() => scrollToSection("tracks-section")}
-            className="hidden md:inline-block text-xs font-bold text-[#64748B] hover:text-[#1D6FB8] dark:text-[#8FA4BD] dark:hover:text-[#48D5F5] transition-colors cursor-pointer"
+            className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black text-[#0F172A] dark:text-[#F5F7FB] hover:text-[#1D6FB8] dark:hover:text-[#48D5F5] bg-slate-100/80 hover:bg-slate-200/80 dark:bg-[#0B1A2D] dark:hover:bg-[#10243C] border border-[#E2D7C3] hover:border-[#1D6FB8]/50 dark:border-[#1E3A5F] dark:hover:border-[#269CF0]/50 shadow-sm transition-all duration-200 cursor-pointer group hover:scale-[1.03] active:scale-[0.97]"
           >
-            Tracks
+            <Layers className="w-3.5 h-3.5 text-[#1D6FB8] dark:text-[#48D5F5] group-hover:scale-110 transition-transform" />
+            <span>Tracks</span>
           </button>
           <button
             onClick={() => scrollToSection("governance-section")}
-            className="hidden md:inline-block text-xs font-bold text-[#64748B] hover:text-[#C88A1A] dark:text-[#8FA4BD] dark:hover:text-[#E5A93C] transition-colors cursor-pointer"
+            className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black text-[#0F172A] dark:text-[#F5F7FB] hover:text-[#C88A1A] dark:hover:text-[#E5A93C] bg-slate-100/80 hover:bg-slate-200/80 dark:bg-[#0B1A2D] dark:hover:bg-[#10243C] border border-[#E2D7C3] hover:border-[#C88A1A]/50 dark:border-[#1E3A5F] dark:hover:border-[#E5A93C]/50 shadow-sm transition-all duration-200 cursor-pointer group hover:scale-[1.03] active:scale-[0.97]"
           >
-            Governance
+            <Crown className="w-3.5 h-3.5 text-[#C88A1A] dark:text-[#E5A93C] group-hover:scale-110 transition-transform" />
+            <span>Governance</span>
           </button>
 
           {/* AswaN Signature Brand & Working Theme Toggle Pill */}
@@ -591,45 +605,50 @@ export default function LandingPage() {
             return (
               <div
                 key={trk.id || trk.name}
-                className={`bg-white dark:bg-[#0D1D32] rounded-3xl p-6 border border-[#E2D7C3] dark:${theme.cardBorder} transition-all group flex flex-col justify-between hover:-translate-y-1.5 shadow-lg shadow-black/5 dark:shadow-xl`}
+                className="bg-white dark:bg-[#0D1D32] rounded-3xl p-6 sm:p-7 border border-[#E2D7C3] dark:border-[#1E3A5F] hover:border-[#1D6FB8]/60 dark:hover:border-[#269CF0]/60 transition-all duration-300 group flex flex-col justify-between hover:-translate-y-2 shadow-sm hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-[#269CF0]/10 relative overflow-hidden"
               >
+                {/* Top Colored Accent Stripe */}
+                <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${theme.topLine} opacity-90`} />
+
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className={`w-11 h-11 rounded-2xl ${theme.iconBg} border flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                    <div className={`w-12 h-12 rounded-2xl ${theme.iconBg} border flex items-center justify-center group-hover:scale-110 group-hover:rotate-2 transition-transform duration-300 shadow-sm`}>
                       <Icon className="w-5 h-5" />
                     </div>
                     <span
-                      className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${theme.badge}`}
+                      className={`text-[10px] font-black tracking-wider uppercase px-3 py-1 rounded-full border ${theme.badge} shadow-xs`}
                     >
                       {tag}
                     </span>
                   </div>
 
-                  <h3 className={`text-xl font-black bg-gradient-to-r ${theme.titleGradient} bg-clip-text text-transparent mb-1 transition-all`}>
+                  <h3 className={`text-xl font-black bg-gradient-to-r ${theme.titleGradient} bg-clip-text text-transparent mb-1.5 transition-all`}>
                     {trk.name}
                   </h3>
-                  <span className="text-[10px] font-bold text-[#64748B] dark:text-[#8FA4BD] tracking-wider uppercase block mb-3">
+                  <span className="text-[10px] font-black text-[#1D6FB8] dark:text-[#48D5F5] tracking-wider uppercase block mb-3">
                     BOOTCAMP TRACK
                   </span>
-                  <p className="text-xs text-[#64748B] dark:text-[#8FA4BD] font-medium leading-relaxed mb-6">
+                  <p className="text-xs text-[#334155] dark:text-[#8FA4BD] font-medium leading-relaxed mb-6">
                     {description}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-[#E2D7C3] dark:border-[#1E3A5F]/70 flex items-center justify-between text-xs text-[#64748B] dark:text-[#8FA4BD]">
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center gap-1 text-[11px]">
-                      <Clock className="w-3.5 h-3.5 text-[#1D6FB8] dark:text-[#269CF0]" />
+                <div className="pt-4 border-t border-[#E2D7C3] dark:border-[#1E3A5F]/70 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1D6FB8] dark:text-[#48D5F5] bg-[#1D6FB8]/10 dark:bg-[#269CF0]/10 px-2.5 py-1 rounded-lg border border-[#1D6FB8]/20 dark:border-[#269CF0]/20">
+                      <Clock className="w-3.5 h-3.5" />
                       {duration}
                     </span>
-                    <span>•</span>
-                    <span className="text-[11px] truncate max-w-[120px]">{level}</span>
+                    <span className="text-[11px] font-medium text-[#475569] dark:text-[#8FA4BD] bg-slate-100 dark:bg-[#07172A] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-[#1E3A5F] truncate max-w-[120px]">
+                      {level}
+                    </span>
                   </div>
                   <Link
                     href="/register"
-                    className="p-1.5 rounded-lg bg-[#F8F6F0] dark:bg-[#07172A] text-[#1D6FB8] dark:text-[#48D5F5] hover:bg-[#269CF0] hover:text-white transition-colors border border-[#E2D7C3] dark:border-transparent"
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r ${theme.btnGradient} hover:brightness-110 text-white font-black text-xs shadow-md transition-all cursor-pointer group-hover:scale-105`}
                   >
-                    <ArrowRight className="w-4 h-4" />
+                    <span>Register</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </Link>
                 </div>
               </div>
